@@ -10,7 +10,12 @@
   Documento de história. Só narrativa — nada de código aqui.
   A parte técnica fica em CHAMADO_DA_MEIA_NOITE.md.
 
-  Última atualização: 10/08/2026 (sessão 21)
+  Última atualização: 10/08/2026 (sessão 22)
+  ⚠ MUDANÇA DE CANON NESTA SESSÃO: a ligação das 02h14 ganhou dono. Ninguém
+     mais diz que o David ligou para si próprio — foi um policial de dentro
+     da delegacia, e o Carlos entrega o nome no interrogatório. Ver IX.0.
+     E o interrogatório virou SISTEMA, não conversa. Ver a Cena 6.
+
   Estado: CAPÍTULO 1 escrito e implementado no jogo.
           CAPÍTULO 2 escrito, decidido e IMPLEMENTADO — os oito setores, os
           três inimigos, o Credor, o diário, o inventário, a sanidade e a
@@ -1937,6 +1942,66 @@ IX.0 — A ESPINHA  (canon travado em 07/08)
      O capítulo termina nisso. Ver IX.6.
 
   ------------------------------------------------------------------------
+  ★★★ DE ONDE VEIO A LIGAÇÃO  — travado em 10/08, sessão 22
+  ------------------------------------------------------------------------
+
+  ⚠ MUDANÇA DE CANON. Até a sessão 21, três personagens repetiam que o DAVID
+  TINHA LIGADO PARA SI PRÓPRIO. Isso foi CORTADO, e por um motivo que o Luiz
+  levantou e está certo: aquilo não é mistério, é o jogo dando de ombros.
+  Fecha a pergunta no lugar errado — vira sobrenatural declarado, e o jogo
+  perde o único caso que dava para resolver.
+
+  A RESPOSTA JÁ ESTAVA PLANTADA desde a sessão 20: a Elaine sempre disse que
+  a chamada entrou DO RAMAL DAQUELA SALA. Só faltava ela ter dono.
+
+  O QUE ACONTECEU DE VERDADE:
+
+    Um POLICIAL da própria delegacia — ANDRADE, turno da noite, mesa dos
+    fundos — era gente do Carlos. Foi ele que ligou para a casa do David às
+    02h14, e ligou por um motivo só: TIRAR O DAVID DE DENTRO DE CASA.
+
+    O David saiu pra varanda pra atender. Acendeu um cigarro. E foi nesse
+    intervalo que entraram.
+
+  E ISSO NÃO É SOBRENATURAL. É um homem com distintivo vendendo um horário.
+  O horror não some — ele muda de lugar, e fica pior: não foi o destino, foi
+  um colega.
+
+  COMO O JOGADOR DESCOBRE, e em que ordem:
+    · a Elaine diz de onde a chamada veio  (Cap. 3, plantão)
+    · o Michael diz que saiu uma chamada DAQUI pra casa dele um minuto antes
+    · a telefonista do Cap. 2 responde "de dentro" quando perguntada — e
+      NÃO diz mais "o senhor mesmo"
+    · e o CARLOS entrega o nome, no fim do interrogatório
+
+  ⚠ E O DAVID NÃO PERGUNTA QUEM É ANDRADE. Essa é a batida da cena.
+
+  ------------------------------------------------------------------------
+  O QUE VEM DEPOIS  — decidido em 10/08, e o Capítulo 4 se apoia nisto
+  ------------------------------------------------------------------------
+
+  CAPÍTULO 4 — A CAÇADA, jogada. É a memória da noite em que ele foi atrás
+  do Andrade. A calibre doze da mesa dele (Cap. 3) é a arma dessa noite, e é
+  por isso que ela está lá, carregada e destrancada, sem ser pegável.
+
+  CAPÍTULO 5 — O PRESENTE. Ele descobre que já fez isso. Sete anos atrás. E
+  que não devolveu nada.
+
+  A revelação não é "quem foi". É: VOCÊ JÁ SABE QUEM FOI, VOCÊ JÁ MATOU ELE,
+  E VOCÊ CONTINUA AQUI.
+
+  ⚠ Isso é o que sustenta as coisas que o jogo já plantou sem explicar: a
+  porta da cela que nunca esteve trancada, sete anos de assinatura dele no
+  livro de visitas, "o senhor vem toda noite", o plantonista que não pergunta
+  o nome dele, e a figura negra sentada na sala de espera com uma senha na
+  mão. Quem está preso na delegacia é o David.
+
+  A alternativa levantada — ele acordar no Cap. 5 e a gameplay virar caçada
+  no presente — foi descartada: transforma o jogo em outro no último ato e
+  mata o tom construído em três capítulos. A caçada acontece, mas como
+  memória.
+
+  ------------------------------------------------------------------------
   A PONTA QUE FECHA O JOGO INTEIRO  (plantar aqui, revelar no CAP. 4)
   ------------------------------------------------------------------------
 
@@ -2054,12 +2119,35 @@ TEMPO:  ~5 min
    jogador sentir a falta o capítulo inteiro. Quando a arma voltar, no
    Capítulo 4, ela vai pesar.)
 
-  ------- A SALA DE ESPERA -------  ★ O CREDOR
+  ------- A SALA DE ESPERA -------  ★ QUEM ESTÁ ESPERANDO
 
   Ao lado da recepção, seis cadeiras de plástico em fila. Um painel de senha
   na parede.
 
-  Na terceira cadeira está O CREDOR.
+  ⚠ MUDOU em 10/08 (sessão 22). Quem senta ali NÃO é mais o Credor: é A
+  FIGURA NEGRA DO CAPÍTULO 1 — o recorte de escuro com forma de gente que
+  derrubou o David no depósito e que o jogo nunca explicou.
+
+  Sentada numa cadeira de plástico, debaixo de luz fluorescente, com uma
+  SENHA DE ATENDIMENTO na mão. Não se mexe. Não ataca. Não olha. E, mesmo
+  acesa a delegacia inteira, não dá pra distinguir nada dela.
+
+  POR QUE MUDOU: com o canon novo (ver IX.0), a figura pode ser o ANDRADE —
+  o homem que ligou, e o homem que o David caçou. Ela esperando atendimento
+  na delegacia onde os dois trabalharam fecha o círculo sem uma linha de
+  diálogo. E o Credor já teve a hora dele: repetir o Credor seria repetir o
+  Capítulo 2.
+
+  (o motivo anterior, e ele continua valendo pro que a cena faz: é ele com
+   a coleira, e isso é mais assustador do que ele solto)
+
+  ⚠ E O DAVID NÃO INSISTE. Três olhadas e ele vai embora:
+    "Tem alguém sentado ali com uma senha na mão."
+    "Não dá pra ver a roupa dele. Não dá pra ver nada dele."
+    "Ele tá esperando a vez."
+
+  A descrição antiga, do Credor, fica registrada porque o painel de senha e
+  o comportamento continuam idênticos:
 
   Avental de açougueiro. Cabeça de porco em pano de saco. A motosserra
   DESLIGADA, atravessada no colo. E uma SENHA DE ATENDIMENTO na mão.
@@ -2250,6 +2338,17 @@ TEMPO:  ~8 min
     O CRACHÁ NA PAREDE
       "Meu número."
       "Ainda não deram pra ninguém."
+
+    O ARMÁRIO DE PAREDE  ★ A CALIBRE DOZE  (10/08)
+      "A doze ainda está no armário. Carregada."
+      "Sete anos e ninguém recolheu. Ninguém nem trancou."
+      "Deixa aí. Hoje eu entrei pela porta."
+      ⚠ ELA NÃO É PEGÁVEL. A arma fica na portaria e essa regra não tem
+      exceção. Ela é a promessa do Capítulo 4 deixada em cima da mesa — é
+      com ela que ele caçou o Andrade —, e ele comenta a conveniência,
+      que é a defesa dele desde o Capítulo 2.
+      (nota: e é mais uma migalha da família 6 — enquanto a papelada não
+       fechar, ele ainda é de casa. Ninguém comenta.)
 
 
 ===============================================================================
@@ -2593,7 +2692,92 @@ TEMPO:  ~10 min
   É mundano, é verificável, e é exatamente o tipo de coincidência que o
   jogo já ensinou o jogador a desconfiar. David pode comentar.
 
-  ------- ★ O INTERROGATÓRIO -------
+  ------- ★★★ O INTERROGATÓRIO — SISTEMA, travado em 10/08 ★★★ -------
+
+  ⚠ REESCRITO na sessão 22. A primeira versão era uma árvore de conversa e o
+  David tratava BEM o homem que mandou matar a família dele. Agora é a única
+  coisa JOGÁVEL do capítulo inteiro.
+
+  A CÂMERA FECHA. Só aqui, e só nesta cena — 1,35x, sem corte, com a luz
+  fechando numa poça em cima dos dois. É a resposta da dúvida D-10, decidida
+  olhando a tela: 1,6x amplia o pixel a ponto de denunciar; 1,35x não.
+
+  TRÊS VERBOS, e uma barra de PRESSÃO sem número nenhum:
+
+    PERGUNTAR ..... anda 5 a 9. Não custa nada. É ofício.
+    PRESSIONAR .... anda 13 a 18. Custa 4 de cabeça. É ele escolhendo.
+    BATER ......... anda 24 a 31. Custa 9 de cabeça. E CALA O CARLOS:
+                    a pergunta seguinte não anda nada.
+
+  ⚠ BATER DUAS VEZES SEGUIDAS DERRUBA A BARRA. Ele fecha os olhos e para de
+  falar. É a regra que obriga a alternar — sem ela a cena vira um botão de
+  socar, e um interrogatório que se ganha na porrada não é um
+  interrogatório. Repetir o mesmo verbo também rende menos.
+
+  EM TRÊS DEGRAUS (30 · 58 · 82) ELE VAZA UM PEDAÇO:
+
+    1. não foi gente dele — gente dele estava toda presa ou toda ouvida
+    2. a chamada saiu de DENTRO da delegacia, do ramal da sala grande
+    3. era um dos seus. Distintivo, cadeira, cafezinho.
+
+  E a cada degrau o David diz uma linha, sempre a mesma ideia:
+    "Eu tô quase lá." / "Mais um pouco. Eu preciso sair daqui." /
+    "Eu tô quase lá, porra. Fala logo."
+  ⚠ Ele não está falando do interrogatório. Ninguém comenta isso.
+
+  ------------------------------------------------------------------------
+  O QUE A BARRA MEDE  — e é aqui que a cena se salva de virar vingança
+  ------------------------------------------------------------------------
+
+  A barra NÃO é a resistência do Carlos. Ele quer contar. Ele passou sete
+  anos esperando o David sentar na frente dele para poder contar.
+
+  A barra mede O QUANTO O DAVID JÁ DESCEU. O Carlos só entrega a coisa toda
+  quando o homem do outro lado da grade estiver irreconhecível — porque o
+  presente que ele quer dar não é a verdade: é o David virando ele.
+
+  Por isso o TOM do David muda sozinho em quatro degraus, do detetive ao
+  irreconhecível, e o jogador não escolhe tom nenhum: ele escolhe verbo. A
+  cor da barra acompanha o tom. Verde nunca.
+
+  ------------------------------------------------------------------------
+  REGRAS DE ESCRITA DO CARLOS
+  ------------------------------------------------------------------------
+    · nunca implora e nunca se defende. Apanha e continua achando graça,
+      porque cada porrada é a prova do que ele quer provar
+    · sabe exatamente onde apertar, e aperta em casa, não em ameaça
+    · "Bate mais. Bate até virar do lado de cá da grade."
+    · "O senhor virou eu, só que sem coragem de assinar."
+
+  ------------------------------------------------------------------------
+  A CONFISSÃO — e por que ela não presta
+  ------------------------------------------------------------------------
+
+  Cheia a barra, ele conta: mandou matar a Julie porque o David o prendeu,
+  marcou a hora, e MANDOU DEIXAR A MENINA VIVA — pra ele ter o que procurar
+  pelo resto da vida. E entrega o nome de quem abriu a porta: ANDRADE, um
+  policial.
+
+  ⚠ E NADA DISSO PRESTA. Foi arrancado na porrada de um homem algemado que
+  queria ser interrogado. O caderno registra isso com todas as letras, o
+  Michael diz na cara dele, e o David acredita mesmo assim.
+
+  O jogador enche a barra, ouve a resposta que o jogo prometeu por três
+  capítulos, e sai de lá com uma informação que ele mesmo contaminou. É esse
+  o problema dele, e é ele que o Capítulo 4 herda.
+
+  ⚠ O QUE GELA NÃO É O NOME. É o David NÃO PERGUNTAR QUEM É. Ele não pede
+  patente, não pede lotação, não pergunta se ainda trabalha ali. Ele só
+  para. E o caderno escreve sozinho, com a letra que não é dele:
+  "VOCÊ JÁ SABIA O NOME."
+
+  (o Michael, se pressionado depois: os dois dividiram plantão por quatro
+   anos, e o David foi a última pessoa que perguntou por ele. Faz sete anos.)
+
+  📌 ANDRADE é nome provisório. Trocar é barato: ele aparece na confissão,
+  na conversa do Michael e em duas páginas do caderno.
+
+  ------- ★ O QUE JÁ ESTAVA ESCRITO E CONTINUA VALENDO -------
 
   Este é o formato clássico e é o certo pra um capítulo de conversa: você
   senta, e a conversa dura o quanto o jogador aguentar.
@@ -2626,6 +2810,16 @@ TEMPO:  ~10 min
       tivesse dito, reclamando que não tem relógio na cela.
 
   ------- ★★★ O DEGRAU 4 — ELE NÃO DECIDE NADA ★★★ -------
+
+  ⚠ ONDE ISTO ACONTECE AGORA (sessão 22): DEPOIS do interrogatório. Falar
+  com o Carlos abre a barra de pressão; a conversa normal com ele só existe
+  depois que ele quebra. O cigarro acontece nessa conversa — com os dois
+  homens já destruídos, um que acabou de confessar e um que acabou de bater
+  num preso algemado.
+
+  É melhor assim do que era antes. O gesto de acender um pro outro deixa de
+  ser técnica de interrogatório e vira a única coisa parecida com decência
+  que sobrou na sala.
 
   A meio da conversa, o homem pede um cigarro.
 

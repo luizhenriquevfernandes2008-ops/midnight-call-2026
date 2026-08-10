@@ -132,9 +132,16 @@ function ceilingFan(g, x, y) {
 
 // Grade de cela. As barras vao ate o chao e o vao entre elas mostra o
 // interior, mais escuro.
-function cellBars(g, x, y, w, h, seed) {
+// A cela e desenhada em DUAS partes, e a divisao importa: o fundo vai na
+// camada normal e as BARRAS vao numa camada de primeiro plano. Sem isso o
+// homem preso aparece na frente da propria grade — e, pior, a versao
+// anterior pintava o interior inteiro por cima de todo mundo.
+function cellBack(g, x, y, w, h, seed) {
   rect(g, x, y, w, h, '#090c10');
   grainRect(g, x + 2, y + 4, w - 4, h - 6, ['#12171d', '#080a0e'], 0.05, seed);
+}
+
+function cellBarsOnly(g, x, y, w, h) {
   for (let bx = x + 2; bx < x + w - 2; bx += 9) {
     rect(g, bx, y, 3, h, '#3b444f');
     rect(g, bx, y, 1, h, '#525d6a');
@@ -649,6 +656,30 @@ export function buildOldDesk() {
   inter.push({
     x: MESA + 2, y: GY - 26, w: 30, h: 26, prompt: 'prompt_use',
     action: 'ch3_gaveta', range: 24, id: 'gaveta_mesa', prio: 1,
+  });
+
+  // ---- O ARMARIO DE PAREDE, E O QUE ESTA DENTRO DELE ----
+  //
+  // A calibre doze que ele guardava na delegacia, e que continua no lugar
+  // porque ninguem esvaziou a mesa dele. Ela NAO e pegavel aqui: a arma
+  // fica na portaria e essa regra nao tem excecao. Ela e uma promessa,
+  // deixada em cima da mesa para o Capitulo 4 — e o David comenta a
+  // conveniencia, que e o que ele sempre faz.
+  const ARM = 330;
+  rect(g, ARM, GY - 104, 46, 62, '#3a3128');
+  rect(g, ARM, GY - 104, 46, 2, '#54483a');
+  rect(g, ARM + 2, GY - 102, 42, 58, '#241d17');
+  // a coronha e o cano, encostados de pe la dentro
+  rect(g, ARM + 14, GY - 96, 5, 34, '#8f959e');
+  rect(g, ARM + 13, GY - 62, 7, 16, '#5a4028');
+  rect(g, ARM + 13, GY - 62, 7, 2, '#7d5a38');
+  rect(g, ARM + 20, GY - 94, 3, 30, '#6c727a');
+  rect(g, ARM + 26, GY - 88, 12, 8, '#43331f');
+  for (let i = 0; i < 4; i++) rect(g, ARM + 28 + i * 3, GY - 86, 2, 5, '#c9a03a');
+  rect(g, ARM + 2, GY - 46, 42, 2, '#54483a');
+  inter.push({
+    x: ARM, y: GY - 104, w: 46, h: 62, prompt: 'prompt_look',
+    action: 'ch3_shotgun', range: 26, id: 'shotgun',
   });
 
   // o cracha na parede
@@ -1352,8 +1383,15 @@ export function buildCell() {
   });
 
   // ---- A CELA ----
+  //
+  // ⚠ A GRADE NAO E DESENHADA AQUI. Ela vai para uma camada de primeiro
+  // plano em paralaxe 1:1, mais abaixo, porque as pessoas sao desenhadas
+  // DEPOIS das camadas de fundo — e com a grade no fundo o Carlos aparecia
+  // na frente das barras, do lado de fora da propria cela. E o mesmo erro
+  // de encenacao do plantonista na guarita (sessao 20b), e ele fica
+  // impossivel de ignorar agora que a camera fecha em cima dos dois.
   const CEL = 320;
-  cellBars(g, CEL, GY - 118, 200, 118, 9731);
+  cellBack(g, CEL, GY - 118, 200, 118, 9731);
   // banco de concreto e a mesa de metal parafusada no chao, la dentro
   rect(g, CEL + 20, GY - 34, 60, 6, '#2a2c30');
   rect(g, CEL + 20, GY - 34, 60, 1, '#3a3d42');
@@ -1386,6 +1424,12 @@ export function buildCell() {
   }
   preencher(lights, W, '#7a6a52', 0.2);
 
+  // A GRADE, em primeiro plano 1:1. Alinha exatamente com o cenario e ainda
+  // assim e desenhada depois das pessoas: e isso que poe o Carlos DENTRO
+  // da cela em vez de na frente dela.
+  const grade = makeBuffer(W, VH);
+  cellBarsOnly(grade.x, CEL, GY - 118, 200, 118);
+
   const fore = makeBuffer(Math.ceil(VW + (W - VW) * 1.2) + 8, VH);
   {
     const f = fore.x;
@@ -1401,7 +1445,7 @@ export function buildCell() {
     width: W, groundY: GY,
     ambient: '#2a3040',
     layers: [{ c: back.c, par: 0.5 }, { c: main.c, par: 1 }],
-    fores: [{ c: fore.c, par: 1.2 }],
+    fores: [{ c: grade.c, par: 1 }, { c: fore.c, par: 1.2 }],
     lightDefs: lights,
     interactables: inter,
     weather: 'none',
@@ -1417,6 +1461,10 @@ export function buildCell() {
     enterBarks: ['b3_cell_1', 'b3_cell_2'],
   });
   lvl.props.cigarrosNoCinzeiro = false;
+  // Onde o David para para interrogar: do lado de FORA das barras. Sem uma
+  // marca, ele ficava em pe dentro da propria cela — o que, com a camera
+  // fechando nos dois, e a diferenca entre uma cena e um erro.
+  lvl.props.marcaInt = CEL - 30;
   return lvl;
 }
 

@@ -25,6 +25,7 @@ import {
   degrauDoCigarro, usarCigarro, liberarCigarro, TicketBoard,
   entrarFlashback, sairFlashback, NamePrompt, esticarCorredor, Fogo,
 } from './systems/chapter3.js';
+import { Interrogatorio } from './systems/interrogatorio.js';
 import { NoteScene } from './systems/scene-nota.js';
 import { MirrorScene } from './systems/scene-espelho.js';
 import { Player } from './systems/player.js';
@@ -202,6 +203,7 @@ class Game {
     this.ticket = new TicketBoard();
     this.namePrompt = new NamePrompt();
     this.fogo = new Fogo();
+    this.interrog = new Interrogatorio();
     // Identidade da partida em curso. Cenas roteirizadas que dependem de
     // `setTimeout` congelam este numero e conferem depois: sem isso, sair
     // para o menu, carregar um save ou trocar de capitulo no meio de uma
@@ -360,6 +362,7 @@ class Game {
   toMenu() {
     this.runId++;   // invalida qualquer cena roteirizada ainda no relogio
     this.fogo.parar(); this.fogo.reset();
+    this.interrog.reset();
     this.state = 'menu';
     this.scene = null;
     if (this.menuSlots) this.menuSlots.open = false;
@@ -570,6 +573,22 @@ class Game {
     for (const a of (lv.ambience || [{ n: 'roomtone', g: 0.1 }])) {
       audio.startLoop(a.n, { gain: a.g, fade: a.f || 1.5 });
     }
+
+    // ---- MUSICA POR LUGAR (Capitulo 3) ----
+    //
+    // Dois temas, e os dois entram por baixo do ambiente, nao por cima: a
+    // regra do jogo continua sendo que o silencio e a arma principal e que
+    // a musica so existe para ser cortada.
+    //
+    //   a casa .... um piano triste, muito baixo, com vaos enormes entre as
+    //               notas. E a unica musica quente do jogo.
+    //   delegacia . um bordao grave com um tritom quase inaudivel por cima.
+    //               Nao e tema; e o predio.
+    if (this.flags.cap3) {
+      if (lv.key === 'ch3_home' || lv.key === 'ch3_room') audio.startMusic('casa');
+      else if (lv.key === 'ch3_past') audio.stopMusic(2.2);
+      else audio.startMusic('delegacia');
+    }
     if (this.chase && this.chase.ativo) {
       audio.startLoop('serra', { gain: 0.035, fade: 0.35 });
       audio.startLoop('static', { gain: 0.014, fade: 0.28 });
@@ -631,7 +650,8 @@ class Game {
     // ele tapa parte da tela.
     if ((cap2 || cap3) && !paused && !this.scene && !this.dialogue.active
       && !this.shiftPuzzle.open && !this.transition && !this.grab && !this.chaseSetpieces.action
-      && !this.chaseSequence.action && !this.finishers.action && !this.namePrompt.ativo) {
+      && !this.chaseSequence.action && !this.finishers.action && !this.namePrompt.ativo
+      && !this.interrog.ativo) {
       if (input.pressed('journal') && this.flags.caderno) {
         this.journal.toggle(); this.inv.open = false; this.mapaAberto = false;
       }
@@ -769,6 +789,14 @@ class Game {
     if (this.fogo.ativo) this.fogo.addLights(gfx, cam, lv);
     gfx.endLights(lv.bloom);
 
+    // A CAMERA FECHA NO INTERROGATORIO. Entre a luz e a interface: assim o
+    // mundo chega perto e o texto continua do tamanho certo. (D-10)
+    if (this.interrog.ativo) {
+      const alvo = this.npcs.carlos;
+      const fx3 = alvo ? ((this.player.x + alvo.x) / 2 - cam.ix) : (this.player.x - cam.ix);
+      gfx.aproximar(this.interrog.zoom, fx3, lv.groundY - 34 - cam.iy);
+    }
+
     // ---- interface ----
     if (this.locCard > 0) {
       const a = clamp(Math.min(this.locCard, 4.0 - this.locCard + 3.4), 0, 1);
@@ -840,6 +868,7 @@ class Game {
     }
     if (cap2) this.shiftPuzzle.draw(gfx.s);
     if (this.flags.cap3) this.namePrompt.draw(gfx.s);
+    if (this.interrog.ativo) this.interrog.draw(gfx.s, this);
     this.pause.draw(gfx.s);
     if (this.debug) this.drawDebug(gfx.s, 'PLAY ' + lv.key);
     gfx.present(dt);
@@ -1668,6 +1697,29 @@ class Game {
     switch (it.action) {
       // ---- a conversa, com memoria e com os assuntos travados ----
       case 'talk3': {
+        // ---- O INTERROGATORIO ----
+        //
+        // Sentar na frente do Carlos nao abre uma arvore de conversa: abre a
+        // unica coisa jogavel do capitulo. A conversa normal com ele so
+        // existe DEPOIS que ele quebra — e e nela que o cigarro acontece,
+        // com os dois homens ja destruidos, que e onde o degrau 4 sempre
+        // devia ter acontecido.
+        if (it.npc === 'carlos' && !this.interrog.quebrou) {
+          this.cam.offsetY = 28;
+          this.interrog.comecar(this, (quebrou) => {
+            this.cam.offsetY = 0;
+            if (!quebrou) return;
+            this.anotar('j3_conf');
+            this.anotar('j3_andrade');
+            this.journal.add('j3_x3');       // a que ele nao escreveu
+            this.sanity.drain(14);
+            const p = this.player;
+            p.say('b3_int_fim', 2.2, true);
+            p.say('b3_int_fim2', 2.6);
+            this.flags.npc3_carlos = true;
+          });
+          return true;
+        }
         const t = TALKS[it.npc];
         if (!t) return true;
         const mem = this._talkMem(it.npc);
@@ -1717,6 +1769,26 @@ class Game {
         p.say('b3_rec_gun', 3.0, true);
         p.say('b3_rec_214', 2.6);
         audio.leather ? audio.leather(0.7) : audio.uiConfirm();
+        return true;
+      }
+
+      // A calibre doze no armario da mesa dele. Ele NAO pega: a arma fica
+      // na portaria e a regra do capitulo nao tem excecao. Ela fica ali.
+      case 'ch3_shotgun': {
+        if (!this.flags.viu_shotgun) {
+          this.flags.viu_shotgun = true;
+          this.anotar('j3_shotgun');
+        }
+        p.sayAll(['c3_shotgun_1', 'c3_shotgun_2', 'c3_shotgun_3'], true);
+        return true;
+      }
+
+      // Olhar para a figura sentada. Ela nao responde, e ele nao insiste.
+      case 'ch3_figura': {
+        const n = (this.flags.figura_olhou || 0);
+        this.flags.figura_olhou = n + 1;
+        p.say(['c3_figura_1', 'c3_figura_2', 'c3_figura_3'][Math.min(n, 2)], 3.0, true);
+        if (n === 0) { this.sanity.drain(7); this.anotar('j3_figura'); }
         return true;
       }
 
@@ -1821,6 +1893,7 @@ class Game {
     this.ticket.reset();
     this.namePrompt.ativo = false;
     this.fogo.parar(); this.fogo.reset();
+    this.interrog.reset();
     this.cigTentativas = 0;
     // Ele chega do Patio de Carga com o que sobrou do Capitulo 2.
     const p = this.player;
@@ -1865,6 +1938,9 @@ class Game {
     p.controllable = false;
     p.frozen = true;
     audio.stopAllLoops(1.2);
+    // A musica da casa morre AQUI, no instante em que ele atende. O resto
+    // da cena acontece sem tema nenhum: o que vem depois nao tem trilha.
+    audio.stopMusic(1.6);
     // O que a ligacao diz: NADA que de para ouvir. Se o jogador entender uma
     // palavra que seja, o Capitulo 4 perde a revelacao.
     p.det.play('interact', { restart: true });
@@ -2567,6 +2643,23 @@ class Game {
     // O fogo tem relogio proprio: ele comeca com os gritos e nao depende de
     // mais nada do jogo para continuar queimando.
     if (this.fogo.ativo) this.fogo.update(dt, this);
+    // O interrogatorio idem: enquanto ele estiver aberto, e ele que le o
+    // teclado. O jogador nao anda, nao abre casaco e nao saca nada.
+    if (this.interrog.ativo) this.interrog.update(dt, this);
+
+    // ---- A PARADA NA SAIDA DA CELA ----
+    //
+    // Depois da confissao, atravessar a porta do arquivo nao e so trocar de
+    // sala: ele para no meio do corredor, sozinho, e o jogo espera. E o
+    // unico lugar do capitulo em que David comenta o que acabou de fazer —
+    // e o comentario e sobre ELE, nao sobre o Carlos.
+    if (lv.key === 'ch3_archive' && this.flags.carlos_quebrou && !this.flags.parou_saida
+        && this.player.x > lv.maxX - 260) {
+      this.flags.parou_saida = true;
+      const p2 = this.player;
+      p2.say('b3_int_saida', 3.2, true);
+      p2.say('b3_int_quase2', 3.0);
+    }
 
     // A saida: com Carlos ouvido e o cigarro aceso, voltar a recepcao e o
     // fim do capitulo. O plantonista pede o nome, e o jogo para.
@@ -3240,6 +3333,7 @@ class Game {
       // que nao existe mais nele.
       senha: this.ticket.save(),
       presente: this._presente || null,
+      interrog: this.interrog.save(),
     };
   }
 
@@ -3309,6 +3403,7 @@ class Game {
     // A casa so queima dentro da cena. Carregar um save nunca devolve o
     // jogador para o meio de um incendio.
     this.fogo.parar(); this.fogo.reset();
+    this.interrog.load(s.interrog);
     this._presente = s.presente || null;
     if (this.flags.flashback) {
       // Carregar dentro do passado tem que devolver o David do passado: sem

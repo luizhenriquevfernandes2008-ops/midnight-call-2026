@@ -413,6 +413,13 @@ class Gfx {
     const tmp2 = makeBuffer(VW, VH);
     this.tmp2C = tmp2.c; this.t2 = tmp2.x;
 
+    // Buffer proprio da aproximacao de camera. Nao da para reaproveitar os
+    // dois de cima: o `t` guarda o padrao de scanline e o `t2` e usado
+    // dentro do mesmo quadro pelo pos-processamento. E ler e escrever no
+    // MESMO canvas com escala nao e confiavel em navegador nenhum.
+    const zoomB = makeBuffer(VW, VH);
+    this.zoomC = zoomB.c; this.z2 = zoomB.x;
+
     this._buildGrain();
     this._buildVignette();
     this._buildScanlines();
@@ -627,6 +634,35 @@ class Gfx {
     s.globalAlpha = alpha * 0.25;
     desenha(s);
     s.restore();
+  }
+
+  // ---------- aproximacao de camera ----------
+  //
+  // A DUVIDA D-10 do documento mestre, resolvida na marra: aproximar amplia
+  // o pixel do cenario, e a 1,6x isso DENUNCIA — o pixel de dentro da
+  // aproximacao fica visivelmente maior que o do resto do jogo. A 1,35x
+  // ajuda e nao denuncia, e e onde isto ficou.
+  //
+  // ⚠ Chame ENTRE `endLights()` e o desenho da interface. Assim o mundo
+  // chega perto e a interface continua no tamanho certo — que e o contrario
+  // de zoom no `present()`, onde o texto ia junto e virava letra de bloco.
+  aproximar(z, fx, fy) {
+    if (!(z > 1.001)) return;
+    const w = VW / z, h = VH / z;
+    const zx = clamp(fx - w / 2, 0, VW - w);
+    const zy = clamp(fy - h / 2, 0, VH - h);
+    this.z2.setTransform(1, 0, 0, 1, 0, 0);
+    this.z2.globalAlpha = 1;
+    this.z2.globalCompositeOperation = 'source-over';
+    this.z2.imageSmoothingEnabled = false;
+    this.z2.clearRect(0, 0, VW, VH);
+    this.z2.drawImage(this.sceneC, zx, zy, w, h, 0, 0, VW, VH);
+    const s = this.s;
+    s.setTransform(1, 0, 0, 1, 0, 0);
+    s.globalAlpha = 1;
+    s.globalCompositeOperation = 'source-over';
+    s.imageSmoothingEnabled = false;
+    s.drawImage(this.zoomC, 0, 0);
   }
 
   present(dt) {
@@ -1709,57 +1745,90 @@ class Audio {
   // som limpo aqui viraria filme, e o ponto e que ele esta do lado de fora.
   //
   // Nada disso e mostrado na tela. Se o jogador vir, vira cena de morte.
+  // ⚠ REFEITO na sessao 22. A primeira versao eram tres serras graves com
+  // vibrato debaixo de um passa-baixa de 800 Hz — e isso nao e um grito, e
+  // um mugido. Grito de gente tem quatro coisas que faltavam ali:
+  //
+  //   1. FUNDAMENTAL ALTA. Garganta gritando sai entre 600 e 1000 Hz, nao
+  //      em 420. Grave le como dor surda, agudo le como panico.
+  //   2. FORMANTES. A boca e um filtro com dois ou tres picos fixos. Sem
+  //      eles qualquer oscilador soa a sintetizador, nao a pessoa.
+  //   3. ROUQUIDAO. Voz no limite distorce. Um pouco de ruido dentro do
+  //      tom e o que separa "cantando alto" de "gritando".
+  //   4. A QUEBRA. Ninguem segura um grito ate o fim: a voz falha, despenca
+  //      de altura e vira ar. E o detalhe que faz doer.
+  //
+  // A parede continua existindo, mas subiu para 1,6 kHz: abafado demais e o
+  // ouvido para de reconhecer voz, e o ponto e justamente reconhecer.
   scream(vol = 1) {
     if (!this.ensure()) return;
     const c = this.ctx, t = c.currentTime;
-    const dur = 1.6 + Math.random() * 0.5;
+    const dur = 1.5 + Math.random() * 0.6;
+    const quebra = dur * (0.62 + Math.random() * 0.12);   // onde a voz falha
     const mix = c.createGain();
+    mix.gain.value = 1;
 
-    // a parede: tira o brilho todo e deixa so o corpo da voz
+    // ---- a parede entre ele e o que esta acontecendo ----
     const parede = c.createBiquadFilter();
     parede.type = 'lowpass';
-    parede.frequency.setValueAtTime(1150, t);
-    parede.frequency.linearRampToValueAtTime(780, t + dur);
-    parede.Q.value = 0.7;
+    parede.frequency.setValueAtTime(1650, t);
+    parede.frequency.linearRampToValueAtTime(1150, t + dur);
+    parede.Q.value = 0.6;
 
-    const base = 420 + Math.random() * 120;
-    for (const [mult, amp] of [[1, 1], [2.02, 0.5], [3.05, 0.22]]) {
-      const o = c.createOscillator();
-      o.type = 'sawtooth';
-      o.frequency.setValueAtTime(base * mult * 0.86, t);
-      o.frequency.linearRampToValueAtTime(base * mult * 1.14, t + 0.18);
-      o.frequency.linearRampToValueAtTime(base * mult * 0.72, t + dur);
-      // vibrato irregular: voz humana nao segura nota
-      const lfo = c.createOscillator();
-      lfo.type = 'sine'; lfo.frequency.value = 5.5 + Math.random() * 3;
-      const lg = c.createGain(); lg.gain.value = base * mult * 0.055;
-      lfo.connect(lg); lg.connect(o.frequency);
-      lfo.start(t); lfo.stop(t + dur);
+    // ---- a fonte: dente-de-serra com ruido por dentro (rouquidao) ----
+    const base = 620 + Math.random() * 220;
+    const fonte = c.createGain();
 
+    const o = c.createOscillator();
+    o.type = 'sawtooth';
+    o.frequency.setValueAtTime(base * 0.72, t);
+    o.frequency.exponentialRampToValueAtTime(base * 1.12, t + 0.13);   // sobe rapido
+    o.frequency.setValueAtTime(base * 1.12, t + quebra * 0.7);
+    o.frequency.exponentialRampToValueAtTime(base * 0.42, t + quebra + 0.16);  // QUEBRA
+    o.frequency.exponentialRampToValueAtTime(base * 0.3, t + dur);
+    // vibrato irregular e fundo: garganta no limite nao segura nota
+    const lfo = c.createOscillator();
+    lfo.type = 'sine'; lfo.frequency.value = 6.5 + Math.random() * 3.5;
+    const lg = c.createGain(); lg.gain.value = base * 0.06;
+    lfo.connect(lg); lg.connect(o.frequency);
+    lfo.start(t); lfo.stop(t + dur + 0.1);
+    o.connect(fonte);
+    o.start(t); o.stop(t + dur + 0.1);
+
+    // a rouquidao: ruido somado ao tom, nao ao lado dele
+    const rouco = c.createBufferSource();
+    rouco.buffer = this.noiseBuf;
+    rouco.playbackRate.value = 1.6;
+    const rf = c.createBiquadFilter();
+    rf.type = 'bandpass'; rf.Q.value = 1.1; rf.frequency.value = base * 1.8;
+    const rg = c.createGain();
+    rg.gain.setValueAtTime(0.0001, t);
+    rg.gain.linearRampToValueAtTime(0.5, t + 0.1);
+    rg.gain.linearRampToValueAtTime(1.5, t + quebra);       // ao quebrar vira ar
+    rg.gain.linearRampToValueAtTime(0.4, t + dur);
+    rouco.connect(rf); rf.connect(rg); rg.connect(fonte);
+    rouco.start(t, Math.random() * 2, dur + 0.2); rouco.stop(t + dur + 0.2);
+
+    // ---- as formantes: e isto que faz o ouvido ouvir uma BOCA ----
+    for (const [f0, q, amp] of [[900, 7, 1], [1480, 9, 0.62], [2600, 11, 0.3]]) {
+      const bp = c.createBiquadFilter();
+      bp.type = 'bandpass';
+      bp.frequency.setValueAtTime(f0, t);
+      bp.frequency.linearRampToValueAtTime(f0 * 0.82, t + dur);   // a boca fecha
+      bp.Q.value = q;
       const g = c.createGain();
       g.gain.setValueAtTime(0.0001, t);
-      g.gain.exponentialRampToValueAtTime(0.09 * amp * vol, t + 0.07);
-      g.gain.setValueAtTime(0.09 * amp * vol, t + dur * 0.45);
+      g.gain.exponentialRampToValueAtTime(0.16 * amp * vol, t + 0.015);   // ataque seco
+      g.gain.setValueAtTime(0.16 * amp * vol, t + quebra);
+      g.gain.exponentialRampToValueAtTime(0.045 * amp * vol, t + quebra + 0.2);
       g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
-      o.connect(g); g.connect(mix);
-      o.start(t); o.stop(t + dur + 0.1);
+      fonte.connect(bp); bp.connect(g); g.connect(mix);
     }
-
-    // o ar da garganta
-    const s = c.createBufferSource();
-    s.buffer = this.noiseBuf;
-    s.playbackRate.value = 1.1;
-    const bf = c.createBiquadFilter();
-    bf.type = 'bandpass'; bf.Q.value = 2.2; bf.frequency.value = 1400;
-    s.connect(bf);
-    const sg = this._env(bf, t, 0.06, dur, 0.05 * vol);
-    sg.connect(mix);
-    s.start(t, Math.random() * 2, dur); s.stop(t + dur);
 
     mix.connect(parede);
     parede.connect(this.busSfx);
-    // uma copia na reverb, para o som ter a casa em volta
-    const vg = c.createGain(); vg.gain.value = 0.55;
+    // uma copia na reverb, para o som ter a casa em volta dele
+    const vg = c.createGain(); vg.gain.value = 0.6;
     parede.connect(vg); vg.connect(this.verb);
   }
 
@@ -2091,44 +2160,78 @@ class Audio {
   // Re menor, ~46 bpm. Piano sintetico (triangulo + seno) com cauda longa
   // no reverb, mais um bordao grave. Melancolia com quatro notas.
 
+  // Tres humores, e os tres sao o mesmo piano — o que muda e a distancia
+  // entre as notas. Nao existe arquivo de musica no projeto e nao vai
+  // existir: o que da unidade ao jogo e todo som sair do mesmo lugar.
+  //
+  //   menu ....... o tema. Re menor, quatro notas, cauda longa.
+  //   casa ....... o flashback. Mais lento, mais agudo, quase parado, e
+  //                SEM chiado de vinil — vinil e memoria velha, e esta
+  //                cena nao pode soar a lembranca enquanto ela acontece.
+  //   delegacia .. quase nada: um bordao grave, um tritom bem baixo por
+  //                cima e uma nota solta de vez em quando. Nao e melodia,
+  //                e um lugar que nao quer voce ali.
   startMusic(mood = 'menu') {
     if (!this.ensure()) return;
-    if (this.musicOn) return;
+    if (this.musicOn && this.mood === mood) return;
+    if (this.musicOn) this.stopMusic(1.4);
     this.musicOn = true;
     this.mood = mood;
     this._step = 0;
     this._nextNote = this.ctx.currentTime + 0.2;
 
     const c = this.ctx, t = c.currentTime;
+    const cfg = {
+      menu:      { bordao: 73.42, bg: 0.055, subida: 4, vinil: 0.017, tritom: 0 },
+      casa:      { bordao: 98.00, bg: 0.030, subida: 6, vinil: 0,     tritom: 0 },
+      delegacia: { bordao: 55.00, bg: 0.048, subida: 5, vinil: 0.010, tritom: 0.020 },
+    }[mood] || { bordao: 73.42, bg: 0.055, subida: 4, vinil: 0.017, tritom: 0 };
+
     // bordao
-    const dr = c.createOscillator(); dr.type = 'sine'; dr.frequency.value = 73.42; // Re2
+    const dr = c.createOscillator(); dr.type = 'sine'; dr.frequency.value = cfg.bordao;
     const dg = c.createGain(); dg.gain.setValueAtTime(0.0001, t);
-    dg.gain.linearRampToValueAtTime(0.055, t + 4);
+    dg.gain.linearRampToValueAtTime(cfg.bg, t + cfg.subida);
     dr.connect(dg); dg.connect(this.busMusic); dr.start(t);
     this.drone = { osc: dr, gain: dg };
 
+    // O TRITOM da delegacia. Meia oitava acima do bordao, desafinado de
+    // proposito: as duas ondas batem uma contra a outra umas duas vezes por
+    // segundo e o ouvido nunca acomoda. E o intervalo que a musica ocidental
+    // passou seiscentos anos evitando, e ele funciona.
+    if (cfg.tritom > 0) {
+      const tr = c.createOscillator(); tr.type = 'sine';
+      tr.frequency.value = cfg.bordao * Math.SQRT2 * 2 + 0.7;
+      const tg = c.createGain(); tg.gain.setValueAtTime(0.0001, t);
+      tg.gain.linearRampToValueAtTime(cfg.tritom, t + cfg.subida * 1.6);
+      tr.connect(tg); tg.connect(this.busMusic); tr.start(t);
+      this.drone2 = { osc: tr, gain: tg };
+    }
+
     // chiado de vinil
-    const vs = c.createBufferSource(); vs.buffer = this.noiseBuf; vs.loop = true;
-    vs.playbackRate.value = 1.2;
-    const vf = c.createBiquadFilter(); vf.type = 'highpass'; vf.frequency.value = 2600;
-    const vg = c.createGain(); vg.gain.setValueAtTime(0.0001, t);
-    vg.gain.linearRampToValueAtTime(0.017, t + 3);
-    vs.connect(vf); vf.connect(vg); vg.connect(this.busMusic); vs.start(t);
-    this.vinyl = { src: vs, gain: vg };
+    if (cfg.vinil > 0) {
+      const vs = c.createBufferSource(); vs.buffer = this.noiseBuf; vs.loop = true;
+      vs.playbackRate.value = 1.2;
+      const vf = c.createBiquadFilter(); vf.type = 'highpass'; vf.frequency.value = 2600;
+      const vg = c.createGain(); vg.gain.setValueAtTime(0.0001, t);
+      vg.gain.linearRampToValueAtTime(cfg.vinil, t + 3);
+      vs.connect(vf); vf.connect(vg); vg.connect(this.busMusic); vs.start(t);
+      this.vinyl = { src: vs, gain: vg };
+    }
   }
 
   stopMusic(fade = 2.0) {
     if (!this.musicOn) return;
     this.musicOn = false;
+    this.mood = null;
     const t = this.ctx.currentTime;
-    for (const n of [this.drone, this.vinyl]) {
+    for (const n of [this.drone, this.drone2, this.vinyl]) {
       if (!n) continue;
       n.gain.gain.cancelScheduledValues(t);
       n.gain.gain.setValueAtTime(n.gain.gain.value, t);
       n.gain.gain.linearRampToValueAtTime(0.0001, t + fade);
       try { (n.osc || n.src).stop(t + fade + 0.2); } catch (e) {}
     }
-    this.drone = null; this.vinyl = null;
+    this.drone = null; this.drone2 = null; this.vinyl = null;
   }
 
   // Melodia agendada com antecedencia — WebAudio nao gosta de ser
@@ -2136,21 +2239,43 @@ class Audio {
   updateMusic() {
     if (!this.musicOn || !this.ready) return;
     const c = this.ctx;
-    const MEL = [
-      [293.66, 2.4], [349.23, 1.6], [440.00, 2.8], [392.00, 1.6],
-      [349.23, 2.4], [329.63, 3.2], [293.66, 3.6], [0, 2.4],
-      [440.00, 2.0], [466.16, 2.4], [392.00, 3.0], [349.23, 2.0],
-      [293.66, 4.4], [0, 3.0],
-    ];
+    // Re menor no menu. Na casa, a mesma escala uma oitava acima e com o
+    // dobro de silencio entre as notas: o que faz a coisa doer nao e a
+    // nota, e o vao entre uma e outra. Na delegacia quase nao ha nota.
+    const MELS = {
+      menu: [
+        [293.66, 2.4], [349.23, 1.6], [440.00, 2.8], [392.00, 1.6],
+        [349.23, 2.4], [329.63, 3.2], [293.66, 3.6], [0, 2.4],
+        [440.00, 2.0], [466.16, 2.4], [392.00, 3.0], [349.23, 2.0],
+        [293.66, 4.4], [0, 3.0],
+      ],
+      // A CASA. Sobe uma sexta e nunca resolve — a frase fica sempre
+      // faltando a ultima nota, que e o que ele nao teve.
+      casa: [
+        [587.33, 3.2], [0, 1.6], [698.46, 2.8], [659.25, 3.6], [0, 2.4],
+        [523.25, 3.0], [587.33, 4.2], [0, 3.2],
+        [880.00, 2.6], [783.99, 3.4], [0, 2.0], [698.46, 3.0],
+        [587.33, 5.0], [0, 4.4],
+      ],
+      // A DELEGACIA. Uma nota a cada oito ou dez segundos, grave, sozinha.
+      // Nao e tema: e o predio respirando.
+      delegacia: [
+        [110.00, 6.0], [0, 4.5], [116.54, 5.0], [0, 6.0],
+        [98.00, 5.5], [0, 7.0], [110.00, 4.5], [0, 8.0],
+        [155.56, 3.0], [0, 9.0],
+      ],
+    };
+    const MEL = MELS[this.mood] || MELS.menu;
+    const forte = this.mood === 'casa' ? 0.55 : this.mood === 'delegacia' ? 0.8 : 1;
     while (this._nextNote < c.currentTime + 1.5) {
       const [freq, dur] = MEL[this._step % MEL.length];
-      if (freq > 0) this._piano(freq, this._nextNote, dur);
+      if (freq > 0) this._piano(freq, this._nextNote, dur, forte);
       this._nextNote += dur;
       this._step++;
     }
   }
 
-  _piano(freq, t, dur) {
+  _piano(freq, t, dur, forte = 1) {
     const c = this.ctx;
     const mk = (type, f, amp, decay) => {
       const o = c.createOscillator();
@@ -2165,9 +2290,9 @@ class Audio {
       o.start(t); o.stop(t + decay + 0.1);
     };
     const d = Math.min(dur * 1.6, 5);
-    mk('triangle', freq, 0.075, d);
-    mk('sine', freq * 2, 0.026, d * 0.55);
-    mk('sine', freq * 0.5, 0.032, d * 0.8);
+    mk('triangle', freq, 0.075 * forte, d);
+    mk('sine', freq * 2, 0.026 * forte, d * 0.55);
+    mk('sine', freq * 0.5, 0.032 * forte, d * 0.8);
   }
 
   // ---------------- narracao gravada ----------------
@@ -4551,7 +4676,7 @@ const C = {
   // roupa deixava de ser "colete sobre camisa" para virar "camisa larga".
   // E seguro escurecer porque esta roupa so existe no flashback, que sao
   // os dois setores mais claros do jogo.
-  '+': '#5c5544', '=': '#3f3a2d', '*': '#736b56', '-': '#33301f',
+  '+': '#4e5462', '=': '#31363f', '*': '#6d7484', '-': '#262a31',
 };
 
 const P = {};
@@ -5433,23 +5558,33 @@ function build() {
   });
 
   // ---- JULIE: vestido de casa. A unica pessoa quente do jogo inteiro. ----
+  // ⚠ CABELO COMPRIDO. As linhas abaixo da 14 caem ALEM do pivo, ou seja,
+  // sao desenhadas por cima do tronco: e assim que o cabelo passa do
+  // pescoco e chega no ombro. A cabeca so gira em passos de 7 graus, entao
+  // a ponta do cabelo balanca no maximo um pixel e meio — nao derrete.
   P.juHead = sprite({
     pivot: [6, 14], map: C, rows: [
       '...555555.....',
       '..5555555555..',
       '.55555qqqq55..',
-      '.5555qSSSSt5..',
+      '.5555qSSSSt55.',
       '.555qSSSSSSt5.',
       '.55qSSeeSSSt5.',
       '.55qSSEeSSst5.',
       '.55qSSqSSStS5.',
       '.55qSSSSSSqS5.',
-      '.5qSSSSSSSst5.',
-      '..qSSSSSSSst5.',
-      '..qsSSSSSSSs5.',
-      '...sSSSSSSs5..',
-      '....sSSSs.....',
-      '....sSSSs.....',
+      '.55qSSSSSSst5.',
+      '.55qSSSSSSst5.',
+      '.55qsSSSSSSs5.',
+      '.555sSSSSSs55.',
+      '.5555sSSSs555.',
+      '.5555sSSSs555.',
+      '.66555...55566',
+      '.66555...55566',
+      '.6655.....5566',
+      '.665.......566',
+      '..65.......56.',
+      '..6.........6.',
     ]
   });
   P.juTorso = sprite({
@@ -5494,23 +5629,34 @@ function build() {
   // O rig e o mesmo; quem encolhe e o `escala` do NPC. Mas a cabeca dela e
   // proporcionalmente maior, que e o que faz uma crianca parecer crianca em
   // vez de um adulto reduzido.
+  // O cabelo dela e mais comprido que o da mae e nao esta preso — ela devia
+  // estar dormindo ha duas horas. Detalhe pequeno, mas e o tipo de coisa
+  // que faz uma crianca parecer uma crianca em vez de um adulto reduzido.
   P.jeHead = sprite({
     pivot: [6, 14], map: C, rows: [
       '...555555.....',
       '..5555555555..',
       '.555555qqq55..',
-      '.5555qSSSSt5..',
+      '.5555qSSSSt55.',
       '.555qSSSSSSt5.',
       '.55qSSeeSSSt5.',
       '.55qSSEeSSst5.',
-      '.55qSSSSSSStS.',
-      '.55qSSSqSSSqS.',
-      '.5qSSSSSSSSst.',
-      '..qSSSSSSSSst.',
-      '..qsSSSSSSSs..',
-      '...sSSSSSSs...',
-      '....sSSSs.....',
-      '....sSSSs.....',
+      '.55qSSSSSSSt5.',
+      '.55qSSSqSSSq5.',
+      '.55qSSSSSSSs5.',
+      '.55qSSSSSSSs5.',
+      '.55qsSSSSSSs5.',
+      '.555sSSSSSs55.',
+      '.5555sSSSs555.',
+      '.5555sSSSs555.',
+      '.65555...55556',
+      '.65555...55556',
+      '.6655.....5566',
+      '.6655.....5566',
+      '.665.......566',
+      '..65.......56.',
+      '..6.........6.',
+      '..6.........6.',
     ]
   });
   P.jeTorso = sprite({
@@ -5567,42 +5713,56 @@ function build() {
   //
   // ⚠ A cabeca continua sendo a DELE. E o mesmo homem, e o jogador tem que
   // reconhecer na hora; quem muda e a roupa, nao a pessoa.
+  // ⚠ REFEITO na sessao 22. A primeira versao era um colete que cobria o
+  // tronco quase inteiro, e a 62px o resultado era uma mancha so: "ta tudo
+  // enfiado dentro de tudo". O que le como ROUPA SOCIAL num boneco deste
+  // tamanho nao e o tecido, sao TRES FAIXAS VERTICAIS em contraste:
+  //
+  //     paleto escuro  |  lapela clara  |  camisa branca  |  gravata
+  //
+  // O paleto fica ABERTO, a camisa aparece inteira do colarinho ao cinto e
+  // a gravata desce por dentro dela. Sao quatro colunas de cor diferente
+  // lado a lado — e e isso, e so isso, que diz "esse homem trabalhava de
+  // terno" sem uma linha de dialogo.
   P.pastTorso = sprite({
     pivot: [9, 20], map: C, rows: [
       '...==++++++++=....',
-      '..=++++++++++=....',
-      '.=++++++++++XX=...',
-      '.=+++++++++=XO=...',
-      '.=++=+++++*=XO=...',
-      '.=++=+++++9=XO=...',
-      '.=++=+++++*=XO=...',
-      '.=++=+++++*=Xo=...',
-      '.=++=+++++9=XO=...',
-      '.=++=+++++*=XO=...',
-      '.=++=+++++*=Xo=...',
-      '.=++=+++++9=XO=...',
-      '.=++=+++++*=XO=...',
-      '.=++++++++++X=....',
+      '..=+++++++++*X=...',
+      '.=++++++++++*XX=..',
+      '.=+++++++++*XOXX=.',
+      '.=++=++++++*XOX9=.',
+      '.=++=++++++*XOX=..',
+      '.=++=++++++*XOX=..',
+      '.=++=++++++*XoX=..',
+      '.=++=++++++*XOX=..',
+      '.=++=++++++*XOX=..',
+      '.=++=++++++*XoX=..',
+      '.=++=++++++*XOX=..',
+      '.=++=++++++*XOX=..',
+      '.=++++++++++XXX=..',
       '.=------------=...',
       '.=++++++++++++=...',
-      '.=++=+++++*=+=....',
-      '.=++=+++++*=+=....',
-      '..=+=+++++*=+=....',
+      '.=++=++++++*XX=...',
+      '.=++=++++++*XX=...',
+      '..=+=++++++*X=....',
       '..=++++++++++=....',
       '...==++++++++=....',
     ]
   });
-  // Manga de camisa: pano claro ate o punho. A mao continua sendo a dele.
+  // Manga de PALETO, com o punho da camisa saindo na ponta. O punho claro
+  // e o detalhe que separa "de terno" de "de casaco": um homem de terno
+  // mostra dois centimetros de camisa no pulso, e a 62px esses dois
+  // centimetros sao dois pixels — mas sao os dois pixels certos.
   P.pastUpper = sprite({
     pivot: [2, 1], map: C, rows: [
-      'cXXXXc', 'cXXXXc', 'cXXXXc', 'cXXXXc', 'cXXXXc', 'cXXXXc',
-      'cXXXXc', 'cXXXXc', 'cXXXXc', '.cXXXc', '.cxxxc',
+      '=++++=', '=++++=', '=++++=', '=++++=', '=++++=', '=++++=',
+      '=++++=', '=++++=', '=++++=', '.=+++=', '.=+++=',
     ]
   });
   P.pastFore = sprite({
     pivot: [2, 1], map: C, rows: [
-      'cXXXXc', 'cXXXXc', 'cXXXXc', 'cXXXXc', '.cXXXc', '.cXXXc',
-      '.cXXXc', '.cXXXc', 'c9999c', '.cccc.',
+      '=++++=', '=++++=', '=++++=', '=++++=', '.=+++=', '.=+++=',
+      '.=+++=', '.=+++=', 'cXXXXc', '.cccc.',
     ]
   });
   // Colarinho de camisa, no lugar da gola levantada do sobretudo. Sem
@@ -5615,10 +5775,10 @@ function build() {
       '................',
       '................',
       '................',
-      '................',
-      '.....cXXXXXXc...',
-      '....cXXXXXXXXc..',
-      '....cxxxxxxxxc..',
+      '....=......=....',
+      '....=cXXXXc=....',
+      '...=cXXXXXXc=...',
+      '...=cxxxxxxc=...',
     ]
   });
 
@@ -10040,9 +10200,16 @@ function ceilingFan(g, x, y) {
 
 // Grade de cela. As barras vao ate o chao e o vao entre elas mostra o
 // interior, mais escuro.
-function cellBars(g, x, y, w, h, seed) {
+// A cela e desenhada em DUAS partes, e a divisao importa: o fundo vai na
+// camada normal e as BARRAS vao numa camada de primeiro plano. Sem isso o
+// homem preso aparece na frente da propria grade — e, pior, a versao
+// anterior pintava o interior inteiro por cima de todo mundo.
+function cellBack(g, x, y, w, h, seed) {
   rect(g, x, y, w, h, '#090c10');
   grainRect(g, x + 2, y + 4, w - 4, h - 6, ['#12171d', '#080a0e'], 0.05, seed);
+}
+
+function cellBarsOnly(g, x, y, w, h) {
   for (let bx = x + 2; bx < x + w - 2; bx += 9) {
     rect(g, bx, y, 3, h, '#3b444f');
     rect(g, bx, y, 1, h, '#525d6a');
@@ -10557,6 +10724,30 @@ function buildOldDesk() {
   inter.push({
     x: MESA + 2, y: GY - 26, w: 30, h: 26, prompt: 'prompt_use',
     action: 'ch3_gaveta', range: 24, id: 'gaveta_mesa', prio: 1,
+  });
+
+  // ---- O ARMARIO DE PAREDE, E O QUE ESTA DENTRO DELE ----
+  //
+  // A calibre doze que ele guardava na delegacia, e que continua no lugar
+  // porque ninguem esvaziou a mesa dele. Ela NAO e pegavel aqui: a arma
+  // fica na portaria e essa regra nao tem excecao. Ela e uma promessa,
+  // deixada em cima da mesa para o Capitulo 4 — e o David comenta a
+  // conveniencia, que e o que ele sempre faz.
+  const ARM = 330;
+  rect(g, ARM, GY - 104, 46, 62, '#3a3128');
+  rect(g, ARM, GY - 104, 46, 2, '#54483a');
+  rect(g, ARM + 2, GY - 102, 42, 58, '#241d17');
+  // a coronha e o cano, encostados de pe la dentro
+  rect(g, ARM + 14, GY - 96, 5, 34, '#8f959e');
+  rect(g, ARM + 13, GY - 62, 7, 16, '#5a4028');
+  rect(g, ARM + 13, GY - 62, 7, 2, '#7d5a38');
+  rect(g, ARM + 20, GY - 94, 3, 30, '#6c727a');
+  rect(g, ARM + 26, GY - 88, 12, 8, '#43331f');
+  for (let i = 0; i < 4; i++) rect(g, ARM + 28 + i * 3, GY - 86, 2, 5, '#c9a03a');
+  rect(g, ARM + 2, GY - 46, 42, 2, '#54483a');
+  inter.push({
+    x: ARM, y: GY - 104, w: 46, h: 62, prompt: 'prompt_look',
+    action: 'ch3_shotgun', range: 26, id: 'shotgun',
   });
 
   // o cracha na parede
@@ -11260,8 +11451,15 @@ function buildCell() {
   });
 
   // ---- A CELA ----
+  //
+  // ⚠ A GRADE NAO E DESENHADA AQUI. Ela vai para uma camada de primeiro
+  // plano em paralaxe 1:1, mais abaixo, porque as pessoas sao desenhadas
+  // DEPOIS das camadas de fundo — e com a grade no fundo o Carlos aparecia
+  // na frente das barras, do lado de fora da propria cela. E o mesmo erro
+  // de encenacao do plantonista na guarita (sessao 20b), e ele fica
+  // impossivel de ignorar agora que a camera fecha em cima dos dois.
   const CEL = 320;
-  cellBars(g, CEL, GY - 118, 200, 118, 9731);
+  cellBack(g, CEL, GY - 118, 200, 118, 9731);
   // banco de concreto e a mesa de metal parafusada no chao, la dentro
   rect(g, CEL + 20, GY - 34, 60, 6, '#2a2c30');
   rect(g, CEL + 20, GY - 34, 60, 1, '#3a3d42');
@@ -11294,6 +11492,12 @@ function buildCell() {
   }
   preencher(lights, W, '#7a6a52', 0.2);
 
+  // A GRADE, em primeiro plano 1:1. Alinha exatamente com o cenario e ainda
+  // assim e desenhada depois das pessoas: e isso que poe o Carlos DENTRO
+  // da cela em vez de na frente dela.
+  const grade = makeBuffer(W, VH);
+  cellBarsOnly(grade.x, CEL, GY - 118, 200, 118);
+
   const fore = makeBuffer(Math.ceil(VW + (W - VW) * 1.2) + 8, VH);
   {
     const f = fore.x;
@@ -11309,7 +11513,7 @@ function buildCell() {
     width: W, groundY: GY,
     ambient: '#2a3040',
     layers: [{ c: back.c, par: 0.5 }, { c: main.c, par: 1 }],
-    fores: [{ c: fore.c, par: 1.2 }],
+    fores: [{ c: grade.c, par: 1 }, { c: fore.c, par: 1.2 }],
     lightDefs: lights,
     interactables: inter,
     weather: 'none',
@@ -11325,6 +11529,10 @@ function buildCell() {
     enterBarks: ['b3_cell_1', 'b3_cell_2'],
   });
   lvl.props.cigarrosNoCinzeiro = false;
+  // Onde o David para para interrogar: do lado de FORA das barras. Sem uma
+  // marca, ele ficava em pe dentro da propria cela — o que, com a camera
+  // fechando nos dois, e a diferenca entre uma cena e um erro.
+  lvl.props.marcaInt = CEL - 30;
   return lvl;
 }
 
@@ -12387,6 +12595,49 @@ const STR = {
                 en: 'Seven years.' },
   b3_cell_cig2:{ pt: 'Sete anos sem.',
                 en: 'Seven years without.' },
+  // ---------- a calibre doze no armario da mesa dele ----------
+  // Ela fica. E a promessa do Capitulo 4 deixada em cima da mesa, e ele
+  // comenta a conveniencia — que e a defesa dele desde o Capitulo 2.
+  c3_shotgun_1: { pt: 'A doze ainda esta no armario. Carregada.',
+                  en: 'The twelve gauge is still in the cabinet. Loaded.' },
+  c3_shotgun_2: { pt: 'Sete anos e ninguem recolheu. Ninguem nem trancou.',
+                  en: 'Seven years and nobody collected it. Nobody even locked it.' },
+  c3_shotgun_3: { pt: 'Deixa ai. Hoje eu entrei pela porta.',
+                  en: 'Leave it. Tonight I came in through the front door.' },
+
+  // ---------- a figura sentada na sala de espera ----------
+  // ⚠ Ela nao fala, nao reage e nao e explicada. O David tambem nao insiste:
+  // na terceira vez ele so vai embora. REGRA DE OURO — ele nunca junta duas
+  // migalhas em voz alta e nunca especula sobre estar louco.
+  c3_figura_1: { pt: 'Tem alguem sentado ali com uma senha na mao.',
+                 en: 'Somebody is sitting there with a ticket in his hand.' },
+  c3_figura_2: { pt: 'Nao da pra ver a roupa dele. Nao da pra ver nada dele.',
+                 en: 'I cannot make out his clothes. I cannot make out anything of him.' },
+  c3_figura_3: { pt: 'Ele ta esperando a vez.',
+                 en: 'He is waiting his turn.' },
+
+  // ---------- o interrogatorio ----------
+  int_pressao:   { pt: 'PRESSAO',        en: 'PRESSURE' },
+  int_perguntar: { pt: 'PERGUNTAR',      en: 'ASK' },
+  int_pressionar:{ pt: 'PRESSIONAR',     en: 'PUSH' },
+  int_bater:     { pt: 'BATER',          en: 'HIT' },
+  int_custo:     { pt: '-%d cabeca',     en: '-%d head' },
+  int_calado:    { pt: 'CALADO',         en: 'SHUT DOWN' },
+  // "Eu to quase la, preciso sair daqui." Uma por degrau. Ele nao esta
+  // falando do interrogatorio.
+  b3_int_quase1: { pt: 'Eu to quase la.',
+                   en: 'I am almost there.' },
+  b3_int_quase2: { pt: 'Mais um pouco. Eu preciso sair daqui.',
+                   en: 'A little more. I need to get out of here.' },
+  b3_int_quase3: { pt: 'Eu to quase la, porra. Fala logo.',
+                   en: 'I am almost there, damn it. Just say it.' },
+  b3_int_fim:    { pt: 'Andrade.',
+                   en: 'Andrade.' },
+  b3_int_fim2:   { pt: '...',
+                   en: '...' },
+  b3_int_saida:  { pt: 'Eu nao vou conseguir desouvir isso.',
+                   en: 'I am not going to be able to un-hear that.' },
+
   b3_cell_vazia:{ pt: 'Dois cigarros acesos. Da mesma marca.',
                 en: 'Two cigarettes burning. Same brand.' },
   b3_cell_porta:{ pt: 'Ela nunca esteve trancada.',
@@ -13055,9 +13306,16 @@ const TALKS = {
             to: 'letra', req: 'ded_letra' },
         ],
       },
+      // ⚠ MUDOU na sessao 22. Ela dizia "O senhor mesmo" — e afirmar que
+      // ele ligou para si proprio fechava o misterio no lugar errado: virava
+      // sobrenatural declarado, e o jogo perdia o caso que dava para
+      // resolver. Agora ela responde o que ela SABE (de onde a chamada
+      // veio), e quem completa a frase e o jogador.
       quem: {
         lines: [
-          { pt: 'O senhor mesmo.', en: 'You did.' },
+          { pt: 'De dentro, senhor.', en: 'From inside, sir.' },
+          { pt: 'ME|De dentro de onde?', en: 'ME|Inside where?' },
+          { pt: 'Daqui. Sempre daqui.', en: 'Here. Always from here.' },
           { pt: 'O senhor foi o único que atendeu.', en: 'You were the only one who answered.' },
         ],
         press: 'quem2',
@@ -13070,7 +13328,10 @@ const TALKS = {
             en: '(she pulls a cord and looks at him for the first time)' },
           { pt: 'A chamada é sempre a mesma, senhor. Sempre no mesmo minuto.',
             en: 'It is always the same call, sir. Always at the same minute.' },
-          { pt: 'ME|E o que ela diz?', en: 'ME|And what does it say?' },
+          { pt: 'ME|Quem é que fala?', en: 'ME|Who is on the line?' },
+          { pt: 'Um homem. Ele diz o nome dele no começo, todas as vezes.',
+            en: 'A man. He gives his name at the start, every time.' },
+          { pt: 'ME|E qual é o nome?', en: 'ME|And what is the name?' },
           { pt: 'O senhor nunca ficou para ouvir.', en: 'You never stayed to listen.' },
         ],
         back: 'a',
@@ -13289,7 +13550,60 @@ const TALKS = {
           { pt: 'A plaquinha da tua mesa tem o meu nome.',
             en: 'The nameplate on your desk has my name on it.',
             to: 'placa', req: 'ded_turno' },
+          // Só depois de o Carlos quebrar. É o assunto que faz o jogador
+          // subir a escada de novo em vez de ir embora.
+          { pt: 'Quem é Andrade?', en: 'Who is Andrade?', to: 'andrade', req: 'carlos_quebrou' },
+          { pt: 'O Carlos falou. Eu bati nele e ele falou.',
+            en: 'Carlos talked. I hit him and he talked.', to: 'confissao', req: 'carlos_quebrou' },
         ],
+      },
+      // ---- pós-interrogatório ----
+      andrade: {
+        lines: [
+          { pt: '(ele para de mexer no que estava mexendo)',
+            en: '(he stops doing whatever he was doing)' },
+          { pt: 'Onde é que você ouviu esse nome?',
+            en: 'Where did you hear that name?' },
+          { pt: 'ME|Lá embaixo.', en: 'ME|Downstairs.' },
+          { pt: '(silêncio)', en: '(silence)' },
+          { pt: 'Ele trabalhou aqui até o ano em que aconteceu. Turno da noite, mesa dos fundos.',
+            en: 'He worked here until the year it happened. Night shift, back desk.' },
+          { pt: 'ME|E depois?', en: 'ME|And after?' },
+          { pt: 'Depois não. Ele sumiu antes do fim do inquérito e ninguém procurou muito.',
+            en: 'There is no after. He vanished before the inquiry ended and nobody looked very hard.' },
+        ],
+        press: 'andrade2',
+        back: 'a',
+      },
+      andrade2: {
+        lines: [
+          { pt: 'ME|Michael. Eu conhecia esse homem?',
+            en: 'ME|Michael. Did I know that man?' },
+          { pt: '(ele olha para você por um tempo longo demais)',
+            en: '(he looks at you for a beat too long)' },
+          { pt: 'David. Vocês dividiram plantão por quatro anos.',
+            en: 'David. The two of you shared a shift for four years.' },
+          { pt: 'ME|...', en: 'ME|...' },
+          { pt: 'Você foi a última pessoa que perguntou por ele. Faz sete anos.',
+            en: 'You were the last person to ask about him. Seven years ago.' },
+        ],
+        back: 'a',
+      },
+      confissao: {
+        lines: [
+          { pt: '(ele fecha os olhos)', en: '(he closes his eyes)' },
+          { pt: 'Você bateu num preso algemado dentro da minha delegacia.',
+            en: 'You beat a handcuffed prisoner inside my station.' },
+          { pt: 'ME|Bati.', en: 'ME|I did.' },
+          { pt: 'Então não presta, David. Nada do que ele disse presta.',
+            en: 'Then it is worth nothing, David. Nothing he said is worth anything.' },
+          { pt: 'ME|Eu sei.', en: 'ME|I know.' },
+          { pt: 'E você acredita mesmo assim.', en: 'And you believe it anyway.' },
+          { pt: 'ME|Acredito.', en: 'ME|I do.' },
+          { pt: '(ele assente devagar, e não discute)',
+            en: '(he nods slowly, and does not argue)' },
+        ],
+        back: 'a',
       },
       noite: {
         lines: [
@@ -13300,6 +13614,8 @@ const TALKS = {
             en: 'Then the phone here rang at two fourteen, and it was you.' },
           { pt: 'Você não conseguia falar. Só respirava.',
             en: 'You could not talk. You were just breathing.' },
+          { pt: 'E antes disso saiu uma chamada DAQUI pra sua casa. Um minuto antes.',
+            en: 'And a minute before that, a call went out from HERE to your house.' },
           // ⚠ Michael conta o incendio ANTES de o jogador ver o incendio. E
           // proposital: o jogador desce para o arquivo sabendo que a casa
           // queimou, e ai joga a noite inteira dentro dela. Cada minuto do
@@ -14455,9 +14771,21 @@ const JOURNAL = {
   j3_cig:   { cat: 'self', pt: 'Acendi um para ele falar. É técnica, eu fiz isso mil vezes. Depois acendi outro sem pensar. Sete anos. Não decidi nada — só reparei com a coisa já na mão.',
               en: 'I lit one to get him talking. It is technique, I have done it a thousand times. Then I lit another without thinking. Seven years. I did not decide anything — I just noticed with the thing already in my hand.' },
 
+  // A confissao. Ela vale exatamente o que uma confissao arrancada na
+  // porrada vale — e a pagina diz isso, porque o David sabe.
+  j3_conf:  { cat: 'people', pt: 'Ele confessou tudo, e confessou porque eu bati. Mandou matar a Julie porque eu o prendi, e mandou deixar a menina viva para eu procurar. Diz que quem abriu a porta foi um policial: ANDRADE. Nada disso presta em lugar nenhum. Eu bati num homem algemado e ele me deu exatamente o que eu queria ouvir.',
+              en: 'He confessed to all of it, and he confessed because I hit him. Had Julie killed because I arrested him, and had the girl left alive so I would keep looking. Says the man who opened the door was a police officer: ANDRADE. None of this is worth anything anywhere. I beat a man in handcuffs and he gave me exactly what I wanted to hear.' },
+  j3_shotgun:{ cat: 'self', pt: 'A calibre doze continua no armário da minha mesa, carregada, destrancada, sete anos depois. Ninguém recolheu porque ninguém deu baixa em nada meu. Enquanto a papelada não fechar, eu ainda sou daqui — e é assim que se descobre o que uma delegacia realmente acha de você.',
+              en: 'The twelve gauge is still in my desk cabinet, loaded, unlocked, seven years on. Nobody collected it because nobody closed out anything of mine. Until the paperwork closes I still belong here — and that is how you find out what a station really thinks of you.' },
+  j3_figura:{ cat: 'other', pt: 'Tem um homem sentado na sala de espera com uma senha na mão. Debaixo de luz fluorescente, às duas e quatorze da manhã, e mesmo assim eu não consigo distinguir nada dele. O plantonista diz que ele está esperando a vez.',
+              en: 'There is a man in the waiting area with a ticket in his hand. Under fluorescent light, at two fourteen in the morning, and I still cannot make out a single thing about him. The desk officer says he is waiting his turn.' },
+  j3_andrade:{ cat: 'clue', pt: 'ANDRADE. Não perguntei quem era. Reparei nisso depois, subindo a escada: um nome que eu nunca tinha ouvido, e eu não perguntei quem era.',
+              en: 'ANDRADE. I did not ask who that was. I noticed it afterwards, on the stairs: a name I had never heard, and I did not ask who it was.' },
+
   // As que ele nao escreveu, do Capitulo 3.
   j3_x1: { cat: 'other', alheia: true, pt: 'VOCÊ ATENDEU.',            en: 'YOU ANSWERED.' },
   j3_x2: { cat: 'other', alheia: true, pt: 'ELA AINDA ESTÁ CHAMANDO.', en: 'SHE IS STILL CALLING.' },
+  j3_x3: { cat: 'other', alheia: true, pt: 'VOCÊ JÁ SABIA O NOME.',    en: 'YOU ALREADY KNEW THE NAME.' },
 
   // Conclusoes do Capitulo 3.
   c_turno: { cat: 'deduc', pt: 'Três pessoas me viram sair e não voltar. Uma me viu voltar e passar a noite na minha mesa. O cinzeiro está cheio e a cadeira não tem poeira. A versão que não bate com as outras três é a minha.',
@@ -14483,6 +14811,179 @@ const JOURNAL = {
 // `flag` entra em game.flags e serve para destravar pergunta de conversa —
 // e por isso que a deducao vale alguma coisa em vez de ser colecionavel.
 // ---------------------------------------------------------------------------
+
+// ---------------------------------------------------------------------------
+// O INTERROGATÓRIO
+//
+// A única coisa do Capítulo 3 que se joga. Cada entrada é uma troca: `d` é
+// o David, `c` é o Carlos, e `d2`/`c2` continuam a mesma troca.
+//
+// REGRAS DE ESCRITA, e elas são o que separa isto de uma cena de vingança:
+//
+//  · O CARLOS NUNCA IMPLORA E NUNCA SE DEFENDE. Ele está com todo o tempo
+//    do mundo e sabe exatamente onde apertar. Ele apanha e continua achando
+//    graça, porque cada porrada é a prova do que ele quer provar.
+//  · O DAVID PIORA. As falas dele são escritas em ordem: as primeiras são
+//    de um detetive, as últimas são de um homem que não existe mais. O
+//    jogador escolhe verbo, não escolhe tom — o tom é consequência.
+//  · NINGUÉM EXPLICA NADA. Nem no fim.
+//  · A CONFISSÃO NÃO PRESTA, e é de propósito: foi arrancada na porrada
+//    por um sujeito que queria ser interrogado. O jogador vai querer
+//    acreditar. É esse o problema dele.
+// ---------------------------------------------------------------------------
+
+const INTERROGATORIO = {
+  abertura: [{
+    d: { pt: 'Carlos.', en: 'Carlos.' },
+    c: { pt: '(ele levanta a cabeça devagar, e sorri) Demorou sete anos.',
+         en: '(he lifts his head slowly, and smiles) Took you seven years.' },
+    d2: { pt: 'Eu tenho a noite inteira.', en: 'I have got all night.' },
+    c2: { pt: 'Eu também, doutor. Eu tenho é só isso.',
+          en: 'So have I, boss. It is all I have got.' },
+  }],
+  retomo: [{
+    d: { pt: 'Onde a gente parou.', en: 'Where were we.' },
+    c: { pt: 'No senhor fingindo que veio trabalhar.',
+         en: 'At you pretending you came here to work.' },
+  }],
+
+  // -------- PERGUNTAR: barato, seguro, quase não anda. É ofício. --------
+  perguntar: [
+    { d: { pt: 'Quem entrou na minha casa naquela noite?',
+           en: 'Who came into my house that night?' },
+      c: { pt: 'Duas pessoas. Nenhuma delas eu.',
+           en: 'Two people. Neither one was me.' } },
+    { d: { pt: 'Você mandou.', en: 'You ordered it.' },
+      c: { pt: 'Eu estava algemado num banco de concreto igual a este. Pelo senhor.',
+           en: 'I was cuffed to a concrete bench just like this one. By you.' },
+      d2: { pt: 'Isso não é um álibi, é um horário.',
+            en: 'That is not an alibi, that is a timestamp.' },
+      c2: { pt: 'É o horário que o senhor mesmo assinou.',
+            en: 'It is the timestamp you signed yourself.' } },
+    { d: { pt: 'Alguém abriu a porta pra eles. De fora.',
+           en: 'Somebody opened that door for them. From outside.' },
+      c: { pt: '(ele coça o pulso) Agora o senhor está trabalhando.',
+           en: '(he scratches his wrist) Now you are working.' } },
+    { d: { pt: 'Por que às duas e quatorze?', en: 'Why two fourteen?' },
+      c: { pt: 'Porque foi a hora que o senhor saiu de dentro de casa.',
+           en: 'Because that is when you stepped outside your own house.' },
+      d2: { pt: 'Como é que alguém sabia disso?',
+            en: 'How would anybody know that?' },
+      c2: { pt: 'Alguém não sabia. Alguém marcou.',
+            en: 'Nobody knew. Somebody arranged it.' } },
+    { d: { pt: 'Você teve sete anos pra dizer isso a alguém.',
+           en: 'You had seven years to tell somebody this.' },
+      c: { pt: 'Tive. E ninguém sentou aqui.', en: 'I did. And nobody sat down.' },
+      d2: { pt: 'Eu estou sentado.', en: 'I am sitting down.' },
+      c2: { pt: 'Está. Por isso hoje é hoje.', en: 'You are. That is why tonight is tonight.' } },
+    { d: { pt: 'Fala.', en: 'Talk.' },
+      c: { pt: 'O senhor ainda está perguntando bonito, doutor.',
+           en: 'You are still asking politely, boss.' } },
+  ],
+
+  // -------- PRESSIONAR: anda de verdade, e é o David escolhendo. --------
+  pressionar: [
+    { d: { pt: 'Olha pra mim. Olha pra mim, caralho.',
+           en: 'Look at me. Look at me, damn it.' },
+      c: { pt: 'Estou olhando. Faz sete anos que eu estou olhando.',
+           en: 'I am looking. I have been looking for seven years.' } },
+    { d: { pt: 'Você é um merda que precisou de outro homem pra fazer o serviço.',
+           en: 'You are a piece of shit who needed another man to do the job.' },
+      c: { pt: '(ele ri) Isso. Continua.', en: '(he laughs) There it is. Keep going.' },
+      d2: { pt: 'Continua o quê?', en: 'Keep going with what?' },
+      c2: { pt: 'De descer. Falta pouco.', en: 'Coming down. You are almost here.' } },
+    { d: { pt: 'Amanhã de manhã você entra num camburão e some.',
+           en: 'Tomorrow morning you get in a van and disappear.' },
+      c: { pt: 'E o senhor volta pra cá amanhã à noite. Como todas as noites.',
+           en: 'And you come back here tomorrow night. Like every night.' } },
+    { d: { pt: 'Você não faz ideia do que eu virei, seu filho da puta.',
+           en: 'You have no idea what I turned into, you son of a bitch.' },
+      c: { pt: 'Faço sim. O senhor virou eu, só que sem coragem de assinar.',
+           en: 'I do. You turned into me, only without the guts to sign your name to it.' } },
+    { d: { pt: 'Fala o nome. Fala a porra do nome dele.',
+           en: 'Say the name. Say his fucking name.' },
+      c: { pt: '(ele se inclina para frente) Ah. Então o senhor sabe que tem um nome.',
+           en: '(he leans forward) Ah. So you know there is a name.' } },
+    { d: { pt: 'Eu vou ficar aqui a noite inteira, e você vai falar.',
+           en: 'I am going to be here all night, and you are going to talk.' },
+      c: { pt: 'Eu sei. Essa é a parte boa.', en: 'I know. That is the good part.' } },
+  ],
+
+  // -------- BATER: anda muito, custa caro, e ele cala a boca. --------
+  bater: [
+    { d: { pt: '(David enfia o braço pela grade e acerta ele)',
+           en: '(David reaches through the bars and hits him)' },
+      c: { pt: '(ele cospe no chão) Isso é do manual ou é seu?',
+           en: '(he spits on the floor) Is that from the manual or is that yours?' } },
+    { d: { pt: '(ele bate de novo, e desta vez segura o homem pela camisa)',
+           en: '(he hits him again, and this time holds the man by the shirt)' },
+      c: { pt: 'Bate mais. Bate até virar do lado de cá da grade.',
+           en: 'Hit me more. Hit me until you are on this side of the bars.' } },
+    { d: { pt: 'Você vai me dizer o nome dele nem que eu tenha que arrancar.',
+           en: 'You are going to give me his name even if I have to tear it out.' },
+      c: { pt: '(rindo, com a boca sangrando) Arranca, então. Arranca.',
+           en: '(laughing, mouth bleeding) Tear it out, then. Go on.' } },
+    { d: { pt: '(nenhuma fala. Ele só bate.)', en: '(no words. He just hits him.)' },
+      c: { pt: '...', en: '...' },
+      c2: { pt: 'Pronto. Agora o senhor está pronto pra ouvir.',
+            en: 'There. Now you are ready to hear it.' } },
+  ],
+
+  // Bater duas vezes seguidas: ele fecha a boca, e a pressão CAI.
+  bater_demais: [{
+    d: { pt: '(David bate outra vez, sem perguntar nada)',
+         en: '(David hits him again, without asking anything)' },
+    c: { pt: '(ele fecha os olhos e para de falar)',
+         en: '(he shuts his eyes and stops talking)' },
+    d2: { pt: 'Fala!', en: 'Talk!' },
+    c2: { pt: '(silêncio. Batendo não sai nada, e ele sabe disso melhor que você)',
+          en: '(silence. Beating gets nothing out of him, and he knows that better than you do)' },
+  }],
+  travado: [{
+    d: { pt: 'Vamos de novo.', en: 'Let us go again.' },
+    c: { pt: '(ele passa a mão na boca e olha o sangue)',
+         en: '(he wipes his mouth and looks at the blood)' },
+    c2: { pt: 'Agora sim. Pergunta.', en: 'There you go. Ask me.' },
+  }],
+
+  // -------- O QUE ELE VAZA, um pedaço por degrau --------
+  vaza: [
+    { c: { pt: 'Não foi gente minha que entrou. Gente minha estava toda presa ou toda ouvida.',
+           en: 'It was not my people who went in. My people were all locked up or all questioned.' },
+      d: { pt: 'Então quem?', en: 'Then who?' },
+      c2: { pt: 'Alguém que sabia a que horas o senhor chegava em casa.',
+            en: 'Somebody who knew what time you got home.' } },
+    { c: { pt: 'O telefone da sua casa tocou às duas e quatorze. Isso o senhor sabe.',
+           en: 'Your home phone rang at two fourteen. That much you know.' },
+      d: { pt: 'Eu sei.', en: 'I know.' },
+      c2: { pt: 'Ele saiu de dentro da delegacia, doutor. Do ramal da sala grande.',
+            en: 'It came from inside the station, boss. From the extension in the big room.' } },
+    { c: { pt: 'Era um dos seus. Distintivo, cadeira, cafezinho.',
+           en: 'It was one of yours. Badge, desk, coffee break.' },
+      d: { pt: 'Você está mentindo.', en: 'You are lying.' },
+      c2: { pt: 'Estou. E o senhor não acredita nisso nem por um segundo.',
+            en: 'I am. And you do not believe that for one second.' } },
+  ],
+
+  // -------- A CONFISSÃO --------
+  //
+  // ⚠ Ela não é uma vitória. O David gastou a cena inteira virando outra
+  // coisa para chegar aqui, e o que ele ganha é a palavra de um homem que
+  // ele acabou de espancar. NADA disso é confirmado depois. Nunca.
+  quebra: [{
+    c: { pt: '(ele encosta a cabeça na parede e fala como quem já ensaiou isso mil vezes)',
+         en: '(he rests his head against the wall and speaks like a man who has rehearsed this a thousand times)' },
+    d: { pt: 'Fala.', en: 'Talk.' },
+    c2: { pt: 'Fui eu, doutor. Foi tudo eu.\nEu paguei, eu marquei a hora e eu mandei entrar. Porque o senhor me prendeu, e porque eu podia.\nSua mulher morreu por sua causa, e o senhor estava a seis metros dela, na varanda, com um cigarro na mão.\nE a menina eu mandei deixar viva. Viva, doutor. Pra ter o que o senhor procurar pelo resto da porra da sua vida.\nFoi o melhor dinheiro que eu já gastei.\nAgora pergunta quem abriu a porta pra eles. Anda. Pergunta.',
+          en: 'It was me, boss. All of it was me.\nI paid, I set the hour and I sent them in. Because you arrested me, and because I could.\nYour wife died because of you, and you were twenty feet away on that porch with a cigarette in your hand.\nAnd the girl I had them leave alive. Alive, boss. So you would have something to look for the rest of your goddamn life.\nBest money I ever spent.\nNow ask me who opened the door for them. Go on. Ask.' },
+    // ⚠ O NOME. É a única coisa nova que sai desta cela, e o que assusta
+    // não é ouvir: é o David não perguntar quem é. Ele não pede a patente,
+    // não pede a lotação, não pergunta se ainda trabalha aqui. Ele só para.
+    d3: { pt: 'Quem abriu a porta.', en: 'Who opened the door.' },
+    c3: { pt: 'ANDRADE.\n(pausa)\nMas isso o senhor já sabe, não sabe.',
+          en: 'ANDRADE.\n(a pause)\nBut you already know that, do you not.' },
+  }],
+};
 
 const DEDUCTIONS = {
   // 02h14 no telefone + 02h14 no relogio de ponto.
@@ -14564,6 +15065,7 @@ function speaker(id) {
   Object.defineProperty(__exp, "LINES", { get: function(){ return LINES; }, enumerable: true });
   Object.defineProperty(__exp, "TALKS", { get: function(){ return TALKS; }, enumerable: true });
   Object.defineProperty(__exp, "JOURNAL", { get: function(){ return JOURNAL; }, enumerable: true });
+  Object.defineProperty(__exp, "INTERROGATORIO", { get: function(){ return INTERROGATORIO; }, enumerable: true });
   Object.defineProperty(__exp, "DEDUCTIONS", { get: function(){ return DEDUCTIONS; }, enumerable: true });
   Object.defineProperty(__exp, "findDeduction", { get: function(){ return findDeduction; }, enumerable: true });
   Object.defineProperty(__exp, "tx", { get: function(){ return tx; }, enumerable: true });
@@ -15194,6 +15696,335 @@ function esticarCorredor(lvl, game) {
   Object.defineProperty(__exp, "Fogo", { get: function(){ return Fogo; }, enumerable: true });
   Object.defineProperty(__exp, "NamePrompt", { get: function(){ return NamePrompt; }, enumerable: true });
   Object.defineProperty(__exp, "esticarCorredor", { get: function(){ return esticarCorredor; }, enumerable: true });
+};
+__mods["systems/interrogatorio.js"] = function(__exp){
+// interrogatorio.js — a cela, e a unica coisa no Capitulo 3 que se JOGA.
+//
+// O capitulo inteiro e andar, olhar e conversar. Esta cena e a excecao: e
+// aqui que o jogador tem uma alavanca na mao, e a alavanca so tem um jeito
+// de ser puxada.
+//
+// ----------------------------------------------------------------------
+// O QUE ESTA CENA E, E O QUE ELA NAO E
+// ----------------------------------------------------------------------
+// NAO e um combate com barra de vida. O Carlos nao "perde". Ele nao esta
+// escondendo a informacao para se proteger — ele quer contar. Ele passou
+// sete anos esperando o David sentar na frente dele para poder contar.
+//
+// O que a barra mede nao e a resistencia dele. E o quanto o David ja
+// desceu. O Carlos so entrega a coisa toda quando o homem do outro lado da
+// grade estiver irreconhecivel — porque a confissao dele nao vale nada
+// como prova, e ele sabe disso, e o presente que ele quer dar nao e a
+// verdade: e o David virando ele.
+//
+// ⚠ POR ISSO A CONFISSAO E ARRANCADA NA PORRADA, E POR ISSO ELA NAO PRESTA.
+// O jogador enche a barra, ouve a resposta que o jogo inteiro prometeu — e
+// sai de la com uma informacao que ele mesmo contaminou. Se der para
+// confiar nela, a cena perdeu o ponto.
+//
+// ----------------------------------------------------------------------
+// OS TRES VERBOS
+// ----------------------------------------------------------------------
+//   PERGUNTAR ..... barato, seguro, quase nao anda. E oficio.
+//   PRESSIONAR .... anda de verdade, custa sanidade. E o David escolhendo.
+//   BATER ......... anda muito, custa caro, e TRAVA o Carlos por uma vez.
+//                   Bater duas vezes seguidas FAZ A BARRA CAIR: ele para de
+//                   falar e ri. Isso obriga a alternar, e alternar e
+//                   exatamente o que um interrogador de verdade faz.
+//
+// E o David muda de tom sozinho conforme a barra sobe. Ninguem avisa o
+// jogador disso. Ele so vai reparar que as falas que ele esta escolhendo
+// ficaram impossiveis de ler em voz alta.
+
+const { VW, VH, clamp, gfx, lerp } = __req("core/gfx.js");
+const { text, measure } = __req("core/text.js");
+const { PAL } = __req("art/palette.js");
+const { input } = __req("core/input.js");
+const { audio } = __req("core/audio.js");
+const { t: T, tx, INTERROGATORIO: SCRIPT, TALKS } = __req("i18n.js");
+
+const VERBOS = ['perguntar', 'pressionar', 'bater'];
+
+// Quanto cada verbo anda, e quanto custa de sanidade.
+const PESO = {
+  perguntar:  { min: 5,  max: 9,  sanidade: 0 },
+  pressionar: { min: 13, max: 18, sanidade: 4 },
+  bater:      { min: 24, max: 31, sanidade: 9 },
+};
+
+// Onde ele vaza um pedaco. A ultima e a confissao inteira.
+const LIMIARES = [30, 58, 82];
+
+class Interrogatorio {
+  constructor() { this.reset(); }
+
+  reset() {
+    this.ativo = false;
+    this.pressao = 0;
+    this.sel = 0;
+    this.fase = 'menu';       // menu | fala | vazamento | quebra | fim
+    this.t = 0;
+    this.zoom = 1;
+    this.usos = { perguntar: 0, pressionar: 0, bater: 0 };
+    this.ultimo = null;
+    this.travado = false;     // levou um soco: a proxima pergunta nao anda
+    this.vazou = 0;
+    this.onEnd = null;
+    this.runId = -1;
+    this.quebrou = false;
+  }
+
+  // ⚠ NAO zera nada. Sair da cela e voltar depois retoma de onde parou —
+  // um interrogatorio nao recomeca do zero porque o interrogador foi tomar
+  // agua. Quem zera e o comeco de capitulo e o carregamento de save.
+  comecar(game, onEnd) {
+    if (this.ativo || this.quebrou) return false;
+    this.ativo = true;
+    this.onEnd = onEnd || null;
+    this.runId = game.runId;
+    this.fase = 'fala';
+    this.sel = 0;
+    this._falar(game, this.pressao > 0 ? 'retomo' : 'abertura', 0);
+    // Ele para do lado de fora da grade e vira para dentro. A encenacao e
+    // metade da cena: dois homens frente a frente, com ferro no meio.
+    const lv = game.level;
+    if (lv && lv.props && lv.props.marcaInt) {
+      game.player.x = lv.props.marcaInt;
+      game.player.det.setFacing(1);
+      game.player.facing = 1;
+    }
+    game.player.controllable = false;
+    game.player.frozen = true;
+    audio.startMusic('delegacia');
+    return true;
+  }
+
+  // Uma troca do roteiro vai inteira para a CAIXA DE DIALOGO DO JOGO. Nao
+  // existe caixa propria aqui: reaproveitar a de sempre da de graca a
+  // maquina de escrever, o nome de quem fala, a quebra de linha e a tecla
+  // de avancar — e, mais importante, faz esta cena parecer o mesmo jogo.
+  _falar(game, chave, idx) {
+    const arr = SCRIPT[chave] || [];
+    if (!arr.length) return false;
+    const e = arr[Math.min(idx, arr.length - 1)];
+    const eu = T('speaker_me');
+    const ele = tx(TALKS.carlos.speaker);
+    const linhas = [];
+    for (const [campo, quem] of [['d', eu], ['c', ele], ['d2', eu], ['c2', ele],
+                                 ['d3', eu], ['c3', ele]]) {
+      if (e[campo]) linhas.push({ name: quem, text: tx(e[campo]) });
+    }
+    if (!linhas.length) return false;
+    game.dialogue.start(linhas);
+    return true;
+  }
+
+  // ---- o tom do David, derivado da barra ----
+  //
+  // 0 profissional · 1 duro · 2 cruel · 3 irreconhecivel.
+  // Nao existe botao para isto. E consequencia.
+  get tom() {
+    if (this.pressao >= 82) return 3;
+    if (this.pressao >= 55) return 2;
+    if (this.pressao >= 28) return 1;
+    return 0;
+  }
+
+  escolher(game, verbo) {
+    const p = PESO[verbo];
+    const idx = this.usos[verbo];
+    this.usos[verbo]++;
+
+    // Bater duas vezes seguidas: ele fecha a cara e a barra CAI.
+    if (verbo === 'bater' && this.ultimo === 'bater') {
+      this.pressao = clamp(this.pressao - 11, 0, 100);
+      this._falar(game, 'bater_demais', 0);
+      this.travado = true;
+      this.ultimo = verbo;
+      this.fase = 'fala';
+      game.sanity.drain(p.sanidade);
+      audio.punchHit ? audio.punchHit(0.9) : audio.thud(0.8);
+      gfx.shake(3.2);
+      return;
+    }
+
+    // Perguntar com ele travado nao anda nada: ele acabou de levar um soco.
+    if (verbo === 'perguntar' && this.travado) {
+      this.travado = false;
+      this._falar(game, 'travado', 0);
+      this.ultimo = verbo;
+      this.fase = 'fala';
+      return;
+    }
+
+    let ganho = p.min + Math.floor(Math.random() * (p.max - p.min + 1));
+    // Verbo repetido rende menos: insistir na mesma tecla e preguica.
+    if (this.ultimo === verbo) ganho = Math.round(ganho * 0.62);
+    this.pressao = clamp(this.pressao + ganho, 0, 100);
+    if (p.sanidade) game.sanity.drain(p.sanidade);
+
+    if (verbo === 'bater') {
+      this.travado = true;
+      audio.punchHit ? audio.punchHit(1) : audio.thud(0.9);
+      gfx.shake(4.2);
+    } else if (verbo === 'pressionar') {
+      audio.uiConfirm ? audio.uiConfirm(0.5) : null;
+    }
+
+    this.ultimo = verbo;
+    this._falar(game, verbo, idx);
+    this.fase = 'fala';
+  }
+
+  update(dt, game) {
+    if (!this.ativo) return;
+    if (game.runId !== this.runId) { this.encerrar(game, true); return; }
+    this.t += dt;
+    // a camera fecha nos dois e nao volta mais ate acabar
+    this.zoom = lerp(this.zoom, this.quebrou ? 1.5 : 1.35, 1 - Math.exp(-2.2 * dt));
+
+    // Enquanto a caixa de dialogo estiver falando, quem manda e ela.
+    if (this.fase === 'fala' || this.fase === 'vazamento' || this.fase === 'quebra') {
+      if (game.dialogue.active) return;
+
+      // A confissao era a ultima coisa: acabou o interrogatorio.
+      if (this.fase === 'quebra') { this.encerrar(game); return; }
+
+      // Cruzou um degrau? Ele vaza um pedaco antes de devolver o menu.
+      if (this.fase === 'fala' && this.vazou < LIMIARES.length
+          && this.pressao >= LIMIARES[this.vazou]) {
+        const n = this.vazou++;
+        this.fase = 'vazamento';
+        this._falar(game, 'vaza', n);
+        // "Eu to quase la, preciso sair daqui." Uma por degrau.
+        game.player.say(['b3_int_quase1', 'b3_int_quase2', 'b3_int_quase3'][n], 3.0);
+        game.sanity.drain(3);
+        return;
+      }
+
+      if (this.pressao >= 100 && !this.quebrou) {
+        this.quebrou = true;
+        this.fase = 'quebra';
+        this._falar(game, 'quebra', 0);
+        game.flags.carlos_quebrou = true;
+        audio.stopMusic(0.8);
+        gfx.shake(2.0);
+        return;
+      }
+      this.fase = 'menu';
+      this.t = 0;
+      return;
+    }
+
+    // ---- menu dos tres verbos ----
+    if (this.fase !== 'menu') return;
+    if (input.pressed('menuUp')) { this.sel = (this.sel + 2) % 3; audio.uiMove(); }
+    if (input.pressed('menuDown')) { this.sel = (this.sel + 1) % 3; audio.uiMove(); }
+    // Da para levantar e sair. A pressao fica onde estava.
+    if (input.pressed('cancel')) { audio.uiBack ? audio.uiBack() : null; this.encerrar(game); return; }
+    if (input.pressed('confirm') || input.pressed('interact') || input.pressed('attack')) {
+      audio.uiConfirm();
+      this.escolher(game, VERBOS[this.sel]);
+    }
+  }
+
+  encerrar(game, silencioso) {
+    if (!this.ativo) return;
+    this.ativo = false;
+    const p = game.player;
+    p.controllable = true;
+    p.frozen = false;
+    this.zoom = 1;
+    if (!silencioso && this.onEnd) this.onEnd(this.quebrou);
+    this.onEnd = null;
+  }
+
+  // ---- desenho ----
+  //
+  // A barra fica EM CIMA, longe da caixa de fala, e nao tem numero. O
+  // jogador nao precisa saber que faltam 18 por cento: precisa sentir que
+  // esta perto.
+  draw(ctx, game) {
+    if (!this.ativo) return;
+
+    // escurece tudo menos a faixa dos dois: a luz fechando numa poca, que e
+    // o que o ROTEIRO IX.7.A.4 pedia desde que o capitulo foi escrito
+    ctx.save();
+    ctx.globalAlpha = 0.42;
+    ctx.fillStyle = '#05070a';
+    ctx.fillRect(0, 0, VW, 92);
+    ctx.fillRect(0, VH - 84, VW, 84);
+    ctx.restore();
+
+    // ---- a barra ----
+    const bw = 208, bx = (VW - bw) / 2, by = 26;
+    const k = this.pressao / 100;
+    text(ctx, T('int_pressao'), bx, by - 11, {
+      size: 8, font: 'ui', weight: 'bold', color: PAL.uiDim, track: 1,
+    });
+    ctx.fillStyle = '#0d1116';
+    ctx.fillRect(bx - 1, by - 1, bw + 2, 9);
+    ctx.fillStyle = '#1c232b';
+    ctx.fillRect(bx, by, bw, 7);
+    // A barra muda de cor com o TOM dele, nao com o numero. Verde nunca:
+    // isto nao e progresso, e um homem descendo uma escada.
+    const cor = ['#8a7d5a', '#b8863c', '#c2632c', '#a8382c'][this.tom];
+    ctx.fillStyle = cor;
+    ctx.fillRect(bx, by, Math.round(bw * k), 7);
+    // os degraus, marcados por um risco fino
+    ctx.fillStyle = '#39434f';
+    for (const L of LIMIARES) ctx.fillRect(bx + Math.round(bw * L / 100), by - 2, 1, 11);
+    if (this.travado) {
+      text(ctx, T('int_calado'), bx + bw + 6, by - 1, {
+        size: 8, font: 'ui', weight: 'bold', color: '#7d5a52',
+      });
+    }
+
+    if (this.fase !== 'menu') return;
+
+    // ---- os tres verbos ----
+    const ops = [
+      { k: 'int_perguntar', custo: 0 },
+      { k: 'int_pressionar', custo: PESO.pressionar.sanidade },
+      { k: 'int_bater', custo: PESO.bater.sanidade },
+    ];
+    const y0 = VH - 66;
+    for (let i = 0; i < 3; i++) {
+      const sel = i === this.sel;
+      const y = y0 + i * 15;
+      if (sel) {
+        text(ctx, '>', 46, y, { size: 10, font: 'ui', weight: 'bold', color: PAL.uiAccent });
+      }
+      const nome = T(ops[i].k);
+      text(ctx, nome, 58, y, {
+        size: 10, font: 'ui', weight: sel ? 'bold' : 'normal',
+        color: sel ? PAL.uiAccent : PAL.uiDim, track: 0,
+      });
+      if (ops[i].custo) {
+        const w = measure(nome, { size: 10, font: 'ui', weight: sel ? 'bold' : 'normal' }).w;
+        text(ctx, T('int_custo').replace('%d', ops[i].custo), 58 + w + 10, y + 1, {
+          size: 8, font: 'ui', weight: 'normal', color: sel ? '#8a5a52' : '#5a4a46',
+        });
+      }
+    }
+  }
+
+  save() {
+    if (this.pressao <= 0 && !this.quebrou) return null;
+    return { p: this.pressao, u: { ...this.usos }, v: this.vazou, q: this.quebrou };
+  }
+
+  load(d) {
+    this.reset();
+    if (!d) return;
+    this.pressao = d.p || 0;
+    this.usos = Object.assign({ perguntar: 0, pressionar: 0, bater: 0 }, d.u || {});
+    this.vazou = d.v || 0;
+    this.quebrou = !!d.q;
+  }
+}
+
+  Object.defineProperty(__exp, "Interrogatorio", { get: function(){ return Interrogatorio; }, enumerable: true });
 };
 __mods["systems/scene-nota.js"] = function(__exp){
 // scene-nota.js — a cena da nota, e o que vem atras dela.
@@ -19675,6 +20506,25 @@ const NPCS = {
     anim: 'sitChair', arte: 'plantonista',
     talk: 'plantonista', prompt: 'prompt_talk',
   },
+  // 🐛 A SALA DE ESPERA ESTAVA VAZIA. O painel de senha contava, a fala
+  // dizia "ele esta esperando a vez" e NAO HAVIA NINGUEM DESENHADO na
+  // cadeira. E o B-57 outra vez, com outra roupa: o objeto existia, a
+  // pessoa nao. Nenhum teste pegou porque todos conferiam o painel.
+  //
+  // E quem senta ali nao e o Credor: e A FIGURA NEGRA do Capitulo 1 — o
+  // recorte de escuro com forma de gente que derrubou o David no deposito
+  // e que o jogo nunca explicou. Sentada numa cadeira de plastico, com uma
+  // senha de atendimento na mao, debaixo de luz fluorescente.
+  //
+  // `silhueta` pinta o rig inteiro de preto puro. Como a cena e
+  // multiplicada pela luz, preto continua preto debaixo de qualquer
+  // lampada — e e por isso que ela funciona numa recepcao acesa.
+  figura: {
+    level: 'ch3_reception', x: 742, facing: -1, yOff: -19,
+    anim: 'sitChair', arte: null,
+    silhueta: '#050507', escala: 1.14,
+    prompt: 'prompt_look', talk: null,
+  },
   michael: {
     level: 'ch3_plantao', x: 470, facing: -1,
     anim: 'sitChair', arte: 'michael',
@@ -19736,8 +20586,13 @@ class Npc {
     // Peças próprias. Antes eles eram o detetive tingido — literalmente a
     // mesma pessoa, um sentado e o outro quase de quatro. Agora cada um
     // tem cabeça, tronco e roupa dele.
-    d.parts = partesDe(c.arte);
-    d.rimAlpha = 0.16;
+    d.parts = c.arte ? partesDe(c.arte) : null;
+    // A figura negra não tem peça nenhuma: ela é o rig do detetive pintado
+    // de uma cor só. Sem rosto, sem informação, e sem luz de contorno —
+    // contorno em cima dela devolveria justamente o volume que ela não pode
+    // ter.
+    if (c.silhueta) { d.silhouette = c.silhueta; d.rimAlpha = 0; }
+    d.rimAlpha = c.silhueta ? 0 : 0.16;
     d.reflect = 0;
     d.facing = c.facing;
     d.flipT = 1;
@@ -19794,12 +20649,16 @@ class Npc {
   // novos caiam no `talk` do Capitulo 2 e a conversa abria sem nada disso.
   gancho() {
     const e = this.escala;
-    return {
+    const base = {
       x: this.x - 14 * e, y: 150, w: 28 * e, h: 64 * e,
       prompt: this.cfg.prompt,
-      action: this.cfg.level && this.cfg.level.slice(0, 4) === 'ch3_' ? 'talk3' : 'talk',
       npc: this.id, range: 34, prio: 2,
     };
+    // Quem nao tem conversa nao abre conversa. A figura negra e olhada, e
+    // ela nao responde — nem aqui, nem no Capitulo 1, nem nunca.
+    if (!this.cfg.talk) { base.action = 'ch3_figura'; base.prio = 1; return base; }
+    base.action = this.cfg.level && this.cfg.level.slice(0, 4) === 'ch3_' ? 'talk3' : 'talk';
+    return base;
   }
 }
 
@@ -22487,6 +23346,7 @@ const { buildChapter2 } = __req("world/levels-ch2.js");
 const { buildChapter3 } = __req("world/levels-ch3.js");
 const { buildChaseExtension } = __req("world/levels-chase.js");
 const { degrauDoCigarro, usarCigarro, liberarCigarro, TicketBoard, entrarFlashback, sairFlashback, NamePrompt, esticarCorredor, Fogo } = __req("systems/chapter3.js");
+const { Interrogatorio } = __req("systems/interrogatorio.js");
 const { NoteScene } = __req("systems/scene-nota.js");
 const { MirrorScene } = __req("systems/scene-espelho.js");
 const { Player } = __req("systems/player.js");
@@ -22664,6 +23524,7 @@ class Game {
     this.ticket = new TicketBoard();
     this.namePrompt = new NamePrompt();
     this.fogo = new Fogo();
+    this.interrog = new Interrogatorio();
     // Identidade da partida em curso. Cenas roteirizadas que dependem de
     // `setTimeout` congelam este numero e conferem depois: sem isso, sair
     // para o menu, carregar um save ou trocar de capitulo no meio de uma
@@ -22822,6 +23683,7 @@ class Game {
   toMenu() {
     this.runId++;   // invalida qualquer cena roteirizada ainda no relogio
     this.fogo.parar(); this.fogo.reset();
+    this.interrog.reset();
     this.state = 'menu';
     this.scene = null;
     if (this.menuSlots) this.menuSlots.open = false;
@@ -23032,6 +23894,22 @@ class Game {
     for (const a of (lv.ambience || [{ n: 'roomtone', g: 0.1 }])) {
       audio.startLoop(a.n, { gain: a.g, fade: a.f || 1.5 });
     }
+
+    // ---- MUSICA POR LUGAR (Capitulo 3) ----
+    //
+    // Dois temas, e os dois entram por baixo do ambiente, nao por cima: a
+    // regra do jogo continua sendo que o silencio e a arma principal e que
+    // a musica so existe para ser cortada.
+    //
+    //   a casa .... um piano triste, muito baixo, com vaos enormes entre as
+    //               notas. E a unica musica quente do jogo.
+    //   delegacia . um bordao grave com um tritom quase inaudivel por cima.
+    //               Nao e tema; e o predio.
+    if (this.flags.cap3) {
+      if (lv.key === 'ch3_home' || lv.key === 'ch3_room') audio.startMusic('casa');
+      else if (lv.key === 'ch3_past') audio.stopMusic(2.2);
+      else audio.startMusic('delegacia');
+    }
     if (this.chase && this.chase.ativo) {
       audio.startLoop('serra', { gain: 0.035, fade: 0.35 });
       audio.startLoop('static', { gain: 0.014, fade: 0.28 });
@@ -23093,7 +23971,8 @@ class Game {
     // ele tapa parte da tela.
     if ((cap2 || cap3) && !paused && !this.scene && !this.dialogue.active
       && !this.shiftPuzzle.open && !this.transition && !this.grab && !this.chaseSetpieces.action
-      && !this.chaseSequence.action && !this.finishers.action && !this.namePrompt.ativo) {
+      && !this.chaseSequence.action && !this.finishers.action && !this.namePrompt.ativo
+      && !this.interrog.ativo) {
       if (input.pressed('journal') && this.flags.caderno) {
         this.journal.toggle(); this.inv.open = false; this.mapaAberto = false;
       }
@@ -23231,6 +24110,14 @@ class Game {
     if (this.fogo.ativo) this.fogo.addLights(gfx, cam, lv);
     gfx.endLights(lv.bloom);
 
+    // A CAMERA FECHA NO INTERROGATORIO. Entre a luz e a interface: assim o
+    // mundo chega perto e o texto continua do tamanho certo. (D-10)
+    if (this.interrog.ativo) {
+      const alvo = this.npcs.carlos;
+      const fx3 = alvo ? ((this.player.x + alvo.x) / 2 - cam.ix) : (this.player.x - cam.ix);
+      gfx.aproximar(this.interrog.zoom, fx3, lv.groundY - 34 - cam.iy);
+    }
+
     // ---- interface ----
     if (this.locCard > 0) {
       const a = clamp(Math.min(this.locCard, 4.0 - this.locCard + 3.4), 0, 1);
@@ -23302,6 +24189,7 @@ class Game {
     }
     if (cap2) this.shiftPuzzle.draw(gfx.s);
     if (this.flags.cap3) this.namePrompt.draw(gfx.s);
+    if (this.interrog.ativo) this.interrog.draw(gfx.s, this);
     this.pause.draw(gfx.s);
     if (this.debug) this.drawDebug(gfx.s, 'PLAY ' + lv.key);
     gfx.present(dt);
@@ -24130,6 +25018,29 @@ class Game {
     switch (it.action) {
       // ---- a conversa, com memoria e com os assuntos travados ----
       case 'talk3': {
+        // ---- O INTERROGATORIO ----
+        //
+        // Sentar na frente do Carlos nao abre uma arvore de conversa: abre a
+        // unica coisa jogavel do capitulo. A conversa normal com ele so
+        // existe DEPOIS que ele quebra — e e nela que o cigarro acontece,
+        // com os dois homens ja destruidos, que e onde o degrau 4 sempre
+        // devia ter acontecido.
+        if (it.npc === 'carlos' && !this.interrog.quebrou) {
+          this.cam.offsetY = 28;
+          this.interrog.comecar(this, (quebrou) => {
+            this.cam.offsetY = 0;
+            if (!quebrou) return;
+            this.anotar('j3_conf');
+            this.anotar('j3_andrade');
+            this.journal.add('j3_x3');       // a que ele nao escreveu
+            this.sanity.drain(14);
+            const p = this.player;
+            p.say('b3_int_fim', 2.2, true);
+            p.say('b3_int_fim2', 2.6);
+            this.flags.npc3_carlos = true;
+          });
+          return true;
+        }
         const t = TALKS[it.npc];
         if (!t) return true;
         const mem = this._talkMem(it.npc);
@@ -24179,6 +25090,26 @@ class Game {
         p.say('b3_rec_gun', 3.0, true);
         p.say('b3_rec_214', 2.6);
         audio.leather ? audio.leather(0.7) : audio.uiConfirm();
+        return true;
+      }
+
+      // A calibre doze no armario da mesa dele. Ele NAO pega: a arma fica
+      // na portaria e a regra do capitulo nao tem excecao. Ela fica ali.
+      case 'ch3_shotgun': {
+        if (!this.flags.viu_shotgun) {
+          this.flags.viu_shotgun = true;
+          this.anotar('j3_shotgun');
+        }
+        p.sayAll(['c3_shotgun_1', 'c3_shotgun_2', 'c3_shotgun_3'], true);
+        return true;
+      }
+
+      // Olhar para a figura sentada. Ela nao responde, e ele nao insiste.
+      case 'ch3_figura': {
+        const n = (this.flags.figura_olhou || 0);
+        this.flags.figura_olhou = n + 1;
+        p.say(['c3_figura_1', 'c3_figura_2', 'c3_figura_3'][Math.min(n, 2)], 3.0, true);
+        if (n === 0) { this.sanity.drain(7); this.anotar('j3_figura'); }
         return true;
       }
 
@@ -24283,6 +25214,7 @@ class Game {
     this.ticket.reset();
     this.namePrompt.ativo = false;
     this.fogo.parar(); this.fogo.reset();
+    this.interrog.reset();
     this.cigTentativas = 0;
     // Ele chega do Patio de Carga com o que sobrou do Capitulo 2.
     const p = this.player;
@@ -24327,6 +25259,9 @@ class Game {
     p.controllable = false;
     p.frozen = true;
     audio.stopAllLoops(1.2);
+    // A musica da casa morre AQUI, no instante em que ele atende. O resto
+    // da cena acontece sem tema nenhum: o que vem depois nao tem trilha.
+    audio.stopMusic(1.6);
     // O que a ligacao diz: NADA que de para ouvir. Se o jogador entender uma
     // palavra que seja, o Capitulo 4 perde a revelacao.
     p.det.play('interact', { restart: true });
@@ -25029,6 +25964,23 @@ class Game {
     // O fogo tem relogio proprio: ele comeca com os gritos e nao depende de
     // mais nada do jogo para continuar queimando.
     if (this.fogo.ativo) this.fogo.update(dt, this);
+    // O interrogatorio idem: enquanto ele estiver aberto, e ele que le o
+    // teclado. O jogador nao anda, nao abre casaco e nao saca nada.
+    if (this.interrog.ativo) this.interrog.update(dt, this);
+
+    // ---- A PARADA NA SAIDA DA CELA ----
+    //
+    // Depois da confissao, atravessar a porta do arquivo nao e so trocar de
+    // sala: ele para no meio do corredor, sozinho, e o jogo espera. E o
+    // unico lugar do capitulo em que David comenta o que acabou de fazer —
+    // e o comentario e sobre ELE, nao sobre o Carlos.
+    if (lv.key === 'ch3_archive' && this.flags.carlos_quebrou && !this.flags.parou_saida
+        && this.player.x > lv.maxX - 260) {
+      this.flags.parou_saida = true;
+      const p2 = this.player;
+      p2.say('b3_int_saida', 3.2, true);
+      p2.say('b3_int_quase2', 3.0);
+    }
 
     // A saida: com Carlos ouvido e o cigarro aceso, voltar a recepcao e o
     // fim do capitulo. O plantonista pede o nome, e o jogo para.
@@ -25702,6 +26654,7 @@ class Game {
       // que nao existe mais nele.
       senha: this.ticket.save(),
       presente: this._presente || null,
+      interrog: this.interrog.save(),
     };
   }
 
@@ -25771,6 +26724,7 @@ class Game {
     // A casa so queima dentro da cena. Carregar um save nunca devolve o
     // jogador para o meio de um incendio.
     this.fogo.parar(); this.fogo.reset();
+    this.interrog.load(s.interrog);
     this._presente = s.presente || null;
     if (this.flags.flashback) {
       // Carregar dentro do passado tem que devolver o David do passado: sem

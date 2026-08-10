@@ -88,6 +88,13 @@ class Gfx {
     const tmp2 = makeBuffer(VW, VH);
     this.tmp2C = tmp2.c; this.t2 = tmp2.x;
 
+    // Buffer proprio da aproximacao de camera. Nao da para reaproveitar os
+    // dois de cima: o `t` guarda o padrao de scanline e o `t2` e usado
+    // dentro do mesmo quadro pelo pos-processamento. E ler e escrever no
+    // MESMO canvas com escala nao e confiavel em navegador nenhum.
+    const zoomB = makeBuffer(VW, VH);
+    this.zoomC = zoomB.c; this.z2 = zoomB.x;
+
     this._buildGrain();
     this._buildVignette();
     this._buildScanlines();
@@ -302,6 +309,35 @@ class Gfx {
     s.globalAlpha = alpha * 0.25;
     desenha(s);
     s.restore();
+  }
+
+  // ---------- aproximacao de camera ----------
+  //
+  // A DUVIDA D-10 do documento mestre, resolvida na marra: aproximar amplia
+  // o pixel do cenario, e a 1,6x isso DENUNCIA — o pixel de dentro da
+  // aproximacao fica visivelmente maior que o do resto do jogo. A 1,35x
+  // ajuda e nao denuncia, e e onde isto ficou.
+  //
+  // ⚠ Chame ENTRE `endLights()` e o desenho da interface. Assim o mundo
+  // chega perto e a interface continua no tamanho certo — que e o contrario
+  // de zoom no `present()`, onde o texto ia junto e virava letra de bloco.
+  aproximar(z, fx, fy) {
+    if (!(z > 1.001)) return;
+    const w = VW / z, h = VH / z;
+    const zx = clamp(fx - w / 2, 0, VW - w);
+    const zy = clamp(fy - h / 2, 0, VH - h);
+    this.z2.setTransform(1, 0, 0, 1, 0, 0);
+    this.z2.globalAlpha = 1;
+    this.z2.globalCompositeOperation = 'source-over';
+    this.z2.imageSmoothingEnabled = false;
+    this.z2.clearRect(0, 0, VW, VH);
+    this.z2.drawImage(this.sceneC, zx, zy, w, h, 0, 0, VW, VH);
+    const s = this.s;
+    s.setTransform(1, 0, 0, 1, 0, 0);
+    s.globalAlpha = 1;
+    s.globalCompositeOperation = 'source-over';
+    s.imageSmoothingEnabled = false;
+    s.drawImage(this.zoomC, 0, 0);
   }
 
   present(dt) {

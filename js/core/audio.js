@@ -793,57 +793,90 @@ class Audio {
   // som limpo aqui viraria filme, e o ponto e que ele esta do lado de fora.
   //
   // Nada disso e mostrado na tela. Se o jogador vir, vira cena de morte.
+  // ⚠ REFEITO na sessao 22. A primeira versao eram tres serras graves com
+  // vibrato debaixo de um passa-baixa de 800 Hz — e isso nao e um grito, e
+  // um mugido. Grito de gente tem quatro coisas que faltavam ali:
+  //
+  //   1. FUNDAMENTAL ALTA. Garganta gritando sai entre 600 e 1000 Hz, nao
+  //      em 420. Grave le como dor surda, agudo le como panico.
+  //   2. FORMANTES. A boca e um filtro com dois ou tres picos fixos. Sem
+  //      eles qualquer oscilador soa a sintetizador, nao a pessoa.
+  //   3. ROUQUIDAO. Voz no limite distorce. Um pouco de ruido dentro do
+  //      tom e o que separa "cantando alto" de "gritando".
+  //   4. A QUEBRA. Ninguem segura um grito ate o fim: a voz falha, despenca
+  //      de altura e vira ar. E o detalhe que faz doer.
+  //
+  // A parede continua existindo, mas subiu para 1,6 kHz: abafado demais e o
+  // ouvido para de reconhecer voz, e o ponto e justamente reconhecer.
   scream(vol = 1) {
     if (!this.ensure()) return;
     const c = this.ctx, t = c.currentTime;
-    const dur = 1.6 + Math.random() * 0.5;
+    const dur = 1.5 + Math.random() * 0.6;
+    const quebra = dur * (0.62 + Math.random() * 0.12);   // onde a voz falha
     const mix = c.createGain();
+    mix.gain.value = 1;
 
-    // a parede: tira o brilho todo e deixa so o corpo da voz
+    // ---- a parede entre ele e o que esta acontecendo ----
     const parede = c.createBiquadFilter();
     parede.type = 'lowpass';
-    parede.frequency.setValueAtTime(1150, t);
-    parede.frequency.linearRampToValueAtTime(780, t + dur);
-    parede.Q.value = 0.7;
+    parede.frequency.setValueAtTime(1650, t);
+    parede.frequency.linearRampToValueAtTime(1150, t + dur);
+    parede.Q.value = 0.6;
 
-    const base = 420 + Math.random() * 120;
-    for (const [mult, amp] of [[1, 1], [2.02, 0.5], [3.05, 0.22]]) {
-      const o = c.createOscillator();
-      o.type = 'sawtooth';
-      o.frequency.setValueAtTime(base * mult * 0.86, t);
-      o.frequency.linearRampToValueAtTime(base * mult * 1.14, t + 0.18);
-      o.frequency.linearRampToValueAtTime(base * mult * 0.72, t + dur);
-      // vibrato irregular: voz humana nao segura nota
-      const lfo = c.createOscillator();
-      lfo.type = 'sine'; lfo.frequency.value = 5.5 + Math.random() * 3;
-      const lg = c.createGain(); lg.gain.value = base * mult * 0.055;
-      lfo.connect(lg); lg.connect(o.frequency);
-      lfo.start(t); lfo.stop(t + dur);
+    // ---- a fonte: dente-de-serra com ruido por dentro (rouquidao) ----
+    const base = 620 + Math.random() * 220;
+    const fonte = c.createGain();
 
+    const o = c.createOscillator();
+    o.type = 'sawtooth';
+    o.frequency.setValueAtTime(base * 0.72, t);
+    o.frequency.exponentialRampToValueAtTime(base * 1.12, t + 0.13);   // sobe rapido
+    o.frequency.setValueAtTime(base * 1.12, t + quebra * 0.7);
+    o.frequency.exponentialRampToValueAtTime(base * 0.42, t + quebra + 0.16);  // QUEBRA
+    o.frequency.exponentialRampToValueAtTime(base * 0.3, t + dur);
+    // vibrato irregular e fundo: garganta no limite nao segura nota
+    const lfo = c.createOscillator();
+    lfo.type = 'sine'; lfo.frequency.value = 6.5 + Math.random() * 3.5;
+    const lg = c.createGain(); lg.gain.value = base * 0.06;
+    lfo.connect(lg); lg.connect(o.frequency);
+    lfo.start(t); lfo.stop(t + dur + 0.1);
+    o.connect(fonte);
+    o.start(t); o.stop(t + dur + 0.1);
+
+    // a rouquidao: ruido somado ao tom, nao ao lado dele
+    const rouco = c.createBufferSource();
+    rouco.buffer = this.noiseBuf;
+    rouco.playbackRate.value = 1.6;
+    const rf = c.createBiquadFilter();
+    rf.type = 'bandpass'; rf.Q.value = 1.1; rf.frequency.value = base * 1.8;
+    const rg = c.createGain();
+    rg.gain.setValueAtTime(0.0001, t);
+    rg.gain.linearRampToValueAtTime(0.5, t + 0.1);
+    rg.gain.linearRampToValueAtTime(1.5, t + quebra);       // ao quebrar vira ar
+    rg.gain.linearRampToValueAtTime(0.4, t + dur);
+    rouco.connect(rf); rf.connect(rg); rg.connect(fonte);
+    rouco.start(t, Math.random() * 2, dur + 0.2); rouco.stop(t + dur + 0.2);
+
+    // ---- as formantes: e isto que faz o ouvido ouvir uma BOCA ----
+    for (const [f0, q, amp] of [[900, 7, 1], [1480, 9, 0.62], [2600, 11, 0.3]]) {
+      const bp = c.createBiquadFilter();
+      bp.type = 'bandpass';
+      bp.frequency.setValueAtTime(f0, t);
+      bp.frequency.linearRampToValueAtTime(f0 * 0.82, t + dur);   // a boca fecha
+      bp.Q.value = q;
       const g = c.createGain();
       g.gain.setValueAtTime(0.0001, t);
-      g.gain.exponentialRampToValueAtTime(0.09 * amp * vol, t + 0.07);
-      g.gain.setValueAtTime(0.09 * amp * vol, t + dur * 0.45);
+      g.gain.exponentialRampToValueAtTime(0.16 * amp * vol, t + 0.015);   // ataque seco
+      g.gain.setValueAtTime(0.16 * amp * vol, t + quebra);
+      g.gain.exponentialRampToValueAtTime(0.045 * amp * vol, t + quebra + 0.2);
       g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
-      o.connect(g); g.connect(mix);
-      o.start(t); o.stop(t + dur + 0.1);
+      fonte.connect(bp); bp.connect(g); g.connect(mix);
     }
-
-    // o ar da garganta
-    const s = c.createBufferSource();
-    s.buffer = this.noiseBuf;
-    s.playbackRate.value = 1.1;
-    const bf = c.createBiquadFilter();
-    bf.type = 'bandpass'; bf.Q.value = 2.2; bf.frequency.value = 1400;
-    s.connect(bf);
-    const sg = this._env(bf, t, 0.06, dur, 0.05 * vol);
-    sg.connect(mix);
-    s.start(t, Math.random() * 2, dur); s.stop(t + dur);
 
     mix.connect(parede);
     parede.connect(this.busSfx);
-    // uma copia na reverb, para o som ter a casa em volta
-    const vg = c.createGain(); vg.gain.value = 0.55;
+    // uma copia na reverb, para o som ter a casa em volta dele
+    const vg = c.createGain(); vg.gain.value = 0.6;
     parede.connect(vg); vg.connect(this.verb);
   }
 
@@ -1175,44 +1208,78 @@ class Audio {
   // Re menor, ~46 bpm. Piano sintetico (triangulo + seno) com cauda longa
   // no reverb, mais um bordao grave. Melancolia com quatro notas.
 
+  // Tres humores, e os tres sao o mesmo piano — o que muda e a distancia
+  // entre as notas. Nao existe arquivo de musica no projeto e nao vai
+  // existir: o que da unidade ao jogo e todo som sair do mesmo lugar.
+  //
+  //   menu ....... o tema. Re menor, quatro notas, cauda longa.
+  //   casa ....... o flashback. Mais lento, mais agudo, quase parado, e
+  //                SEM chiado de vinil — vinil e memoria velha, e esta
+  //                cena nao pode soar a lembranca enquanto ela acontece.
+  //   delegacia .. quase nada: um bordao grave, um tritom bem baixo por
+  //                cima e uma nota solta de vez em quando. Nao e melodia,
+  //                e um lugar que nao quer voce ali.
   startMusic(mood = 'menu') {
     if (!this.ensure()) return;
-    if (this.musicOn) return;
+    if (this.musicOn && this.mood === mood) return;
+    if (this.musicOn) this.stopMusic(1.4);
     this.musicOn = true;
     this.mood = mood;
     this._step = 0;
     this._nextNote = this.ctx.currentTime + 0.2;
 
     const c = this.ctx, t = c.currentTime;
+    const cfg = {
+      menu:      { bordao: 73.42, bg: 0.055, subida: 4, vinil: 0.017, tritom: 0 },
+      casa:      { bordao: 98.00, bg: 0.030, subida: 6, vinil: 0,     tritom: 0 },
+      delegacia: { bordao: 55.00, bg: 0.048, subida: 5, vinil: 0.010, tritom: 0.020 },
+    }[mood] || { bordao: 73.42, bg: 0.055, subida: 4, vinil: 0.017, tritom: 0 };
+
     // bordao
-    const dr = c.createOscillator(); dr.type = 'sine'; dr.frequency.value = 73.42; // Re2
+    const dr = c.createOscillator(); dr.type = 'sine'; dr.frequency.value = cfg.bordao;
     const dg = c.createGain(); dg.gain.setValueAtTime(0.0001, t);
-    dg.gain.linearRampToValueAtTime(0.055, t + 4);
+    dg.gain.linearRampToValueAtTime(cfg.bg, t + cfg.subida);
     dr.connect(dg); dg.connect(this.busMusic); dr.start(t);
     this.drone = { osc: dr, gain: dg };
 
+    // O TRITOM da delegacia. Meia oitava acima do bordao, desafinado de
+    // proposito: as duas ondas batem uma contra a outra umas duas vezes por
+    // segundo e o ouvido nunca acomoda. E o intervalo que a musica ocidental
+    // passou seiscentos anos evitando, e ele funciona.
+    if (cfg.tritom > 0) {
+      const tr = c.createOscillator(); tr.type = 'sine';
+      tr.frequency.value = cfg.bordao * Math.SQRT2 * 2 + 0.7;
+      const tg = c.createGain(); tg.gain.setValueAtTime(0.0001, t);
+      tg.gain.linearRampToValueAtTime(cfg.tritom, t + cfg.subida * 1.6);
+      tr.connect(tg); tg.connect(this.busMusic); tr.start(t);
+      this.drone2 = { osc: tr, gain: tg };
+    }
+
     // chiado de vinil
-    const vs = c.createBufferSource(); vs.buffer = this.noiseBuf; vs.loop = true;
-    vs.playbackRate.value = 1.2;
-    const vf = c.createBiquadFilter(); vf.type = 'highpass'; vf.frequency.value = 2600;
-    const vg = c.createGain(); vg.gain.setValueAtTime(0.0001, t);
-    vg.gain.linearRampToValueAtTime(0.017, t + 3);
-    vs.connect(vf); vf.connect(vg); vg.connect(this.busMusic); vs.start(t);
-    this.vinyl = { src: vs, gain: vg };
+    if (cfg.vinil > 0) {
+      const vs = c.createBufferSource(); vs.buffer = this.noiseBuf; vs.loop = true;
+      vs.playbackRate.value = 1.2;
+      const vf = c.createBiquadFilter(); vf.type = 'highpass'; vf.frequency.value = 2600;
+      const vg = c.createGain(); vg.gain.setValueAtTime(0.0001, t);
+      vg.gain.linearRampToValueAtTime(cfg.vinil, t + 3);
+      vs.connect(vf); vf.connect(vg); vg.connect(this.busMusic); vs.start(t);
+      this.vinyl = { src: vs, gain: vg };
+    }
   }
 
   stopMusic(fade = 2.0) {
     if (!this.musicOn) return;
     this.musicOn = false;
+    this.mood = null;
     const t = this.ctx.currentTime;
-    for (const n of [this.drone, this.vinyl]) {
+    for (const n of [this.drone, this.drone2, this.vinyl]) {
       if (!n) continue;
       n.gain.gain.cancelScheduledValues(t);
       n.gain.gain.setValueAtTime(n.gain.gain.value, t);
       n.gain.gain.linearRampToValueAtTime(0.0001, t + fade);
       try { (n.osc || n.src).stop(t + fade + 0.2); } catch (e) {}
     }
-    this.drone = null; this.vinyl = null;
+    this.drone = null; this.drone2 = null; this.vinyl = null;
   }
 
   // Melodia agendada com antecedencia — WebAudio nao gosta de ser
@@ -1220,21 +1287,43 @@ class Audio {
   updateMusic() {
     if (!this.musicOn || !this.ready) return;
     const c = this.ctx;
-    const MEL = [
-      [293.66, 2.4], [349.23, 1.6], [440.00, 2.8], [392.00, 1.6],
-      [349.23, 2.4], [329.63, 3.2], [293.66, 3.6], [0, 2.4],
-      [440.00, 2.0], [466.16, 2.4], [392.00, 3.0], [349.23, 2.0],
-      [293.66, 4.4], [0, 3.0],
-    ];
+    // Re menor no menu. Na casa, a mesma escala uma oitava acima e com o
+    // dobro de silencio entre as notas: o que faz a coisa doer nao e a
+    // nota, e o vao entre uma e outra. Na delegacia quase nao ha nota.
+    const MELS = {
+      menu: [
+        [293.66, 2.4], [349.23, 1.6], [440.00, 2.8], [392.00, 1.6],
+        [349.23, 2.4], [329.63, 3.2], [293.66, 3.6], [0, 2.4],
+        [440.00, 2.0], [466.16, 2.4], [392.00, 3.0], [349.23, 2.0],
+        [293.66, 4.4], [0, 3.0],
+      ],
+      // A CASA. Sobe uma sexta e nunca resolve — a frase fica sempre
+      // faltando a ultima nota, que e o que ele nao teve.
+      casa: [
+        [587.33, 3.2], [0, 1.6], [698.46, 2.8], [659.25, 3.6], [0, 2.4],
+        [523.25, 3.0], [587.33, 4.2], [0, 3.2],
+        [880.00, 2.6], [783.99, 3.4], [0, 2.0], [698.46, 3.0],
+        [587.33, 5.0], [0, 4.4],
+      ],
+      // A DELEGACIA. Uma nota a cada oito ou dez segundos, grave, sozinha.
+      // Nao e tema: e o predio respirando.
+      delegacia: [
+        [110.00, 6.0], [0, 4.5], [116.54, 5.0], [0, 6.0],
+        [98.00, 5.5], [0, 7.0], [110.00, 4.5], [0, 8.0],
+        [155.56, 3.0], [0, 9.0],
+      ],
+    };
+    const MEL = MELS[this.mood] || MELS.menu;
+    const forte = this.mood === 'casa' ? 0.55 : this.mood === 'delegacia' ? 0.8 : 1;
     while (this._nextNote < c.currentTime + 1.5) {
       const [freq, dur] = MEL[this._step % MEL.length];
-      if (freq > 0) this._piano(freq, this._nextNote, dur);
+      if (freq > 0) this._piano(freq, this._nextNote, dur, forte);
       this._nextNote += dur;
       this._step++;
     }
   }
 
-  _piano(freq, t, dur) {
+  _piano(freq, t, dur, forte = 1) {
     const c = this.ctx;
     const mk = (type, f, amp, decay) => {
       const o = c.createOscillator();
@@ -1249,9 +1338,9 @@ class Audio {
       o.start(t); o.stop(t + decay + 0.1);
     };
     const d = Math.min(dur * 1.6, 5);
-    mk('triangle', freq, 0.075, d);
-    mk('sine', freq * 2, 0.026, d * 0.55);
-    mk('sine', freq * 0.5, 0.032, d * 0.8);
+    mk('triangle', freq, 0.075 * forte, d);
+    mk('sine', freq * 2, 0.026 * forte, d * 0.55);
+    mk('sine', freq * 0.5, 0.032 * forte, d * 0.8);
   }
 
   // ---------------- narracao gravada ----------------

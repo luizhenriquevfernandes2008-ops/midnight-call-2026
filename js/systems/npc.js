@@ -47,6 +47,25 @@ export const NPCS = {
     anim: 'sitChair', arte: 'plantonista',
     talk: 'plantonista', prompt: 'prompt_talk',
   },
+  // 🐛 A SALA DE ESPERA ESTAVA VAZIA. O painel de senha contava, a fala
+  // dizia "ele esta esperando a vez" e NAO HAVIA NINGUEM DESENHADO na
+  // cadeira. E o B-57 outra vez, com outra roupa: o objeto existia, a
+  // pessoa nao. Nenhum teste pegou porque todos conferiam o painel.
+  //
+  // E quem senta ali nao e o Credor: e A FIGURA NEGRA do Capitulo 1 — o
+  // recorte de escuro com forma de gente que derrubou o David no deposito
+  // e que o jogo nunca explicou. Sentada numa cadeira de plastico, com uma
+  // senha de atendimento na mao, debaixo de luz fluorescente.
+  //
+  // `silhueta` pinta o rig inteiro de preto puro. Como a cena e
+  // multiplicada pela luz, preto continua preto debaixo de qualquer
+  // lampada — e e por isso que ela funciona numa recepcao acesa.
+  figura: {
+    level: 'ch3_reception', x: 742, facing: -1, yOff: -19,
+    anim: 'sitChair', arte: null,
+    silhueta: '#050507', escala: 1.14,
+    prompt: 'prompt_look', talk: null,
+  },
   michael: {
     level: 'ch3_plantao', x: 470, facing: -1,
     anim: 'sitChair', arte: 'michael',
@@ -108,8 +127,13 @@ export class Npc {
     // Peças próprias. Antes eles eram o detetive tingido — literalmente a
     // mesma pessoa, um sentado e o outro quase de quatro. Agora cada um
     // tem cabeça, tronco e roupa dele.
-    d.parts = partesDe(c.arte);
-    d.rimAlpha = 0.16;
+    d.parts = c.arte ? partesDe(c.arte) : null;
+    // A figura negra não tem peça nenhuma: ela é o rig do detetive pintado
+    // de uma cor só. Sem rosto, sem informação, e sem luz de contorno —
+    // contorno em cima dela devolveria justamente o volume que ela não pode
+    // ter.
+    if (c.silhueta) { d.silhouette = c.silhueta; d.rimAlpha = 0; }
+    d.rimAlpha = c.silhueta ? 0 : 0.16;
     d.reflect = 0;
     d.facing = c.facing;
     d.flipT = 1;
@@ -166,11 +190,15 @@ export class Npc {
   // novos caiam no `talk` do Capitulo 2 e a conversa abria sem nada disso.
   gancho() {
     const e = this.escala;
-    return {
+    const base = {
       x: this.x - 14 * e, y: 150, w: 28 * e, h: 64 * e,
       prompt: this.cfg.prompt,
-      action: this.cfg.level && this.cfg.level.slice(0, 4) === 'ch3_' ? 'talk3' : 'talk',
       npc: this.id, range: 34, prio: 2,
     };
+    // Quem nao tem conversa nao abre conversa. A figura negra e olhada, e
+    // ela nao responde — nem aqui, nem no Capitulo 1, nem nunca.
+    if (!this.cfg.talk) { base.action = 'ch3_figura'; base.prio = 1; return base; }
+    base.action = this.cfg.level && this.cfg.level.slice(0, 4) === 'ch3_' ? 'talk3' : 'talk';
+    return base;
   }
 }

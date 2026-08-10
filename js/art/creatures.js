@@ -105,7 +105,7 @@ const C = {
   // roupa deixava de ser "colete sobre camisa" para virar "camisa larga".
   // E seguro escurecer porque esta roupa so existe no flashback, que sao
   // os dois setores mais claros do jogo.
-  '+': '#5c5544', '=': '#3f3a2d', '*': '#736b56', '-': '#33301f',
+  '+': '#4e5462', '=': '#31363f', '*': '#6d7484', '-': '#262a31',
 };
 
 const P = {};
@@ -987,23 +987,33 @@ function build() {
   });
 
   // ---- JULIE: vestido de casa. A unica pessoa quente do jogo inteiro. ----
+  // ⚠ CABELO COMPRIDO. As linhas abaixo da 14 caem ALEM do pivo, ou seja,
+  // sao desenhadas por cima do tronco: e assim que o cabelo passa do
+  // pescoco e chega no ombro. A cabeca so gira em passos de 7 graus, entao
+  // a ponta do cabelo balanca no maximo um pixel e meio — nao derrete.
   P.juHead = sprite({
     pivot: [6, 14], map: C, rows: [
       '...555555.....',
       '..5555555555..',
       '.55555qqqq55..',
-      '.5555qSSSSt5..',
+      '.5555qSSSSt55.',
       '.555qSSSSSSt5.',
       '.55qSSeeSSSt5.',
       '.55qSSEeSSst5.',
       '.55qSSqSSStS5.',
       '.55qSSSSSSqS5.',
-      '.5qSSSSSSSst5.',
-      '..qSSSSSSSst5.',
-      '..qsSSSSSSSs5.',
-      '...sSSSSSSs5..',
-      '....sSSSs.....',
-      '....sSSSs.....',
+      '.55qSSSSSSst5.',
+      '.55qSSSSSSst5.',
+      '.55qsSSSSSSs5.',
+      '.555sSSSSSs55.',
+      '.5555sSSSs555.',
+      '.5555sSSSs555.',
+      '.66555...55566',
+      '.66555...55566',
+      '.6655.....5566',
+      '.665.......566',
+      '..65.......56.',
+      '..6.........6.',
     ]
   });
   P.juTorso = sprite({
@@ -1048,23 +1058,34 @@ function build() {
   // O rig e o mesmo; quem encolhe e o `escala` do NPC. Mas a cabeca dela e
   // proporcionalmente maior, que e o que faz uma crianca parecer crianca em
   // vez de um adulto reduzido.
+  // O cabelo dela e mais comprido que o da mae e nao esta preso — ela devia
+  // estar dormindo ha duas horas. Detalhe pequeno, mas e o tipo de coisa
+  // que faz uma crianca parecer uma crianca em vez de um adulto reduzido.
   P.jeHead = sprite({
     pivot: [6, 14], map: C, rows: [
       '...555555.....',
       '..5555555555..',
       '.555555qqq55..',
-      '.5555qSSSSt5..',
+      '.5555qSSSSt55.',
       '.555qSSSSSSt5.',
       '.55qSSeeSSSt5.',
       '.55qSSEeSSst5.',
-      '.55qSSSSSSStS.',
-      '.55qSSSqSSSqS.',
-      '.5qSSSSSSSSst.',
-      '..qSSSSSSSSst.',
-      '..qsSSSSSSSs..',
-      '...sSSSSSSs...',
-      '....sSSSs.....',
-      '....sSSSs.....',
+      '.55qSSSSSSSt5.',
+      '.55qSSSqSSSq5.',
+      '.55qSSSSSSSs5.',
+      '.55qSSSSSSSs5.',
+      '.55qsSSSSSSs5.',
+      '.555sSSSSSs55.',
+      '.5555sSSSs555.',
+      '.5555sSSSs555.',
+      '.65555...55556',
+      '.65555...55556',
+      '.6655.....5566',
+      '.6655.....5566',
+      '.665.......566',
+      '..65.......56.',
+      '..6.........6.',
+      '..6.........6.',
     ]
   });
   P.jeTorso = sprite({
@@ -1121,42 +1142,56 @@ function build() {
   //
   // ⚠ A cabeca continua sendo a DELE. E o mesmo homem, e o jogador tem que
   // reconhecer na hora; quem muda e a roupa, nao a pessoa.
+  // ⚠ REFEITO na sessao 22. A primeira versao era um colete que cobria o
+  // tronco quase inteiro, e a 62px o resultado era uma mancha so: "ta tudo
+  // enfiado dentro de tudo". O que le como ROUPA SOCIAL num boneco deste
+  // tamanho nao e o tecido, sao TRES FAIXAS VERTICAIS em contraste:
+  //
+  //     paleto escuro  |  lapela clara  |  camisa branca  |  gravata
+  //
+  // O paleto fica ABERTO, a camisa aparece inteira do colarinho ao cinto e
+  // a gravata desce por dentro dela. Sao quatro colunas de cor diferente
+  // lado a lado — e e isso, e so isso, que diz "esse homem trabalhava de
+  // terno" sem uma linha de dialogo.
   P.pastTorso = sprite({
     pivot: [9, 20], map: C, rows: [
       '...==++++++++=....',
-      '..=++++++++++=....',
-      '.=++++++++++XX=...',
-      '.=+++++++++=XO=...',
-      '.=++=+++++*=XO=...',
-      '.=++=+++++9=XO=...',
-      '.=++=+++++*=XO=...',
-      '.=++=+++++*=Xo=...',
-      '.=++=+++++9=XO=...',
-      '.=++=+++++*=XO=...',
-      '.=++=+++++*=Xo=...',
-      '.=++=+++++9=XO=...',
-      '.=++=+++++*=XO=...',
-      '.=++++++++++X=....',
+      '..=+++++++++*X=...',
+      '.=++++++++++*XX=..',
+      '.=+++++++++*XOXX=.',
+      '.=++=++++++*XOX9=.',
+      '.=++=++++++*XOX=..',
+      '.=++=++++++*XOX=..',
+      '.=++=++++++*XoX=..',
+      '.=++=++++++*XOX=..',
+      '.=++=++++++*XOX=..',
+      '.=++=++++++*XoX=..',
+      '.=++=++++++*XOX=..',
+      '.=++=++++++*XOX=..',
+      '.=++++++++++XXX=..',
       '.=------------=...',
       '.=++++++++++++=...',
-      '.=++=+++++*=+=....',
-      '.=++=+++++*=+=....',
-      '..=+=+++++*=+=....',
+      '.=++=++++++*XX=...',
+      '.=++=++++++*XX=...',
+      '..=+=++++++*X=....',
       '..=++++++++++=....',
       '...==++++++++=....',
     ]
   });
-  // Manga de camisa: pano claro ate o punho. A mao continua sendo a dele.
+  // Manga de PALETO, com o punho da camisa saindo na ponta. O punho claro
+  // e o detalhe que separa "de terno" de "de casaco": um homem de terno
+  // mostra dois centimetros de camisa no pulso, e a 62px esses dois
+  // centimetros sao dois pixels — mas sao os dois pixels certos.
   P.pastUpper = sprite({
     pivot: [2, 1], map: C, rows: [
-      'cXXXXc', 'cXXXXc', 'cXXXXc', 'cXXXXc', 'cXXXXc', 'cXXXXc',
-      'cXXXXc', 'cXXXXc', 'cXXXXc', '.cXXXc', '.cxxxc',
+      '=++++=', '=++++=', '=++++=', '=++++=', '=++++=', '=++++=',
+      '=++++=', '=++++=', '=++++=', '.=+++=', '.=+++=',
     ]
   });
   P.pastFore = sprite({
     pivot: [2, 1], map: C, rows: [
-      'cXXXXc', 'cXXXXc', 'cXXXXc', 'cXXXXc', '.cXXXc', '.cXXXc',
-      '.cXXXc', '.cXXXc', 'c9999c', '.cccc.',
+      '=++++=', '=++++=', '=++++=', '=++++=', '.=+++=', '.=+++=',
+      '.=+++=', '.=+++=', 'cXXXXc', '.cccc.',
     ]
   });
   // Colarinho de camisa, no lugar da gola levantada do sobretudo. Sem
@@ -1169,10 +1204,10 @@ function build() {
       '................',
       '................',
       '................',
-      '................',
-      '.....cXXXXXXc...',
-      '....cXXXXXXXXc..',
-      '....cxxxxxxxxc..',
+      '....=......=....',
+      '....=cXXXXc=....',
+      '...=cXXXXXXc=...',
+      '...=cxxxxxxc=...',
     ]
   });
 
