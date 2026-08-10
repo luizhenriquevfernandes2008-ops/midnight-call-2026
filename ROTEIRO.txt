@@ -1,0 +1,2861 @@
+===============================================================================
+
+                          T H E   M I D N I G H T   C A L L
+                            Chamado da Meia-Noite
+
+                                  R O T E I R O
+
+===============================================================================
+
+  Documento de história. Só narrativa — nada de código aqui.
+  A parte técnica fica em CHAMADO_DA_MEIA_NOITE.md.
+
+  Última atualização: 07/08/2026 (sessão 18)
+  Estado: CAPÍTULO 1 escrito e implementado no jogo.
+          CAPÍTULO 2 escrito, decidido e IMPLEMENTADO — os oito setores, os
+          três inimigos, o Credor, o diário, o inventário, a sanidade e a
+          cena do espelho estão no jogo. Falta teste humano.
+          CAPÍTULO 3 ESCRITO em 07/08 (PARTE IX). Ainda NÃO implementado.
+          O passado de David foi travado nesta sessão — ver IX.0. Isso muda
+          o sentido de coisas que já estão no jogo desde o Capítulo 1, mas
+          não exige mexer em nenhuma delas: só passam a significar mais.
+
+  COMO USAR ESTE ARQUIVO
+  ----------------------
+  Abra em qualquer editor de texto (Bloco de Notas serve).
+  Escreva onde estiver marcado [ESCREVER AQUI].
+  Não precisa formatar bonito — eu leio do jeito que estiver.
+
+  MARCAÇÕES USADAS
+  ----------------
+  [JÁ NO JOGO]   ...... isto já está implementado e funcionando
+  [NÃO IMPLEM.]  ...... está escrito aqui mas ainda não existe no jogo
+  [ESCREVER AQUI] ..... espaço reservado para você
+  (nota:)         ..... comentário de produção, não é falado
+
+
+===============================================================================
+PARTE I — A BÍBLIA DO PROJETO
+===============================================================================
+
+
+-------------------------------------------------------------------------------
+1. LOGLINE
+-------------------------------------------------------------------------------
+
+Um detetive falido, sem distintivo e sem nada a perder, atende o telefone às
+2h14 da manhã. Uma voz de mulher dá o endereço de um bar fechado há seis anos.
+Ele vai. E descobre que o lugar estava esperando por ele.
+
+
+-------------------------------------------------------------------------------
+2. O PROTAGONISTA
+-------------------------------------------------------------------------------
+
+NOME ............... DAVID
+                     Pronúncia INGLESA — "DÊI-vid", não "Davi".
+                     (⚠ CONFIRMAR: entendi isso do áudio do dia 04/08. Se eu
+                      entendi errado, é só riscar e escrever o certo.)
+                     Sobrenome: [ESCREVER AQUI]
+
+IDADE .............. Aparenta 45 a 50. Cansado antes da conta.
+
+O QUE ELE ERA ...... Detetive. Tinha distintivo.
+
+O QUE ELE É ........ Nada disso. Perdeu o distintivo, depois a casa, depois
+                     o resto. Sobrou o telefone — e ele nunca tocava.
+
+APARÊNCIA .......... Sobretudo marrom, fechado. Camisa por baixo, gravata
+                     vinho que só aparece no colarinho. Calça cinza, botas.
+                     Cabelo escuro, barba de dois dias.
+                     Referência visual: Sebastian Castellanos
+                     (The Evil Within).
+
+O QUE ELE CARREGA .. No Capítulo 1: cigarros, isqueiro, arma no coldre,
+                     carteira.
+                     Depois do sequestro: NADA. Só a roupa do corpo.
+
+O VÍCIO ............ O cigarro. E aqui está o detalhe mais importante do
+                     personagem:
+
+                     ELE NÃO FUMA.
+
+                     Ele TIRA o cigarro do bolso. Olha para ele. Hesita.
+                     E joga fora, dizendo "hoje não...".
+
+                     Toda vez. Sempre. É a animação dele parado.
+                     [JÁ NO JOGO]
+
+                     (nota: isso é o personagem inteiro num gesto. Ele quer,
+                      ele quase, e ele desiste. Não é força de vontade — é
+                      alguém que não se permite nem a única coisa que ainda
+                      lhe daria prazer. Quando ele PERDE o cigarro no
+                      sequestro, ele não fica aliviado. Ele fica sem ter o
+                      que recusar. Aí ele só senta no chão e bate o pé.)
+
+O CASO QUE NÃO FECHA  Todo detetive tem um. O dele tem sete anos e um nome
+                      que ele não diz em voz alta.
+                      [NÃO IMPLEM. — precisa ser desenvolvido no Cap. 2]
+
+O QUE ELE DIZ ...... Frases curtas. Secas. Ele fala sozinho o tempo todo
+                     porque não tem mais com quem falar.
+                     Faz piada quando consegue. Constata quando não consegue.
+
+                     Exemplos que já estão no jogo:
+                       "Beco sem saída. Combina."
+                       "A chuva não lava nada. Só espalha."
+                       "Devia ter trazido uma lanterna. E um emprego."
+                       "Já estive em lugares piores. Morei num."
+                       "Nenhum policial troca a lâmpada de um beco."
+                     [JÁ NO JOGO]
+
+
+-------------------------------------------------------------------------------
+3. A REGRA CENTRAL DO JOGO
+-------------------------------------------------------------------------------
+
+O jogo gira em torno da PRÓPRIA MENTE do detetive.
+
+Os inimigos são os pesadelos e os medos mais profundos dele. Não são monstros
+que existem no mundo — são coisas que existem nele e vazaram para fora.
+
+Referências de tom: Silent Hill, The Evil Within.
+
+CONSEQUÊNCIA PARA A ESCRITA:
+  Tudo que ele encontra deve poder ser lido de duas formas.
+  Uma investigação real acontecendo, e uma cabeça se desfazendo.
+  O jogador nunca deve ter certeza de qual das duas está vendo.
+
+  Exemplo já no jogo: o telefone do bar tem o fio cortado, e o corte já
+  enferrujou — foi cortado há muito tempo. Então de onde veio a ligação?
+  Não há resposta. Não deve haver, ainda.
+
+
+-------------------------------------------------------------------------------
+4. TOM E REGRAS DO MUNDO
+-------------------------------------------------------------------------------
+
+- É noite o tempo todo. Chove lá fora.
+- A cidade nunca é nomeada.
+- Ninguém aparece. Até o fim do Capítulo 1 o detetive não vê UMA pessoa viva.
+- O horror é lento. Nada pula na tela.
+- O silêncio é a arma principal. A música só existe para ser cortada.
+- Ele nunca corre de medo. Ele anda. É pior.
+
+
+===============================================================================
+PARTE II — CAPÍTULO 1: "O HOMEM QUE ATENDEU"
+===============================================================================
+
+  STATUS: escrito e implementado por completo.
+  Duração estimada de jogo: 15 a 20 minutos.
+
+
+-------------------------------------------------------------------------------
+CENA 1 — O CARRO
+-------------------------------------------------------------------------------
+LOCAL: ruas da cidade, dentro do carro dele
+HORA:  02h14
+TIPO:  Cutscene em gameplay, câmera lateral acompanhando o carro
+[JÁ NO JOGO]
+
+  Chuva forte. O carro atravessa a cidade da esquerda para a direita. Postes
+  passam. Vitrines apagadas. Uma ou outra janela acesa lá em cima — gente
+  dormindo, gente que tem para onde voltar.
+
+  Ele dirige. Não vemos o rosto dele ainda.
+
+  NARRAÇÃO (voz dele, gravada):
+
+    "Engraçado..."
+
+    "Passei metade da vida perseguindo monstros."
+
+    "E a outra metade tentando descobrir por que eles nunca saíam do meu
+     caminho."
+
+    "Demorei anos pra entender."
+
+    "Eles... eles nunca estiveram na minha frente."
+
+    "Eles vinham comigo."
+
+    "Tem gente que acredita que o tempo cura..."
+
+    "Mentira."
+
+    "O tempo só aprende a esconder as feridas... até você olhar no espelho."
+
+    "Tem noites em que eu ainda escuto."
+
+    "Não são vozes..."
+
+    "Silêncios."
+
+    "Os silêncios que eu deixei pra trás."
+
+    "Não... Não existe aposentadoria pra consciência."
+
+    "Ela bate ponto todos os dias."
+
+    "Hoje, talvez seja o primeiro dia em muito tempo que eu parei de fugir."
+
+    "Se existe uma conta esperando por mim..."
+
+    "Já passou da hora de pagar."
+
+  A narração acaba. SÓ ENTÃO o carro começa a frear.
+
+  (nota de produção: a cena dura exatamente o que durar a fala. Se você
+   regravar mais longo ou mais curto, o carro se ajusta sozinho. Isso é
+   proposital.)
+
+  O carro estaciona na calçada, debaixo de um poste. O farol apaga.
+  A porta abre. Ele desce — devagar, como quem já está cansado antes de
+  começar. Fecha a porta.
+
+  À frente dele, na esquina, a boca de um beco. Preta.
+
+  Ele caminha até lá e entra.
+
+  CORTE PARA:
+
+
+-------------------------------------------------------------------------------
+CENA 2 — O BECO
+-------------------------------------------------------------------------------
+LOCAL: beco dos fundos
+HORA:  02h20 aprox.
+TIPO:  Gameplay. Primeiro controle do jogador.
+[JÁ NO JOGO]
+
+  Chove. O beco é estreito, sem saída. Tijolo encardido dos dois lados, canos
+  de esgoto, escada de incêndio, lixo, poças. Uma lâmpada nua pisca no meio do
+  caminho. No fundo, uma porta de madeira com uma lâmpada fraca em cima e uma
+  placa de neon meio queimada.
+
+  FALAS DELE AO ANDAR:
+
+    (ao entrar)
+    "Beco sem saída. Combina."
+
+    (perto das poças)
+    "A chuva não lava nada. Só espalha."
+
+    (perto da lâmpada que pisca)
+    "Nenhum policial troca a lâmpada de um beco."
+
+    (perto da janela acesa lá em cima)
+    "Alguém ainda mora aqui. Coitado."
+
+    (perto da porta)
+    "Seis anos fechado. E a porta abre."
+
+  COISAS QUE ELE PODE EXAMINAR:
+
+    CARTAZ DE DESAPARECIDA
+      "Um cartaz de desaparecida. A chuva já comeu metade do rosto."
+      "A data é de três semanas atrás. Ninguém arrancou."
+      "Ninguém arranca o que ninguém lê."
+      (nota: primeira pista solta. Não é resolvida no Cap. 1.)
+
+    CAÇAMBA DE LIXO
+      "Lixo de bar. Vidro, guardanapo, nada que preste."
+      "Se tem alguém morando aqui, saiu com pressa."
+
+    POÇA
+      "A poça me devolve uma cara que eu não reconheço mais."
+
+    LÂMPADA
+      "O poste pisca. A cidade inteira pisca, só ninguém repara."
+
+    A PORTA
+      "A porta dos fundos. Sem cadeado."
+      "Um bar fechado há seis anos não devia estar destrancado."
+
+  Ele abre a porta e entra.
+
+  CORTE PARA:
+
+
+-------------------------------------------------------------------------------
+CENA 3 — O BAR "O ÚLTIMO TROCO"
+-------------------------------------------------------------------------------
+LOCAL: salão do bar
+HORA:  02h25 aprox.
+TIPO:  Gameplay
+[JÁ NO JOGO]
+
+  Escuro. Uma lâmpada pendurada balança devagar, sozinha — não há vento aqui
+  dentro. Luar entrando por uma persiana.
+
+  O lugar está DESTRUÍDO. Dois buracos arrebentados no lambri da parede.
+  Entulho e caco de vidro pelo chão. Cadeiras quebradas. Uma prateleira de
+  garrafas desabou. Papel de parede pendurado em tiras.
+
+  E no meio de todo o estrago, as cadeiras estão EMPILHADAS EM CIMA DAS MESAS.
+  Certinho. Uma por uma.
+
+  Essa contradição é o coração da cena.
+
+  FALAS DELE AO ANDAR:
+
+    (ao entrar)
+    "Alguém chegou antes de mim."
+    "E não veio conversar."
+
+    (no escuro)
+    "Se tem alguém aqui, já me viu."
+
+    (perto do buraco na parede)
+    "Isso não foi briga de bar."
+    "Briga de bar tem dois lados."
+
+    (perto das cadeiras)
+    "Empilharam as cadeiras no meio do estrago."
+    "Quem quebra tudo não arruma depois."
+
+    (perto das garrafas quebradas)
+    "Bebida boa, tudo no chão. Que desperdício."
+
+  COISAS QUE ELE PODE EXAMINAR:
+
+    A PAREDE ARREBENTADA
+      "A parede foi arrebentada de dentro para fora."
+      "As farpas apontam para cá. Alguém bateu daquele lado."
+      "E do outro lado não tem cômodo nenhum. Só parede."
+      (nota: esta é a primeira coisa abertamente impossível do jogo.
+       Não tem explicação natural. Não deve ter.)
+
+    O BALCÃO
+      "O balcão está limpo. Sem poeira."
+      "Seis anos de pó não somem sozinhos."
+
+    O TELEFONE DE PAREDE
+      "Um telefone de parede. O fio está cortado."
+      "Cortado há tempo. O corte já enferrujou."
+      "Então de onde veio a ligação?"
+      (nota: A PERGUNTA DO CAPÍTULO. Fica sem resposta.)
+
+    O ESPELHO TRINCADO
+      "O espelho atrás das garrafas está trincado no meio."
+      "Não olho. Hoje não."
+      (nota: ele repete a frase do cigarro. É a mesma recusa.)
+
+  Perto do balcão, ele encontra a primeira gota.
+
+    "Sangue. Fresco."
+    "Vai para os fundos."
+
+  A trilha de sangue começa rala e vai ficando mais junta na direção de uma
+  porta nos fundos. Não há seta na tela — o espaçamento das gotas é que aponta.
+
+    (na porta dos fundos)
+    "A trilha para aqui."
+
+  Ele abre.
+
+  CORTE PARA:
+
+
+-------------------------------------------------------------------------------
+CENA 4 — O DEPÓSITO
+-------------------------------------------------------------------------------
+LOCAL: depósito dos fundos do bar
+HORA:  02h35 aprox.
+TIPO:  Gameplay curta, depois cutscene
+[JÁ NO JOGO]
+
+  Sala pequena. Prateleiras, engradados. Uma lâmpada ruim balançando bem no
+  meio, e é só isso de luz.
+
+  A trilha de sangue atravessa o chão e termina numa POÇA. Pequena. Parada.
+
+  FALA IMEDIATA (assim que ele entra, cortando qualquer outra coisa):
+
+    "Alguém ficou parado sangrando aqui. Tempo demais."
+
+  E depois:
+
+    "Tem um papel no meio da poça."
+
+  Ele se aproxima. Interage.
+
+  ============================= INÍCIO DA CUTSCENE ==========================
+
+  Ele se AGACHA para ler o papel.
+
+  IMPORTANTE: ele fica DE COSTAS PARA A PORTA.
+  O jogador vê a porta. Ele não.
+
+  O papel está dobrado, encharcado num canto. Ele abre.
+
+  Escrito à mão, letras grandes:
+
+        ┌─────────────────────────────────┐
+        │                                 │
+        │   POR QUE VOCÊ VOLTOU AQUI?     │
+        │                                 │
+        └─────────────────────────────────┘
+
+  Ele fica olhando.
+
+    "Quem escreveu isso sabia que eu viria."
+
+  A porta atrás dele range.
+
+  Uma FIGURA entra. Completamente preta. Sem rosto. Sem detalhe nenhum — só
+  um recorte de escuro com forma de gente. Um pouco mais alta que um homem.
+  Um pouco mais estreita.
+
+  Ela começa a caminhar na direção dele. Devagar.
+
+  Ele continua lendo.
+
+    "Sabia exatamente onde eu ia parar pra ler."
+
+  A música de tensão começa. Ela SOBE conforme a figura se aproxima — não com
+  o tempo, com a DISTÂNCIA. Um batimento cardíaco que acelera. A tela começa
+  a tremer de leve.
+
+  A figura está a poucos passos. Ele ainda está agachado, de costas.
+
+    "Essa letra... eu conheço essa letra."
+
+  (nota: ele NUNCA percebe a figura. Isso é regra. No momento em que ele
+   olhar para trás, o jogador deixa de saber mais do que ele, e a cena morre.)
+
+  A figura chega. Levanta o braço.
+
+  GOLPE.
+
+  A MÚSICA PARA NO MEIO. Sem final, sem acorde, sem nada. Silêncio seco.
+
+  Uma pancada surda. Zumbido de ouvido.
+
+  TELA PRETA.
+
+  ============================= FIM DA CUTSCENE =============================
+
+  CORTE PARA:
+
+
+-------------------------------------------------------------------------------
+CENA 5 — ACORDAR
+-------------------------------------------------------------------------------
+LOCAL: um galpão, em algum lugar
+HORA:  desconhecida
+TIPO:  Cutscene curta, depois gameplay
+[JÁ NO JOGO]
+
+  Preto.
+
+  Então: PÁLPEBRAS. A visão abre uma fresta e fecha. Abre um pouco mais.
+  Fecha. E enfim abre de vez. Duas piscadas. Tudo turvo no começo.
+
+  Ele está SENTADO NO CHÃO, encostado na parede, com os punhos ALGEMADOS num
+  cano que corre pela parede na altura do ombro.
+
+  Um galpão grande. Chapa ondulada, alvenaria, vigas lá em cima sumindo no
+  escuro. Uma claraboia quebrada deixando entrar luar. Correntes penduradas.
+  Engradados. Um portão de enrolar fechado. Uma porta lateral pregada por fora.
+
+  Uma lâmpada nua, bem em cima dele. É a única coisa que ele consegue ver
+  direito.
+
+  Não chove aqui dentro. Só ar parado, água pingando em algum canto, e a
+  estrutura cedendo de vez em quando.
+
+  FALAS:
+
+    "Cano. Frio. Sem folga."
+    "Não me mataram. Isso é pior."
+    "Alguém me trouxe até aqui. Carregado."
+
+  ------- O JOGADOR ASSUME O CONTROLE (QTE) -------
+
+  Aparece na tela: A + D ALTERNADO
+
+  Ele começa a puxar contra o cano. Cada puxão treme a tela, faz a corrente
+  chacoalhar, ele range os dentes.
+
+  E o cano — velho, enferrujado por dentro — CEDE.
+
+  Estouro. Ferrugem e água esguichando. Ele cai para frente, livre.
+
+  ------- ELE SE LEVANTA -------
+
+    "Cano velho. Enferrujado por dentro."
+
+  Ele passa a mão nos bolsos. Todos.
+
+    "Levaram tudo. O cigarro, a arma, a carteira."
+    "Deixaram o casaco. Que gentileza."
+
+  A PARTIR DAQUI ELE NÃO TEM MAIS NADA.
+  Sem arma. Sem cigarro.
+
+  (nota importante: a animação dele parado MUDA aqui. Antes, ficar parado
+   fazia ele pegar o cigarro e jogar fora. Agora, sem nada para recusar, ele
+   fica um tempo em pé — e depois SENTA no chão, batendo o pé, impaciente.
+   Não é instantâneo: ele precisa cansar primeiro. Se você mandar andar, ele
+   se levanta.)
+
+
+-------------------------------------------------------------------------------
+CENA 6 — A SAÍDA
+-------------------------------------------------------------------------------
+LOCAL: o mesmo galpão
+TIPO:  Gameplay
+[JÁ NO JOGO]
+
+  Agora ele pode andar pelo galpão.
+
+  COISAS QUE ELE PODE EXAMINAR:
+
+    O PORTÃO DE ENROLAR
+      "Portão de enrolar. Cadeado do lado de fora."
+      "Não fui eu que fechei."
+
+    A CLARABOIA QUEBRADA
+      "Claraboia quebrada. Uns oito metros de altura."
+      "Se eu tivesse vinte anos a menos, talvez."
+
+    A PORTA LATERAL (sem ferramenta)
+      "Pregada por fora. Alguém me trancou aqui."
+
+  No chão, o pedaço de cano que arrebentou quando ele se soltou.
+
+    (ao pegar)
+    "Serve."
+
+  Com o cano na mão, ele força a porta lateral. As tábuas saltam.
+
+  A porta abre.
+
+  Ele sai.
+
+  TELA PRETA.
+
+        C O N T I N U A
+
+  ========================= FIM DO CAPÍTULO 1 =========================
+
+
+-------------------------------------------------------------------------------
+7. O QUE O CAPÍTULO 1 DEIXOU EM ABERTO
+-------------------------------------------------------------------------------
+
+  Perguntas plantadas que ainda NÃO têm resposta. O Capítulo 2 decide quais
+  responder e quais deixar apodrecendo:
+
+  1. De onde veio a ligação, se o fio do telefone está cortado há anos?
+
+  2. Quem é a mulher da ligação? ("O senhor foi o único que atendeu.")
+     (nota: isso está na versão antiga da narração e PODE não ser mais
+      canônico, já que você reescreveu o monólogo de abertura. Decida.)
+
+  3. De quem é a letra do bilhete? Ele reconheceu.
+
+  4. Por que as cadeiras estão empilhadas com cuidado no meio do estrago?
+
+  5. Por que o balcão está sem poeira depois de seis anos?
+
+  6. A parede foi arrebentada de dentro para fora — e do outro lado não há
+     cômodo nenhum. O quê exatamente saiu dali?
+
+  7. Quem é a figura preta? Pessoa? Pesadelo? As duas coisas?
+
+  8. Quem é a desaparecida do cartaz, sumida há três semanas?
+
+  9. Qual é o caso de sete anos atrás que ele não fecha, e o nome que ele não
+     diz em voz alta?
+
+  10. Por que levaram tudo dele mas o deixaram vivo?
+
+
+===============================================================================
+PARTE III — A REGRA QUE MUDA TUDO: A CONVENIÊNCIA É A MENTE
+===============================================================================
+
+  Decidido em 04/08/2026, e é a coisa mais importante deste documento depois
+  do próprio personagem.
+
+  TUDO ISSO É A MENTE DELE.
+
+  A mente está colocando ele nesses lugares. A mente está fazendo ele
+  confrontar os próprios medos. A mente está TENTANDO fazer ele superar.
+
+  E é por isso que existem coisas convenientes.
+
+  Uma arma jogada no chão. Munição espalhada. Um diário em branco esperando
+  para ser escrito. Um pedaço de madeira do tamanho exato de um porrete.
+
+  Em qualquer outro jogo isso é preguiça de design. Aqui é ENREDO.
+
+  ------------------------------------------------------------------------
+  CONSEQUÊNCIA PARA A ESCRITA — regra permanente:
+  ------------------------------------------------------------------------
+
+  Toda vez que o jogador achar algo conveniente, O DETETIVE COMENTA.
+  Ele percebe. Ele acha estranho. Ele usa mesmo assim.
+
+  Isso vira a piada recorrente do jogo, e ao mesmo tempo o fio da meada.
+
+    "Um pedaço de pau do tamanho certo. Que sorte a minha."
+    "Munição. Sem arma. Alguém tem senso de humor."
+    "Um caderno em branco e uma caneta. Até parece que querem que eu anote."
+    "Ou eu estou com muita sorte, ou alguém está arrumando a casa pra mim."
+
+  ------------------------------------------------------------------------
+  E O CONTRÁRIO TAMBÉM VALE:
+  ------------------------------------------------------------------------
+
+  Se a mente dele está montando o cenário, então quando ele PRECISA de algo
+  e não acha, isso também quer dizer alguma coisa. A mente decidiu que ele
+  não pode ter ainda.
+
+  É por isso que ele acha MUNIÇÃO antes de achar a PISTOLA. A mente está
+  dizendo: você vai precisar disso, mas ainda não é hora.
+
+
+===============================================================================
+PARTE IV — CAPÍTULO 2
+===============================================================================
+
+  DURAÇÃO ALVO: 1 hora
+  LOCAL ÚNICO: o galpão inteiro (complexo, vários setores)
+  A FIGURA PRETA NÃO APARECE NESTE CAPÍTULO.
+
+
+-------------------------------------------------------------------------------
+TÍTULO DO CAPÍTULO — sugestões minhas
+-------------------------------------------------------------------------------
+
+  A tela de abertura é simples: preto, "CAPÍTULO DOIS", e embaixo o nome.
+
+  Minhas sugestões, em ordem de preferência:
+
+  1. "GENTILEZA"
+     Vem da fala dele no fim do Cap. 1: "Deixaram o casaco. Que gentileza."
+     Irônico, curto, e vira mais amargo a cada item conveniente que ele acha.
+
+  2. "A CASA ARRUMADA"
+     Amarra com as cadeiras empilhadas no meio do estrago, e com a fala
+     "alguém está arrumando a casa pra mim".
+
+  3. "TUDO QUE EU PRECISO"
+     Diz a regra do capítulo na cara, sem explicar.
+
+  4. "CONVENIENTE"
+     Mais seco, mais direto. Funciona se você quiser o tom mais frio.
+
+  5. "INVENTÁRIO"
+     Duplo sentido: o sistema novo, e o que sobrou dele.
+
+  ESCOLHIDO: >>> "GENTILEZA" <<<  (confirmado em 04/08)
+
+
+-------------------------------------------------------------------------------
+MAPA DO CAPÍTULO — 8 setores, ~1 hora
+-------------------------------------------------------------------------------
+
+  Cada setor tem uma FUNÇÃO clara. É isso que faz uma hora não virar uma hora
+  de andar em corredor.
+
+  #  SETOR                  MINUTOS  O QUE ENSINA / ENTREGA
+  -- ---------------------- -------  ------------------------------------------
+  1  Corredor de Carga         5     Revela a escala. Acha o PORRETE.
+  2  Escritório                7     Acha o DIÁRIO. Acha o MAPA. Primeiro NPC.
+  3  Setor B — Estantes       10     Primeiro combate de verdade. Munição sem arma.
+  4  Vestiário e Refeitório    8     Descanso. Humanidade. Muitos objetos. Cigarros.
+  5  Câmara Fria               8     Terror puro. Sanidade despenca.
+  6  Sala de Máquinas          8     A PISTOLA. E o preço dela.
+  7  Mezanino                  6     A FIGURA ESPECIAL.
+  8  A Fuga                   10     O PERSEGUIDOR. Correr e se esconder.
+  -- ---------------------- -------
+                          ~62 min
+
+
+===============================================================================
+CENA 1 — CORREDOR DE CARGA
+===============================================================================
+FUNÇÃO: revelar a escala. Dar a primeira arma. Estabelecer a regra da
+        conveniência.
+TEMPO:  ~5 min
+
+  ABERTURA DO CAPÍTULO:
+
+    Preto.
+    Texto: CAPÍTULO DOIS
+    Embaixo, o nome do capítulo.
+    (nota: mesma tipografia do título do jogo, corroída.)
+
+  Ele empurra a porta que forçou e sai.
+
+  E o galpão é MUITO MAIOR do que ele pensava.
+
+  A sala onde ele acordou era um cubículo. Isso aqui é um corredor de carga
+  que some no escuro dos dois lados. Pé-direito de três andares. Estantes
+  industriais até o teto. Empilhadeira parada há anos. Portões de doca
+  fechados. Luz só de umas poucas lâmpadas de emergência, e da claraboia.
+
+    "Isso não é um galpão. Isso é um quarteirão."
+
+    "Eu estava numa caixa de fósforo dentro de outra caixa."
+
+  Ele anda. O jogo deixa ele andar um bom pedaço sem nada acontecer — é
+  proposital, é para o tamanho do lugar entrar na cabeça do jogador.
+
+  Então ele vê, encostado numa coluna, um PEDAÇO DE MADEIRA. Uma ripa grossa
+  de palete, com um prego torto na ponta.
+
+  ------- ITEM: PORRETE (ripa de palete) -------
+
+    (ao pegar)
+    "Um pedaço de pau do tamanho certo. Encostado numa coluna. Em pé."
+
+    (pausa)
+
+    "Que sorte a minha."
+
+  (nota: essa é a PRIMEIRA VEZ que ele percebe a conveniência. A partir daqui
+   é um tema. Ele não entende ainda — só acha estranho.)
+
+  COISAS PARA EXAMINAR NESTE SETOR:
+
+    A EMPILHADEIRA
+      "Chave na ignição. Bateria seca há uns dez anos."
+      "Alguém saiu daqui com pressa. Ou nunca voltou."
+
+    O PORTÃO DE DOCA
+      "Trancado por fora. Igual todos os outros."
+      "Estou começando a achar que 'por fora' é o único lado que existe."
+
+    RELÓGIO DE PONTO NA PAREDE
+      "Relógio de ponto. Parado."
+      "02h14."
+      (nota: MESMO HORÁRIO DA LIGAÇÃO. Ele não comenta. O jogador comenta.)
+
+    PILHA DE PALETES
+      "Foi daqui que saiu meu pedaço de pau."
+      "Ou pelo menos é o que eu prefiro acreditar."
+
+
+===============================================================================
+CENA 2 — ESCRITÓRIO DA ADMINISTRAÇÃO
+===============================================================================
+FUNÇÃO: entregar o DIÁRIO e o MAPA. Primeiro NPC. Ensinar o sistema de anotar.
+TEMPO:  ~7 min
+
+  Um escritório envidraçado suspenso, com escada de metal. Lá de cima dá para
+  ver o corredor inteiro — e é aqui que o jogador entende o mapa do capítulo.
+
+  Dentro: mesa, arquivo, quadro de avisos, cadeira caída, uma luminária que
+  ainda funciona.
+
+  ------- ITEM: DIÁRIO -------
+
+  Em cima da mesa, um caderno de capa de couro. Aberto. Em branco.
+  Ao lado, uma caneta. Tampada.
+
+    "Um caderno em branco. E uma caneta que ainda escreve."
+
+    "Até parece que querem que eu anote."
+
+    (ele pega, folheia)
+
+    "Ou eu estou com muita sorte, ou alguém está arrumando a casa pra mim."
+
+  A PARTIR DAQUI: sistema de diário ativo. (ver PARTE V)
+
+  ------- ITEM: MAPA DO GALPÃO -------
+
+  Preso no quadro de avisos. Planta baixa dos setores.
+
+    "Setor A, B, C. Câmara fria. Casa de máquinas."
+    "Pelo menos agora eu sei o tamanho do problema."
+
+  ------- PRIMEIRO NPC -------
+
+  >>> O VIGIA — CONFIRMADO em 04/08 <<<  [JÁ NO JOGO]
+
+  Três perguntas, e ele se despede com "Boa noite, David". Ninguém
+  perguntou o nome dele. Ninguém comenta isso. Nunca.
+
+  A descrição original, que foi mantida inteira:
+
+    O VIGIA. Um homem velho de uniforme desbotado, sentado na cadeira do
+    escritório como se estivesse no turno dele. Fala com naturalidade
+    absoluta, como se o galpão estivesse funcionando normalmente.
+
+    Ele responde perguntas — mas todas as respostas são sobre um lugar que
+    não existe mais. Fala de colegas pelo nome. Fala do movimento de ontem.
+    Reclama do café.
+
+    Ele NÃO reage ao estado do lugar, nem ao sangue, nem ao porrete na mão
+    do detetive.
+
+    E em nenhum momento o jogo diz se ele é real.
+
+    Fala de exemplo:
+      VIGIA: "O senhor é da inspeção? Avisaram que vinha alguém hoje."
+      DETETIVE: "Que dia é hoje?"
+      VIGIA: "Terça."
+      DETETIVE: "Terça de que ano?"
+      VIGIA: (sorri) "Engraçado o senhor."
+
+    (nota: ele é a primeira prova de que a mente dele fabrica gente. E é o
+     primeiro teste do sistema de diálogo com escolhas.)
+
+  COISAS PARA EXAMINAR:
+
+    FOTO NA MESA
+      "Foto de família. O vidro trincado."
+      "Não é a minha família. Acho que não é."
+
+    ARQUIVO DE AÇO
+      "Pastas de A a C. E de E até Z."
+      "Só a gaveta do D não está aqui."
+      (nota: PISTA MUDA. David. Ele não comenta. O jogador que perceba.)
+
+    CANECA
+      "Café pela metade. Ainda morno."
+      "Isso não é possível."
+
+
+===============================================================================
+CENA 3 — SETOR B: AS ESTANTES
+===============================================================================
+FUNÇÃO: primeiro combate real. Ensinar o porrete. Munição sem arma.
+TEMPO:  ~10 min
+
+  Labirinto de estantes industriais de três níveis. Corredores estreitos.
+  Visão bloqueada. Coisas se movem duas fileiras adiante e você não vê o quê.
+
+  ------- PRIMEIRO INIMIGO -------
+
+  (ver PARTE VI para o desenho dos inimigos)
+
+  O primeiro aparece SOZINHO, num corredor sem saída, e o jogo deixa o
+  jogador olhar para ele por uns segundos antes de ele reagir.
+
+    "...eu conheço isso."
+
+    (nota: ele não diz o que é. Nunca diz. O jogador que se vire.)
+
+  COMBATE COM PORRETE:
+    - Lento. Pesado. Dois golpes e ele precisa respirar.
+    - O inimigo cambaleia quando acertado, mas não morre fácil.
+    - O porrete PODE QUEBRAR. Cria tensão e justifica procurar outro.
+    - Fugir é sempre uma opção válida. O jogo nunca obriga a matar.
+
+  ------- ITEM: MUNIÇÃO (sem pistola) -------
+
+  Numa prateleira, uma caixa de munição. Cheia. Nova.
+
+    "Munição."
+
+    (ele procura em volta)
+
+    "Sem arma."
+
+    (pausa)
+
+    "Alguém tem senso de humor."
+
+  (nota: essa é a jogada mais importante do capítulo. O jogador vai carregar
+   munição inútil por 20 minutos. Toda vez que abrir o inventário vai ver.
+   Quando finalmente achar a pistola, o alívio é enorme — e ele já vai ter
+   percebido que estava sendo conduzido.)
+
+  COISAS PARA EXAMINAR:
+
+    ESTANTE DESABADA
+      "Isso desabou de dentro para fora. Igual a parede do bar."
+
+    CAIXAS LACRADAS
+      "Todas as caixas estão vazias. Todas lacradas."
+      "Ninguém lacra caixa vazia."
+
+    MARCA DE ARRASTO NO CHÃO
+      "Alguma coisa foi arrastada por aqui. Pesado."
+      "E não faz muito tempo."
+
+
+===============================================================================
+CENA 4 — VESTIÁRIO E REFEITÓRIO
+===============================================================================
+FUNÇÃO: respiro. Humanidade. Recuperar sanidade. ACHAR OS CIGARROS.
+TEMPO:  ~8 min
+
+  Depois de dez minutos de tensão, o jogo dá um lugar quase normal. Armários,
+  bancos, um refeitório com mesas de fórmica, uma máquina de café, um rádio.
+
+  É o mais perto de "seguro" que o capítulo chega. Menos inimigos aqui. Luz
+  melhor. E é onde o jogador vai querer parar e respirar — que é exatamente o
+  que a mente dele quer que ele faça.
+
+  ------- ITEM: MAÇO DE CIGARROS -------
+
+  Num armário aberto. Maço fechado. Isqueiro em cima.
+
+    "..."
+
+    "Minha marca."
+
+    (pausa longa)
+
+    "Isso já não é sorte. Isso é recado."
+
+  ⚠ MUDANÇA IMPORTANTE (decidida em 04/08):
+
+  O cigarro NÃO volta a ser animação de parado. Ele vira ITEM DE INVENTÁRIO.
+
+  E ele NÃO CONSEGUE FUMAR até o Capítulo 3.
+
+  Ver PARTE VII.B — "A ESCADA DO CIGARRO".
+
+  COISAS PARA EXAMINAR (aqui tem MUITAS — é o setor de personagem):
+
+    ARMÁRIOS COM NOMES
+      "Marcos. Elaine. Betinho."
+      "Gente que teve nome. Deve ter ido embora."
+
+    RÁDIO
+      "Ainda liga."
+      (ele liga — só estática)
+      "Estática. Em todas as estações."
+      "Achei que fosse gostar mais do silêncio."
+
+    QUADRO DE ESCALA
+      "Escala do mês. Todo mundo com folga marcada."
+      "Ninguém marcou volta."
+
+    MÁQUINA DE CAFÉ
+      "Sem copo. Sem energia. Sem chance."
+
+    ESPELHO DO VESTIÁRIO  ★★★ SEQUÊNCIA ESPECIAL — VER ABAIXO ★★★
+      1ª vez: "Não."
+      2ª vez: "Eu disse não."
+      3ª vez: A CÂMERA VIRA PRIMEIRA PESSOA.
+
+  ==========================================================================
+  ★ O ESPELHO — A ÚNICA CENA EM PRIMEIRA PESSOA DO JOGO
+  ==========================================================================
+  CONFIRMADO em 04/08. Ideia do Luiz.
+
+  Se o jogador insistir três vezes no espelho, o jogo inteiro MUDA DE CÂMERA.
+
+  COMO ACONTECE:
+
+    1ª interação
+      DAVID: "Não."
+
+    2ª interação
+      DAVID: "Eu disse não."
+      (nota: aqui o jogo já está avisando. Quem insiste, escolheu.)
+
+    3ª interação
+      Ele para de resistir. Vira o corpo para o espelho.
+
+      A CÂMERA DESCE E ENTRA NA CABEÇA DELE.
+      Corte para PRIMEIRA PESSOA.
+
+      O jogo lateral acaba. De repente você está DENTRO dele, olhando um
+      espelho de vestiário rachado, com a luz da lâmpada tremendo em cima.
+
+      E o que está refletido é ele.
+
+      COMPLETAMENTE DESFIGURADO.
+
+      Não é ferimento. Não é maquiagem de monstro. É a cara de alguém que
+      foi desmontado e remontado errado — e ainda assim é reconhecivelmente
+      ELE. O sobretudo é o mesmo. A gravata é a mesma. O rosto não.
+
+      ESSA É A FORMA COMO ELE SE ENXERGA.
+
+      O reflexo não se mexe junto com ele. Fica parado. Olhando.
+
+      Silêncio absoluto — corta TODO o áudio do jogo, até a chuva e o
+      ambiente. Só o zumbido.
+
+      Dura poucos segundos. Depois a câmera recua e volta para a lateral,
+      e o espelho está normal de novo.
+
+      DAVID: (voz sem força) "...era isso que eu não queria ver."
+             CONFIRMADO em 04/08. [JÁ NO JOGO]
+
+  CUSTO: perde MUITA sanidade. Talvez o maior dreno único do jogo.
+
+  RECOMPENSA: uma página no diário que só existe se você olhar. E é uma das
+  peças da revelação final.
+
+  POR QUE FUNCIONA: o jogo inteiro é lateral. O jogador nunca viu o rosto
+  dele de frente, em tamanho grande, em nenhum momento. A primeira vez que
+  vê é assim. Isso não dá para repetir — é uma carta que só se joga uma vez.
+
+  (nota técnica: isso exige desenhar um retrato dele em resolução alta e uma
+   versão desfigurada. É a única arte do jogo que não é o rig articulado.
+   Vale o trabalho.)
+  ==========================================================================
+
+    BILHETE NA PORTA DO ARMÁRIO
+      "'Volto às seis.'"
+      "Todo mundo volta às seis."
+
+
+===============================================================================
+CENA 5 — CÂMARA FRIA
+===============================================================================
+FUNÇÃO: o horror sem disfarce. Sanidade despenca. Alucinação garantida.
+TEMPO:  ~8 min
+
+  Uma câmara frigorífica desligada há anos. Portas pesadas de aço. Ganchos
+  de açougue no teto, em fileiras. Escuro quase total — a lanterna dele é o
+  isqueiro, e ele só consegue segurar aceso por alguns segundos.
+
+  É frio. Dá para ver a respiração dele.
+
+  Aqui a sanidade DESPENCA por estar no escuro. É de propósito: este é o
+  setor que ensina o jogador a temer o próprio medidor.
+
+    "Frio. Depois de todos esses anos, ainda tem frio aqui dentro."
+
+    "Isso não é possível. Já sei. Já anotei."
+
+  EVENTO OBRIGATÓRIO — A PRIMEIRA ALUCINAÇÃO GRANDE:
+  >>> CONFIRMADO em 04/08 <<<  [JÁ NO JOGO]
+
+    Os ganchos começam a balançar. Todos. No mesmo ritmo.
+    Não há vento.
+
+      "Os ganchos estão balançando. Todos."
+      "Não tem vento aqui."
+
+    (pausa longa)
+
+      "Tem alguma coisa pendurada ali."
+
+    Ele acende o isqueiro. No gancho do meio há UM SOBRETUDO MARROM.
+    Vazio. Igual ao dele.
+
+      "Um casaco. Marrom."
+
+    A chama apaga — o isqueiro só aguenta alguns segundos por vez. Quando
+    ele acende de novo, não tem mais nada.
+
+      "Não tem nada ali."
+      "Nunca teve."
+
+    (nota: é o casaco que sobrou dele no fim do Capítulo 1 — "Deixaram o
+     casaco. Que gentileza." O título do capítulo, pendurado num gancho de
+     açougue. E ele continua vestindo o dele enquanto olha.)
+
+  COISAS PARA EXAMINAR:
+
+    TERMÔMETRO
+      "Marca dois graus negativos."
+      "O compressor está desligado há uma década."
+
+    OS GANCHOS
+      "Fileira de ganchos. Vinte e três."
+      "Contei duas vezes. Deu vinte e quatro na segunda."
+
+
+===============================================================================
+CENA 6 — SALA DE MÁQUINAS
+===============================================================================
+FUNÇÃO: A PISTOLA. E fazer o jogador pagar por ela.
+TEMPO:  ~8 min
+
+  Caldeiras, tubulação, geradores mortos. Barulhento de um jeito que não
+  deveria ser — há um zumbido elétrico e nada aqui tem energia.
+
+  ------- ITEM: PISTOLA -------
+
+  A arma está no meio da sala, em cima de uma bancada, LIMPA, apontada para a
+  porta por onde ele entra.
+
+  Não está caída. Está POSTA.
+
+    "Lá está ela."
+
+    "No meio da sala. Limpa. Apontada pra porta."
+
+    "Isso não é uma arma perdida. Isso é uma arma ENTREGUE."
+
+    (ele pega mesmo assim)
+
+    "E eu vou pegar, porque eu sou exatamente o idiota que eles precisam."
+
+  MINHA SUGESTÃO DE PREÇO (o capítulo fica melhor se pegar a arma custar algo):
+
+    No instante em que ele encosta na pistola, as luzes de emergência
+    apagam e TODAS as máquinas ligam ao mesmo tempo. Barulho ensurdecedor.
+    E três inimigos entram pela porta pela qual ele veio.
+
+    O jogo obriga a usar a arma imediatamente. Primeiro tiro é uma cena.
+
+    ACEITO — e implementado assim. [JÁ NO JOGO]
+
+  COISAS PARA EXAMINAR:
+
+    PAINEL ELÉTRICO
+      "Disjuntor geral desligado. Selado com arame."
+      "Então de onde vem esse zumbido?"
+
+    MACACÃO PENDURADO
+      "Macacão de mecânico. Do meu tamanho."
+      "Claro que é do meu tamanho."
+
+
+===============================================================================
+CENA 7 — MEZANINO: A FIGURA ESPECIAL
+===============================================================================
+FUNÇÃO: o gancho emocional do capítulo. Preparar o final.
+TEMPO:  ~6 min
+
+  Passarela de metal alta, correndo por cima do corredor de carga. Dá para
+  ver o galpão inteiro daqui.
+
+  E no meio da passarela, PARADA, de costas, tem uma pessoa.
+
+  Não é a figura preta. É uma pessoa. Detalhada. Real.
+
+  MINHA SUGESTÃO: é a MULHER DO CARTAZ DE DESAPARECIDA do beco. A mesma que
+  sumiu há três semanas e cujo rosto a chuva comeu pela metade.
+
+    "..."
+
+    "Moça?"
+
+    (ela não se move)
+
+    "Moça, eu não vou te machucar."
+
+    (ele dá um passo)
+
+  ==========================================================================
+  QUEM É ESSA FIGURA? — cinco propostas
+  ==========================================================================
+
+  O que ela precisa cumprir:
+    · Não pode ser claramente fantasma nem claramente pessoa
+    · Tem que ser DIEGETICAMENTE a mente dele
+    · Tem que deixar UMA pista que o jogador atento pega e o desatento não
+    · Não pode explicar nada
+
+  ------------------------------------------------------------------------
+  OPÇÃO 1 — A TELEFONISTA          ★ minha recomendação
+  ------------------------------------------------------------------------
+  Uma mulher sentada a uma mesa no mezanino, com uma MESA TELEFÔNICA antiga
+  daquelas de plugue e cabo. Fone no ouvido. Trabalhando.
+
+  Ela plugga e desplugga cabos que não estão ligados em lugar nenhum.
+
+    TELEFONISTA: "Um momento, vou transferir."
+    DAVID:       "Transferir pra quem?"
+    TELEFONISTA: (sem olhar) "Pro senhor."
+
+  Ela é a origem da ligação das 2h14. E quando ele pergunta quem ligou:
+
+    DAVID:       "Quem foi que me ligou?"
+    TELEFONISTA: "O senhor mesmo."
+
+    (pausa)
+
+    TELEFONISTA: "O senhor foi o único que atendeu."
+
+  POR QUE ESSA: amarra TRÊS pontas soltas de uma vez —
+    · o telefone do bar com o fio cortado
+    · a ligação das 2h14 que não podia existir
+    · a frase órfã "o senhor foi o único que atendeu" (que ficou solta
+      quando o monólogo de abertura foi reescrito)
+  E entrega a maior pista do jogo numa frase de três palavras, sem explicar
+  nada. Quem pegar, pegou.
+
+  ------------------------------------------------------------------------
+  OPÇÃO 2 — O HOMEM DO SOBRETUDO
+  ------------------------------------------------------------------------
+  Um homem sentado na beirada do mezanino, pernas para fora, de costas.
+  Sobretudo IGUAL AO DELE. Fumando.
+
+  Ele oferece um cigarro. David recusa.
+
+    HOMEM: "Eu também dizia isso."
+    DAVID: "Dizia o quê?"
+    HOMEM: "Hoje não."
+
+  Nunca mostra o rosto. Quando David dá a volta para ver, não tem ninguém —
+  só uma guimba acesa na beirada.
+
+  POR QUE ESSA: é o David que cedeu. Planta o Credor (mesmo sobretudo) e
+  amarra na escada do cigarro. Se você quiser o capítulo mais coeso com o
+  que já existe, é essa.
+  RISCO: entrega o Credor cedo demais.
+
+  ------------------------------------------------------------------------
+  OPÇÃO 3 — O ENTREVISTADO
+  ------------------------------------------------------------------------
+  Um homem sentado numa cadeira no meio da passarela, sob uma luminária, na
+  pose exata de um interrogatório. Calmo. Esperando.
+
+  Ele responde perguntas. Mas as respostas são sobre a vida do DAVID.
+
+    DAVID:        "Seu nome."
+    ENTREVISTADO: "O senhor sabe."
+    DAVID:        "Onde você estava naquela noite?"
+    ENTREVISTADO: "No mesmo lugar que o senhor."
+
+  POR QUE ESSA: David está interrogando a si mesmo, e o jogo mostra isso sem
+  dizer. É a mais literária das cinco.
+  RISCO: pode ficar óbvio demais rápido demais.
+
+  ------------------------------------------------------------------------
+  OPÇÃO 4 — A DESAPARECIDA DO CARTAZ
+  ------------------------------------------------------------------------
+  A mulher do cartaz do beco. Ela se vira — e o rosto está pela METADE.
+  Não é ferimento: é que a metade que a chuva apagou no cartaz simplesmente
+  não existe nela.
+
+  POR QUE ESSA: visualmente é a mais forte, e fecha o cartaz do Capítulo 1.
+  RISCO: é a mais "monstro". Pode quebrar a ambiguidade que o jogo mantém.
+
+  ------------------------------------------------------------------------
+  OPÇÃO 5 — NINGUÉM
+  ------------------------------------------------------------------------
+  Tem uma pessoa parada lá. David fala com ela. Ela responde. A conversa
+  inteira acontece.
+
+  E no diário, depois, a página diz:
+    "Falei sozinho no mezanino por quatro minutos."
+
+  POR QUE ESSA: é a mais cruel e a mais barata de produzir. O jogador viu e
+  ouviu a pessoa. O diário diz que não tinha ninguém. Quem o jogador acredita?
+  RISCO: só funciona uma vez no jogo inteiro. Talvez valha guardar.
+
+  ------------------------------------------------------------------------
+  ESCOLHIDA: >>> OPÇÃO 1 — A TELEFONISTA <<<   (confirmado em 04/08)
+  ------------------------------------------------------------------------
+  [JÁ NO JOGO] Ela está sentada na mesa telefônica, no único ponto
+  iluminado da passarela, plugando cabos que não vão a lugar nenhum.
+
+  Três perguntas possíveis, e a que importa é a primeira:
+    DAVID:       "Quem foi que me ligou?"
+    TELEFONISTA: "O senhor mesmo."
+    TELEFONISTA: "O senhor foi o único que atendeu."
+
+  As outras duas:
+    "Que lugar é este?"  ->  "É a central, senhor. Sempre foi."
+                             "Central de quê?"
+                             "De chamadas que ninguém atende."
+    "Esses cabos não estão ligados em nada."
+                         ->  "Estão sim. O senhor é que não vê a outra ponta."
+
+  (nota: dá para usar mais de uma ao longo do jogo. Minha sugestão de ordem:
+   Telefonista no Cap. 2 · Homem do Sobretudo no Cap. 3 · Entrevistado no 4 ·
+   Ninguém guardado para o momento certo.)
+
+
+===============================================================================
+CENA 8 — O PERSEGUIDOR
+===============================================================================
+FUNÇÃO: o final. Dez minutos de terror sem combate.
+TEMPO:  ~10 min
+
+  Logo depois do mezanino, as luzes de emergência do galpão inteiro começam
+  a apagar SETOR POR SETOR, vindo na direção dele.
+
+  E alguma coisa começa a arrastar metal no chão, longe.
+
+  ------- O PERSEGUIDOR -------
+
+  MINHA PROPOSTA DE DESENHO (ver PARTE VI.3 para detalhes):
+
+    NOME: O CREDOR
+
+    Por quê: na narração de abertura ele diz
+      "Se existe uma conta esperando por mim... já passou da hora de pagar."
+    O Credor é essa conta com pernas. É o pagamento vindo cobrar.
+
+    APARÊNCIA: alto demais. Sobretudo — IGUAL AO DELE, mas grande demais,
+    arrastando no chão. Sem rosto visível sob a gola levantada.
+    Arrasta um cano de metal com a mão direita. O MESMO cano com que o
+    detetive se soltou.
+
+    NÃO PODE SER MORTO. Tiro faz ele parar. Nada mais.
+    NÃO PODE SER PERDIDO no braço. Ele sempre sabe a direção geral.
+
+  MECÂNICA DA PERSEGUIÇÃO:
+
+    - Ele te CAÇA pelo galpão inteiro, atravessando os setores que você já
+      conhece — e é isso que faz funcionar: o jogador conhece o mapa, e agora
+      o mapa virou armadilha.
+    - Você tem que se ESCONDER: armários do vestiário, embaixo das estantes,
+      atrás dos paletes, dentro da câmara fria.
+    - Escondido: prender a respiração (segurar tecla). Batimento cardíaco
+      audível. A tela treme com a respiração dele.
+    - Ele PROCURA. Abre armários. Não é aleatório — é uma busca que vai
+      fechando o cerco.
+    - Sanidade drena rápido enquanto escondido. Ficar parado não é grátis.
+
+  O OBJETIVO: chegar até a DOCA 3.  >>> CONFIRMADO em 04/08 <<<
+
+  O portão de doca do Corredor de Carga esteve trancado por fora o capítulo
+  inteiro — ele até comenta: "Estou começando a achar que 'por fora' é o
+  único lado que existe." Durante a fuga, ele abre.
+
+  (nota: e é isso que fecha a ideia. O mapa que virou armadilha é o mesmo
+   mapa que virou saída. Ninguém explica por quê.)
+
+  FIM DO CAPÍTULO:
+
+  Ele sai para a chuva. E a última coisa que a câmera mostra antes do corte
+  é o Credor parado, sem persegui-lo mais, apenas OLHANDO ele ir embora.
+
+    "Ele não veio atrás."
+    "Só ficou olhando."
+    "Não era pra cobrar hoje."
+
+  TELA PRETA.  C O N T I N U A
+  [JÁ NO JOGO]
+
+
+===============================================================================
+PARTE V — SISTEMA DE DIÁRIO
+===============================================================================
+
+  Referência: Red Dead Redemption 2 e The Last of Us.
+  Abre com uma tecla dedicada. Páginas manuscritas, com a letra dele.
+
+  COMO FUNCIONA:
+
+  - Ele anota SOZINHO quando encontra algo importante. O jogador não digita.
+  - A anotação aparece com uma animação de escrita à mão.
+  - As páginas acumulam. Dá para reler tudo a qualquer momento.
+  - Anotar RESTAURA UM POUCO DE SANIDADE. Escrever é organizar a cabeça.
+
+  TIPOS DE PÁGINA:
+
+    PISTAS ....... fatos concretos. "Telefone com fio cortado. Ligação veio
+                   assim mesmo."
+    PESSOAS ...... quem ele encontrou. O Vigia entra aqui.
+    LUGARES ...... mapa desenhado à mão, se preenchendo conforme explora.
+    ELE MESMO .... as páginas mais curtas e mais pesadas. Uma linha só.
+
+  ------- A IDEIA QUE EU MAIS QUERO PROPOR -------
+
+  Conforme a sanidade cai, COMEÇAM A APARECER PÁGINAS QUE ELE NÃO ESCREVEU.
+
+  Letra diferente. Mais firme. Escrevendo coisas que ele não sabia.
+
+  E lá pro Capítulo 3 ou 4, a revelação: a letra é a DELE MESMO, de sete anos
+  atrás. Antes de tudo acontecer.
+
+  Isso amarra direto com o bilhete do Capítulo 1 — "essa letra... eu conheço
+  essa letra" — e explica por que ele reconheceu sem saber de onde.
+
+  APROVADO. [JÁ NO JOGO — três páginas existem]
+    "VOCÊ ESTÁ QUASE LEMBRANDO."   (aparece abaixo de 50 de sanidade)
+    "NÃO ERA CULPA DELA."          (abaixo de 25)
+    "SETE ANOS. CONTA DIREITO."    (guardada para o Capítulo 3)
+
+  Elas saem em vermelho e em caixa alta, com a categoria marcada só como
+  "?". Ninguém comenta. O detetive nunca menciona que há páginas no
+  caderno dele que ele não escreveu.
+
+
+===============================================================================
+PARTE VI — INIMIGOS
+===============================================================================
+
+VI.1 — A REGRA
+--------------
+
+  Os inimigos são medos dele que vazaram. Então NENHUM deles pode ser um
+  monstro genérico. Cada um tem que ser reconhecível como uma ideia.
+
+  E o detetive NUNCA explica o que eles são. Ele só reage:
+    "...eu conheço isso."
+
+
+VI.2 — OS TRÊS QUE EU PROPONHO PARA O CAPÍTULO 2
+------------------------------------------------
+
+  Escolha quais entram. Sugiro os dois primeiros no Cap. 2 e o terceiro
+  guardado.
+
+  ┌─ OS EMPILHADOS ────────────────────────────────────────────────────┐
+  │ APARÊNCIA: corpo humano dobrado sobre si mesmo como cadeira        │
+  │            empilhada. Anda de quatro, membros em ângulo errado.    │
+  │ COMPORTAMENTO: lento, silencioso, agarra e prende no chão.         │
+  │ POR QUE ELE: amarra direto com as cadeiras empilhadas do bar —     │
+  │            a imagem de "alguém arrumou isso com cuidado".          │
+  │ MEDO QUE REPRESENTA: ordem imposta sobre destruição. Alguém        │
+  │            organizando o estrago que ele fez.                      │
+  └────────────────────────────────────────────────────────────────────┘
+
+  ┌─ OS SEM-ROSTO ─────────────────────────────────────────────────────┐
+  │ APARÊNCIA: gente normal, roupa normal, rosto ALISADO. Sem traço.   │
+  │ COMPORTAMENTO: andam devagar em grupo pequeno. Não correm.         │
+  │            Cercam. Só machucam quando você fica sem saída.         │
+  │ POR QUE ELES: são as pessoas que ele não conseguiu salvar e cujos  │
+  │            rostos ele já não lembra.                               │
+  │ DETALHE: se você ficar parado olhando, um deles pode PARAR e       │
+  │            ficar olhando de volta. Sem atacar.                     │
+  └────────────────────────────────────────────────────────────────────┘
+
+  ┌─ O ECOADOR ────────────────────────────────────────────────────────┐
+  │ APARÊNCIA: mal se vê. Vulto magro, sempre a meia distância.        │
+  │ COMPORTAMENTO: não ataca. QUANDO ELE ESTÁ PERTO, TOCA TELEFONE.    │
+  │            O som vem do nada. Quanto mais perto, mais alto.        │
+  │ FUNÇÃO: não é inimigo, é ALARME. Onde ele aparece, coisa ruim vem. │
+  │ POR QUE ELE: amarra com a ligação das 2h14 que não podia existir.  │
+  └────────────────────────────────────────────────────────────────────┘
+
+  Quais entram no Capítulo 2? >>> OS TRÊS <<<  [JÁ NO JOGO]
+
+  COMO FICARAM, NA PRÁTICA:
+
+    OS EMPILHADOS  3 de vida · rápidos · agarram de perto · o mesmo
+                   esqueleto do detetive andando de quatro, com o tronco
+                   quase deitado. Estantes e Câmara Fria.
+
+    OS SEM-ROSTO   2 de vida · lentos · param e OLHAM DE VOLTA de vez em
+                   quando, sem atacar. Corredor, Máquinas, Estantes.
+
+    O ECOADOR      não ataca e não morre. Mantém meia distância — foge se
+                   você chega, segue se você afasta — e TOCA TELEFONE,
+                   cada vez mais alto conforme se aproxima.
+
+  E abaixo de 50 de sanidade, parte do que aparece NÃO ESTÁ LÁ: some quando
+  acertada, e a bala foi gasta do mesmo jeito.
+
+
+VI.3 — O PERSEGUIDOR: "O CREDOR"
+---------------------------------
+
+  Já descrito na Cena 8. O que ele NÃO pode ser:
+
+  - Não pode ser rápido demais. Terror de perseguição funciona quando você
+    quase consegue.
+  - Não pode ser burro. Se ele der para enganar em círculo, morre a tensão.
+  - Não pode fazer barulho o tempo todo. O silêncio dele é pior.
+
+  Regra de ouro: o jogador precisa ouvir o cano arrastando ANTES de ver.
+
+
+VI.4 — SISTEMA DE GERAÇÃO DE INIMIGOS ("O DIRETOR")
+----------------------------------------------------
+
+  Não é gerador de ondas. É um DIRETOR, que decide quando vale a pena
+  colocar alguém na cena — mesma ideia do Left 4 Dead, adaptada.
+
+  O QUE O DIRETOR OLHA:
+    - sanidade atual do jogador (quanto menor, mais ele gera)
+    - quanto tempo desde o último encontro
+    - se o jogador está numa área "de respiro" (vestiário: quase nada)
+    - quantos inimigos já estão vivos (TETO RÍGIDO: 3)
+
+  REGRAS QUE NÃO PODEM SER QUEBRADAS:
+    - NUNCA aparecer dentro do campo de visão. Sempre do escuro, sempre de
+      fora da tela. Como é a mente dele, isso é diegético.
+    - Nunca dois seguidos no mesmo lugar.
+    - Sempre existe rota de fuga. O jogo nunca obriga a lutar, exceto na
+      Sala de Máquinas.
+    - Depois de um combate, garantir 40 a 60 segundos de silêncio.
+
+  ISSO EVITA o problema que você levantou: "não deixar o jogo só andar e
+  bater". O ritmo tem que ser tenso-calmo-tenso, não uma esteira.
+
+
+===============================================================================
+PARTE VII — SISTEMA DE SANIDADE
+===============================================================================
+
+  Existe DESDE O COMEÇO DO JOGO — desde a hora que ele desce do carro no
+  Capítulo 1. Só que no Capítulo 1 ela quase não se mexe. Ela é uma coisa que
+  o jogador só percebe que existia quando começa a piorar.
+
+  ESCALA: 0 a 100. Começa em 100.
+
+  O QUE TIRA:
+    - ficar no escuro (contínuo, lento)
+    - ver inimigo (ao avistar, não ao lutar)
+    - tomar dano
+    - eventos de alucinação
+    - ler certas páginas do diário
+    - o Credor: dreno pesado enquanto ele estiver caçando
+    - olhar no espelho (o teimoso paga caro)
+
+  O QUE DEVOLVE:
+    - FUMAR (ver abaixo — é o principal)
+    - luz forte / setores seguros
+    - escrever no diário
+    - matar um inimigo (pouco — a violência acalma e isso é feio, e é o ponto)
+
+  OS QUATRO ESTADOS:
+
+  ┌──────────────┬────────────────────────────────────────────────────────┐
+  │ 100–75       │ LÚCIDO                                                 │
+  │              │ Tudo normal. Cigarro: ele tira, olha, joga fora.       │
+  │              │ "hoje não..."                                          │
+  ├──────────────┼────────────────────────────────────────────────────────┤
+  │ 74–50        │ RACHANDO                                               │
+  │              │ Sons falsos. Vinheta fecha. Passos atrás de você que   │
+  │              │ não existem.                                           │
+  │              │ Cigarro: ele ACENDE. Olha a brasa. Joga fora aceso.    │
+  ├──────────────┼────────────────────────────────────────────────────────┤
+  │ 49–25        │ VAZANDO                                                │
+  │              │ ALUCINAÇÕES ATACÁVEIS: inimigos que não existem.       │
+  │              │ Somem quando acertados. Você gastou a bala do mesmo    │
+  │              │ jeito. Cochichos. Imagem tremendo.                     │
+  │              │ Cigarro: ele TRAGA. Uma vez. Se arrepende. Joga fora.  │
+  ├──────────────┼────────────────────────────────────────────────────────┤
+  │ 24–0         │ RENDIDO                                                │
+  │              │ Diretor gera muito mais. Alucinação constante.         │
+  │              │ Páginas no diário que ele não escreveu.                │
+  │              │ Cigarro: fuma um atrás do outro, compulsivo, e não     │
+  │              │ para até você mandar andar.                            │
+  └──────────────┴────────────────────────────────────────────────────────┘
+
+===============================================================================
+PARTE VII.B — A ESCADA DO CIGARRO
+===============================================================================
+  CONFIRMADO em 04/08. É um dos fios mais importantes do jogo inteiro.
+
+  A ideia: o cigarro deixa de ser uma animação de parado e vira ITEM. E o
+  jogador vai carregar esse item por HORAS sem conseguir usar.
+
+  Toda vez que ele tentar usar, David recusa. E a recusa VAI MUDANDO.
+
+  Isso transforma um item de inventário numa barra de progresso emocional.
+  O jogador vai testar o cigarro de vez em quando só para ver se mudou —
+  e é assim que ele percebe que o personagem está cedendo.
+
+  ------------------------------------------------------------------------
+  OS DEGRAUS
+  ------------------------------------------------------------------------
+
+  DEGRAU 0 — CAPÍTULO 1
+    Ele TEM cigarro no bolso, e é animação de parado: tira, olha, joga fora.
+    "hoje não..."
+    Depois do sequestro, perde tudo. Fica sem ter o que recusar.
+
+  DEGRAU 1 — CAPÍTULO 2 (acha o maço no vestiário)
+    Vira ITEM. Recusa seca, imediata, sem hesitação.
+      "Não."
+      "Eu não vou fumar isso."
+      "Não é hoje."
+      "Guarda isso."
+    (nota: ele nem tira do maço. A recusa é automática, quase reflexo.)
+
+  DEGRAU 2 — FIM DO CAPÍTULO 2 / COMEÇO DO 3
+    Ele começa a HESITAR. A fala fica mais longa.
+      "...ah. Talvez."
+      (pausa)
+      "Não. Melhor não."
+
+      "Eu podia. Ninguém ia saber."
+      "Eu ia saber."
+
+  DEGRAU 3 — MEIO DO CAPÍTULO 3
+    Ele chega a TIRAR do maço. Segura. Devolve.
+      "..."
+      (tira um, olha)
+      "Não hoje. Não ainda."
+
+  DEGRAU 4 — LIBERADO (momento a definir no Cap. 3)
+    Ele acende. E fuma.
+    A PARTIR DAQUI o cigarro é consumível que restaura sanidade.
+
+    A fala da primeira vez é uma das mais importantes do jogo:
+      [ESCREVER AQUI]
+      sugestão minha: "Sete anos." (traga) "Sete anos sem."
+
+  DEGRAU 5 — SANIDADE BAIXA, DEPOIS DE LIBERADO
+    Fuma compulsivamente. Um atrás do outro. Não para até você mandar andar.
+    É aqui que fica feio de ver.
+
+  ------------------------------------------------------------------------
+  POR QUE ISSO É BOM
+  ------------------------------------------------------------------------
+
+  1. O jogador tenta usar dezenas de vezes ao longo de horas. Cada tentativa
+     é uma linha de diálogo. É caracterização de graça, distribuída.
+
+  2. Quando finalmente liberar, o jogador vai SENTIR que ganhou alguma coisa
+     — e vai levar um tempo para perceber que o personagem PERDEU.
+
+  3. O item ocupa espaço no inventário o tempo todo, sem servir para nada.
+     Ele vai pensar em largar. E não vai conseguir.
+
+  ------------------------------------------------------------------------
+  ATÉ O DEGRAU 4, COMO SE RESTAURA SANIDADE?
+  ------------------------------------------------------------------------
+  [ESCREVER AQUI — a definir]
+
+  Opções que eu jogo na mesa:
+    - escrever no diário (já previsto, funciona)
+    - setores com luz forte (o vestiário é o exemplo)
+    - café? Há uma máquina de café no refeitório e ele já reclama dela
+    - simplesmente ficar parado num lugar seguro por um tempo
+    - conversar com NPC — o que é irônico, já que eles são a mente dele
+
+
+===============================================================================
+PARTE VII.B — PERCEPÇÃO, FERIMENTOS E SEGUNDO ATO DA FUGA [JÁ NO JOGO]
+===============================================================================
+
+  O PACOTE DE PERCEPÇÃO
+  ------------------------------------------------------------------------
+  Nada aqui confirma que o galpão está dentro da cabeça de David. O jogador
+  recebe sinais que ainda podem ser explicados como arquitetura, cansaço e
+  medo:
+
+    - metal, concreto, madeira, gelo e piso molhado têm passos distintos;
+    - correr sobre metal denuncia David por uma distância maior;
+    - cada lâmpada produz uma sombra longa e legível;
+    - quando a sanidade cai, a sombra de David parece chegar atrasada;
+    - coisas que não existem não projetam sombra e soam incompletas;
+    - salas revisitadas ganham marcas pequenas, nunca uma transformação total;
+    - descrições do inventário ficam mais pessoais quando a cabeça piora.
+
+  REGRA: as pistas precisam ser observáveis ANTES de cobrar munição ou vida.
+  A alucinação pode enganar; ela não pode trapacear.
+
+  FERIMENTOS E FRENZY
+  ------------------------------------------------------------------------
+  A bala reconhece cabeça, tronco, braços, pernas e pés. Cabeça causa mais
+  dano; braço comprometido altera o corpo; perna ferida muda o movimento.
+  Um headshot só explode quando mata. A bala conserva força para um segundo
+  corpo, perde impacto e para ali.
+
+  Inimigos normais são agressivos mesmo na dificuldade NORMAL. Quando um
+  deles sobrevive muito ferido, pode entrar em FRENZY: ele abandona a marcha,
+  corre e agarra David. `M` inicia uma defesa curta. Se David vence, usa algo
+  que realmente existe naquela sala — parede, estante, gancho ou válvula. Se
+  falha, toma dano, mas o inimigo morre. A defesa existe para transformar um
+  inimigo quase morto numa decisão; não para criar execuções gratuitas.
+
+  ATO 2 DA PERSEGUIÇÃO — ATRÁS DA DOCA 3
+  ------------------------------------------------------------------------
+  O portão de correr emperra na altura do peito. David passa por baixo; o
+  Credor chega logo depois e corta a chapa. A fuga continua por corredores de
+  serviço compactos, como se o galpão tivesse encontrado espaço onde antes não
+  havia nenhum.
+
+    1. ROTA DE SERVIÇO
+       Uma porta é serrada e rompida atrás dele — o corte cresce na chapa,
+       produz faíscas e só então a porta cai. Uma estante está marcada por
+       uma luz de emergência. `E` a derruba imediatamente, sem pergunta e sem
+       menu: David ganha alguns segundos e sela o depósito de suprimentos.
+       O armário fica afastado para nunca disputar o mesmo comando.
+
+    2. DUAS ROTAS
+       A curta chega antes à câmara, mas aumenta a pressão. A longa oferece
+       mais chão e mais tempo para ouvir a aproximação. Nenhuma vira um novo
+       mapa: são variações breves para estender o clímax em 60–90 segundos.
+
+    3. O GUARDA-CORPO
+       O Credor alcança o casaco. David quase cai e precisa rasgar o tecido.
+       O rasgo continua visível até o fim e entra no save.
+
+    4. O FALSO SILÊNCIO
+       A porta da câmara fria fecha. A música e a motosserra quase somem.
+       Lâmpadas falham em pulsos e mostram apenas a silhueta do Credor do
+       outro lado. Então a serra volta: ele está cortando a parede.
+
+    5. O PALETE, O PORTÃO E O PÁTIO
+       Na última passagem, o Credor alcança David. David arranca do carrinho
+       um palete reforçado e o firma entre o corpo e a motosserra. A lâmina
+       rasga as tábuas diante da câmera até prender na cinta metálica interna.
+       David aciona o destravamento: o portão de correr desaba sobre o carrinho
+       e ele passa por baixo antes de a abertura fechar.
+
+       O corte continua do lado de fora, numa área real: PÁTIO DE CARGA, chuva
+       forte, asfalto molhado e a fachada do galpão atrás. O Credor não some e
+       não teleporta. Atrás das ripas ele arranca a serra da cinta, ergue parte
+       do portão com as mãos e fica na soleira olhando David. O capítulo termina
+       porque David conseguiu distância, não porque a dívida morreu.
+
+       A velocidade da fuga trabalha por distância: perto, o Credor deixa uma
+       margem estreita para correr e abrir portas; longe, acelera e recupera o
+       terreno. Dificuldade e rota não podem se multiplicar até tornar a sessão
+       final impossível.
+
+  SAVE: rota, recursos usados, rasgo, apagão, parede e distância do Credor são
+  estado real. Recarregar não pode reiniciar uma encenação nem inventar outra
+  posição para ele.
+
+  DIFICULDADE ÚNICA
+  ------------------------------------------------------------------------
+  Não há seletor separado para puzzle ou terror psicológico.
+
+    HISTÓRIA  — inimigos mais lentos, menos dano, menos vida e menos corpos.
+    NORMAL    — pressão equilibrada, mas inimigos ainda agressivos.
+    DIFÍCIL   — RECOMENDADA; é o ritmo pretendido do capítulo.
+    MENTE     — a cabeça não dá descanso: mais corpos, vida, dano e velocidade.
+
+  A ARENA DE COMBATE no menu não é canônica. Serve para testar ferimentos,
+  mira para os dois lados, perfuração e Frenzy sem repetir a narrativa.
+
+
+===============================================================================
+PARTE VIII — SISTEMA DE INVENTÁRIO
+===============================================================================
+
+  Abre com TAB.
+
+  O CONCEITO: o inventário É O SOBRETUDO DELE.
+
+  A tela mostra o casaco ABERTO, visto por dentro, como se ele estivesse
+  segurando as abas. Os bolsos são os espaços.
+
+  ┌────────────────────────────────────────────────────────────┐
+  │                                                            │
+  │    ┌──────────┐              ┌──────────┐                  │
+  │    │  BOLSO   │              │  BOLSO   │                  │
+  │    │ INTERNO  │   [ o forro  │ INTERNO  │                  │
+  │    │ ESQUERDO │     do       │ DIREITO  │                  │
+  │    │          │     casaco ] │          │                  │
+  │    │  3 x 4   │              │  3 x 4   │                  │
+  │    └──────────┘              └──────────┘                  │
+  │                                                            │
+  │         ┌────────────┐   ┌────────────┐                    │
+  │         │  BOLSO DO  │   │   CINTO    │                    │
+  │         │   PEITO    │   │            │                    │
+  │         │   2 x 2    │   │   5 x 1    │                    │
+  │         └────────────┘   └────────────┘                    │
+  │                                                            │
+  └────────────────────────────────────────────────────────────┘
+
+  REGRAS:
+  - Cada item ocupa um formato (a pistola é 2x1, o porrete é 1x4, o maço de
+    cigarro é 1x1, a caixa de munição é 2x2).
+  - Espaço LIMITADO. Você tem que escolher o que carregar.
+  - Você ORGANIZA como quiser — arrastar, girar, empilhar o que empilha.
+  - O CINTO é acesso rápido: só o que estiver ali pode ser usado sem abrir
+    o inventário.
+  - O porrete não cabe em bolso nenhum. Fica na mão ou fica para trás.
+    (nota: isso força uma decisão real quando ele achar a pistola.)
+
+  DETALHE DE IMERSÃO:
+  Abrir o inventário NÃO PAUSA O JOGO. Igual Resident Evil moderno.
+  E enquanto está aberto, o casaco cobre parte da tela — você fica cego para
+  o que está atrás dele.
+
+  ACEITO. [JÁ NO JOGO]
+  TAB abre o casaco, Q abre o caderno, e nenhum dos dois para o mundo. O
+  porrete NÃO cabe em bolso nenhum: tem um espaço só dele, do lado de fora
+  do casaco, com uma barra embaixo dizendo quanta madeira ainda sobrou.
+  Arrastar com o mouse move; R gira.
+
+
+===============================================================================
+PARTE VIII.B — AS MIGALHAS
+===============================================================================
+  Como avisar o jogador de que é tudo a mente dele, sem nunca dizer.
+
+  A REGRA: o jogo NUNCA confirma. Ele só deixa de fazer sentido de um jeito
+  específico, sempre o mesmo. Quem prestar atenção monta sozinho. Quem não
+  prestar, leva o susto no fim — e ao reler o diário, encontra tudo lá.
+
+  ------------------------------------------------------------------------
+  AS SETE FAMÍLIAS DE MIGALHA
+  ------------------------------------------------------------------------
+
+  1. COISAS QUE SABEM O NOME DELE ANTES DE ELE DIZER
+     Nenhum NPC pergunta o nome. Todos já sabem.
+     Ninguém comenta isso. Nunca.
+       "O senhor sabe."   "O senhor mesmo."   "Boa noite, David."
+
+  2. O RELÓGIO QUE SEMPRE MARCA 02h14
+     Relógio de ponto do galpão: 02h14.
+     Relógio do escritório: 02h14.
+     O relógio de pulso dele: 02h14 — e o ponteiro de segundos ANDA.
+     (nota: só nesse detalhe o jogador percebe que não é bateria fraca.)
+
+  3. NÚMEROS QUE NÃO FECHAM
+     "Contei duas vezes. Deu vinte e quatro na segunda."
+     Contar duas vezes a mesma coisa dá números diferentes. Sempre.
+     Portas, ganchos, degraus, armários. Nunca comentado.
+
+  4. A CONVENIÊNCIA (já é regra do capítulo)
+     Cada item na hora exata em que ele precisa.
+
+  5. OS ESPAÇOS IMPOSSÍVEIS
+     Parede arrebentada de dentro para fora, e do outro lado não há cômodo.
+     Uma porta que dá no mesmo corredor de onde você veio.
+     Um corredor mais comprido na volta do que na ida.
+
+  6. AS COISAS AINDA QUENTES
+     Café pela metade, ainda morno. Sangue fresco num prédio abandonado
+     há seis anos. Guimba acesa. Sempre algo que acabou de acontecer, e
+     nunca ninguém.
+
+  7. AS PÁGINAS QUE ELE NÃO ESCREVEU
+     (ver PARTE V) — a migalha que só aparece quando a sanidade cai.
+
+  ------------------------------------------------------------------------
+  A DOSAGEM
+  ------------------------------------------------------------------------
+  Cap. 1 → duas migalhas, escondidas (fio cortado, parede impossível)
+  Cap. 2 → seis a oito, ainda negáveis
+  Cap. 3 → o jogador já desconfia; as migalhas ficam agressivas
+  Cap. 4 → não são mais migalhas. É o jogo se assumindo.
+
+  ------------------------------------------------------------------------
+  A REGRA DE OURO
+  ------------------------------------------------------------------------
+  DAVID NUNCA COMENTA UMA MIGALHA DIRETAMENTE.
+
+  Ele comenta a CONVENIÊNCIA (porque é piada, e piada é defesa dele). Mas
+  ele nunca diz "isso é impossível" duas vezes seguidas, nunca junta duas
+  pistas em voz alta, e NUNCA especula sobre estar louco.
+
+  No instante em que ele suspeitar em voz alta, o jogador para de saber mais
+  do que ele — e é essa vantagem que segura o jogo em pé.
+
+
+===============================================================================
+PARTE IX — CAPÍTULO 3: "GAVETA D"
+===============================================================================
+
+  ESCRITO em 07/08/2026 e IMPLEMENTADO na sessão 19 do mesmo dia.
+  Os seis setores, as seis conversas, a escada do cigarro, o painel de senha
+  do Credor, o flashback e o fim com o nome estão no jogo. FALTA TESTE HUMANO.
+  Dá para entrar direto por MENU -> CAPITULOS -> 3.
+  DURAÇÃO ALVO: 50 a 55 minutos. Menos que o Capítulo 2, de propósito.
+  LOCAL: a delegacia onde ele trabalhou. Plantão, subsolo, cela.
+  CÂMERA: LATERAL, igual ao resto do jogo.
+
+  ⚠ DUAS IDEIAS DESCARTADAS EM 07/08, registradas para não voltarem:
+     · jogo (ou capítulo) em 3D, primeira ou terceira pessoa
+     · câmera de conversa em close e inspeção de objeto de cenário em volume
+    O diagnóstico que gerou as duas continua VÁLIDO — lateral a 480x270 tira
+    peso de conversa e de ambiente. A resposta está em IX.7, e é toda dentro
+    da câmera lateral.
+
+  A REGRA DO CAPÍTULO: NÃO HÁ COMBATE. Nenhum. A arma fica na portaria.
+  O capítulo inteiro é ANDAR, OLHAR e CONVERSAR. Depois de uma hora de
+  motosserra, esse é o contraste — e é o gênero do jogo voltando pra casa.
+
+
+-------------------------------------------------------------------------------
+IX.0 — A ESPINHA  (canon travado em 07/08)
+-------------------------------------------------------------------------------
+
+  SETE ANOS ATRÁS, David era bom no que fazia. Não era um homem quebrado
+  ainda. Fechou um caso grande e prendeu o responsável.
+
+  Naquela mesma noite, em casa, o TELEFONE TOCOU. Ele saiu pra atender —
+  e, atendendo, acendeu um cigarro na varanda.
+
+  Eram 02h14.
+
+  Quando ele voltou pra dentro, a mulher estava morta. A filha tinha sumido.
+  Foi o homem que ele prendeu, ou gente dele. Nunca ficou provado.
+
+  O CORPO DA FILHA NUNCA FOI ENCONTRADO.
+
+  É ESSE o caso que não fecha. Não é caso de trabalho — é o dele. Depois
+  disso ele perdeu o distintivo, depois a casa, depois o resto.
+
+  ------------------------------------------------------------------------
+  AS TRÊS CONSEQUÊNCIAS, e todas já estão plantadas no jogo
+  ------------------------------------------------------------------------
+
+  1. O CARTAZ DE DESAPARECIDA DO BECO É A FILHA DELE.
+
+     No Capítulo 1 ele lê: "A data é de três semanas atrás." Três semanas
+     não bate com sete anos — E NÃO DEVE BATER. Ele ainda imprime cartaz
+     novo. Faz sete anos que ele imprime.
+
+     "Ninguém arranca o que ninguém lê."
+     A chuva comeu metade do rosto porque ele já não lembra do rosto todo.
+
+     (nota: nenhuma linha do Capítulo 1 precisa mudar. A fala dele é a
+      mesma. Só passa a doer.)
+
+  2. O CIGARRO NÃO É VÍCIO. É O ÁLIBI DA AUSÊNCIA DELE.
+
+     Ele não fuma porque fumar foi exatamente o que ele estava fazendo
+     enquanto acontecia. Cada "hoje não..." é aquele cigarro específico.
+
+     Isso reescreve a animação de ócio do Capítulo 1 inteiro sem tocar
+     numa linha dela.
+
+  3. O NOME QUE ELE NÃO DIZ EM VOZ ALTA É O DA FILHA.
+
+     Não é o do criminoso — dizer o nome de um preso é fácil pra um
+     policial. O nome que trava na garganta é o dela.
+
+     O capítulo termina nisso. Ver IX.6.
+
+  ------------------------------------------------------------------------
+  A PONTA QUE FECHA O JOGO INTEIRO  (plantar aqui, revelar no CAP. 4)
+  ------------------------------------------------------------------------
+
+  Por que ele estava lá fora? Porque O TELEFONE TOCOU e ele foi atender.
+
+  Às 02h14.
+
+  Isso amarra, de uma vez só:
+    · o telefone do bar com o fio cortado, e a ligação que veio assim mesmo
+    · o relógio de ponto do galpão parado em 02h14, e o do escritório
+    · "O senhor mesmo."  /  "O senhor foi o único que atendeu."
+    · o cigarro
+    · o nome do jogo
+
+  ELE ATENDE ESSA MESMA LIGAÇÃO TODA NOITE HÁ SETE ANOS.
+
+  ⚠ NO CAPÍTULO 3 ISSO NÃO É REVELADO. O jogador tem que chegar perto e
+    não conseguir provar. Se sair da boca de alguém aqui, o Capítulo 4
+    fica sem ter o que dizer.
+
+  ------------------------------------------------------------------------
+  RESSALVA HONESTA, registrada de propósito
+  ------------------------------------------------------------------------
+  "Criminoso se vinga da família do policial" é a origem mais usada do
+  gênero inteiro. O que tira isso do lugar-comum são DUAS coisas, e só
+  elas:
+
+    · a filha NUNCA foi encontrada (não há luto, há uma pergunta aberta)
+    · o motivo dele estar lá fora é A LIGAÇÃO (e não uma saída qualquer)
+
+  Se alguma das duas cair na produção, o passado vira genérico.
+
+  ------------------------------------------------------------------------
+  NOMES  — TRAVADOS em 07/08 pelo Luiz
+  ------------------------------------------------------------------------
+    O PROTAGONISTA ....... DAVID HENRY
+    A FILHA .............. JENNA
+    A MULHER ............. JULIE
+    O CRIMINOSO .......... CARLOS
+    O PARCEIRO ........... MICHAEL
+
+  ⚠ REGRA DE ESCRITA — o nome JENNA:
+    Ele não aparece escrito na tela até a última cena do capítulo. Nos
+    documentos aparece rasgado, apagado, cortado pela dobra do papel ou
+    coberto. O jogador quer ler e não consegue — exatamente como ele não
+    consegue dizer. A primeira e única vez que o nome aparece por inteiro
+    é quando DAVID diz em voz alta, no livro do plantonista.
+
+  ⚠ E o sobrenome HENRY é o que fecha a gaveta D: as pastas são todas
+    "HENRY, D." — é por isso que a gaveta do D não estava no arquivo do
+    galpão. Ela estava aqui o tempo todo, e era dele.
+
+  REGRA DE ESCRITA: o nome da filha NUNCA aparece escrito na tela até o
+  fim do capítulo. Nos documentos ele aparece rasgado, apagado, cortado
+  pela dobra do papel ou coberto. O jogador quer ler e não consegue —
+  exatamente como ele não consegue dizer.
+
+
+-------------------------------------------------------------------------------
+IX.1 — MAPA DO CAPÍTULO — 6 setores
+-------------------------------------------------------------------------------
+
+  #  SETOR                   MIN   O QUE ENTREGA
+  -- ----------------------- ---   ----------------------------------------
+  1  Rua e Recepção            5   A arma fica no escaninho 214.
+  2  O Plantão                12   O PARCEIRO. Quatro versões da mesma noite.
+  3  A Mesa Dele               8   Degrau 2 do cigarro. O cinzeiro.
+  4  Arquivo Morto (-1)        8   A GAVETA D. O corredor mais longo na volta.
+  5  Sete Anos Atrás          12   Flashback jogável. Sem inimigo, sem sanidade.
+  6  A Cela                   10   O homem. DEGRAU 4. E o nome.
+  -- ----------------------- ---
+                            ~55 min
+
+
+===============================================================================
+CENA 1 — RUA E RECEPÇÃO
+===============================================================================
+FUNÇÃO: transição da chuva. Tirar a arma do jogador sem roubar nada dele.
+TEMPO:  ~5 min
+
+  ABERTURA:
+    Preto. "CAPÍTULO TRÊS". Embaixo: GAVETA D.
+    (mesma tipografia corroída dos outros)
+
+  Ele vem do Pátio de Carga, ainda na chuva, ainda com o sobretudo rasgado
+  no ombro. Sobe uma escadaria de pedra molhada.
+
+  A delegacia está ACESA. Todas as janelas. Duas e quatorze da manhã.
+
+    (ao chegar)
+    "Sete anos sem subir essa escada."
+
+    "E ela continua com o mesmo degrau solto."
+
+  ------- A PORTARIA -------
+
+  O plantonista atrás do vidro. Educado. Sem pressa. Não pergunta quem ele é.
+
+    PLANTONISTA: "Boa noite. A arma no escaninho, por favor."
+    DAVID:       "Eu não sou mais daqui."
+    PLANTONISTA: "A arma no escaninho, por favor."
+
+  Ele guarda. O escaninho é o 214.
+
+    "Claro que é."
+
+  ⚠ A PARTIR DAQUI E ATÉ O FIM DO CAPÍTULO: SEM ARMA E SEM PORRETE.
+  Não é confisco de roteiro, é a porta. E é a segunda vez na vida dele que
+  ele entrega uma arma nesse balcão.
+
+  (nota de design: isso resolve o combate sem inventar desculpa, e faz o
+   jogador sentir a falta o capítulo inteiro. Quando a arma voltar, no
+   Capítulo 4, ela vai pesar.)
+
+  ------- A SALA DE ESPERA -------  ★ O CREDOR
+
+  Ao lado da recepção, seis cadeiras de plástico em fila. Um painel de senha
+  na parede.
+
+  Na terceira cadeira está O CREDOR.
+
+  Avental de açougueiro. Cabeça de porco em pano de saco. A motosserra
+  DESLIGADA, atravessada no colo. E uma SENHA DE ATENDIMENTO na mão.
+
+  Ele não se mexe. Não ataca. Não olha.
+
+    "..."
+    "Ele está esperando a vez."
+
+  O painel marca um número. O NÚMERO SOBE AO LONGO DO CAPÍTULO, sozinho,
+  a cada setor novo. O jogador vai voltar lá pra conferir. É pra voltar.
+
+  DÁ PRA SENTAR NA CADEIRA DO LADO. Não acontece nada. É pior.
+
+    (se sentar)
+    "..."
+    (pausa longa)
+    "Tem gente que só sabe cobrar em silêncio."
+
+  (nota: isso paga a promessa do fim do Capítulo 2 — "não era pra cobrar
+   hoje" — sem repetir uma hora de perseguição. O Credor não persegue neste
+   capítulo. Ele aguarda. Ver IX.5 para o que acontece com a senha.)
+
+  COISAS PARA EXAMINAR:
+
+    O DEGRAU SOLTO
+      "Sete anos e ninguém consertou."
+      "Ou consertaram, e voltou a soltar. Dá no mesmo."
+
+    O QUADRO DE HOMENAGENS
+      "Fotos de todo mundo que passou por aqui."
+      (pausa)
+      "A minha ainda está."
+
+    O ESCANINHO 214
+      "Já tem uma arma dentro."
+      "Do mesmo modelo."
+      (nota: ele NÃO comenta a segunda parte. Migalha família 6.)
+
+
+===============================================================================
+CENA 2 — O PLANTÃO
+===============================================================================
+FUNÇÃO: o maior bloco de conversa do jogo até aqui. O Parceiro.
+TEMPO:  ~12 min
+
+  Salão grande de mesas, luz fluorescente, telefone tocando em algum lugar
+  que ninguém atende. Quatro pessoas trabalhando. Ventilador de teto girando.
+  Persianas. Máquina de escrever. Papel demais.
+
+  Ninguém acha estranho ele estar ali. Todos cumprimentam. Ninguém pergunta
+  o nome dele.
+
+    (ao entrar)
+    "Turno cheio. Duas e quatorze da manhã."
+    "Nunca teve turno cheio nesse horário. Nem quando o mundo prestava."
+
+  ------- ★ O PARCEIRO -------
+
+  Sentado na mesa em frente à que era do David. Mesma cadeira de sempre.
+  Trata o David como quem se viu ontem — sem espanto, sem pêsames, sem
+  aquele tom que todo mundo usa com ele há sete anos.
+
+  É a ÚNICA conversa quente do jogo inteiro até agora. Não tem horror
+  nenhum nela. É colega falando de caso ruim.
+
+    PARCEIRO: "Você está ensopado."
+    DAVID:    "Está chovendo."
+    PARCEIRO: "Está chovendo há sete anos, então."
+
+  ⚠ ESTE É O DIÁLOGO MAIS LONGO DO JOGO. É pra ser. Aqui o jogador
+  finalmente pode PERGUNTAR — e o Parceiro responde tudo, sem enigma:
+
+    · o que aconteceu naquela noite, do ponto de vista de fora
+    · quem era o homem que David prendeu
+    · o que David fez nos meses seguintes, e por que tiraram o distintivo
+    · por que ninguém nunca achou a menina
+    · o que o Parceiro acha, pessoalmente, e ele não tem certeza de nada
+
+  (nota de escrita: NADA de sobrenatural nesta conversa. É a única fonte
+   confiável do capítulo, e ela tem que soar confiável. O horror vem de o
+   jogador confiar nela e depois ver a plaquinha.)
+
+  A MIGALHA, no fim, sem comentário nenhum:
+
+    A plaquinha de identificação na mesa do Parceiro tem O NOME DO DAVID.
+
+    Ele não comenta. Ninguém comenta. A câmera não para nela.
+
+  ------- OS OUTROS TRÊS — "QUATRO VERSÕES DA MESMA NOITE" -------
+
+  Três colegas, e cada um lembra daquela noite de um jeito. Três batem.
+  Uma não bate.
+
+  A QUE NÃO BATE É A QUE O DAVID LEMBRA.
+
+  ⚠ ISSO PEDE O VERBO DE DEDUÇÃO — juntar duas anotações do caderno pra
+  formar uma terceira, e a terceira abre uma pergunta nova. É o sistema que
+  o GAME_DESIGN.md promete desde o primeiro dia e que nunca foi construído.
+  O Capítulo 3 é onde ele nasce ou não nasce.
+
+  COISAS PARA EXAMINAR:
+
+    O TELEFONE QUE TOCA
+      "Toca há um tempo."
+      "Ninguém atende."
+      (se ele atender: linha muda. Silêncio. E ele desliga sem falar nada.)
+
+    O QUADRO DE CASOS
+      "Casos do mês."
+      "Todos com data de sete anos atrás."
+
+    O RELÓGIO DE PAREDE
+      "02h14."
+      (pausa)
+      "O ponteiro de segundos está andando."
+      (nota: MIGALHA FAMÍLIA 2, finalmente jogada por inteiro. É aqui que
+       o jogador entende que não é bateria fraca.)
+
+    O LIVRO DE OCORRÊNCIAS
+      "Ocorrência das duas e vinte."
+      "'Homem entrando em bar fechado. Sem queixa.'"
+      (ele não comenta. É ele.)
+
+    A MÁQUINA DE CAFÉ
+      "Essa aqui funciona."
+      "A do galpão não funcionava. Essa funciona."
+
+
+===============================================================================
+CENA 3 — A MESA DELE
+===============================================================================
+FUNÇÃO: caracterização pura. Degrau 2 do cigarro.
+TEMPO:  ~8 min
+
+  A mesa dele continua ali. Não foi esvaziada. Não foi dada pra ninguém.
+  Tem poeira em tudo, menos na cadeira.
+
+    "Minha mesa."
+    (pausa)
+    "Ninguém sentou nela."
+
+  ------- DEGRAU 2 DO CIGARRO — aqui a recusa começa a hesitar -------
+
+  (ver PARTE VII.B. Até agora, no Capítulo 2, era recusa seca. Neste setor
+   ela ganha pausa e vira frase.)
+
+    "...ah. Talvez."
+    (pausa)
+    "Não. Melhor não."
+
+    "Eu podia. Ninguém ia saber."
+    "Eu ia saber."
+
+  DEGRAU 3 dispara mais adiante, no Arquivo Morto (Cena 4): ele chega a
+  TIRAR um do maço, segura, e devolve.
+
+  COISAS PARA EXAMINAR:
+
+    O CINZEIRO
+      "Cheio."
+      "Sete anos de poeira em cima da mesa, e o cinzeiro está cheio."
+      (nota: MIGALHA. Sem comentário adicional. Nunca.)
+
+    A FOTO NA MESA
+      "..."
+      (pausa longa)
+      "Está de costas."
+      (a foto está virada para baixo. Ele NÃO vira. O jogador pode
+       interagir de novo:)
+      "Não."
+      (e uma terceira vez:)
+      "Eu disse não."
+      (⚠ e não tem terceira vez de verdade. Ao contrário do espelho, aqui
+       a insistência NÃO é recompensada. O espelho é carta jogada uma vez
+       só; repetir o truque queima os dois. Na terceira ele só sai de perto.)
+
+    A GAVETA DE BAIXO
+      "Trancada."
+      "E a chave está na fechadura."
+      (abre: dentro tem uma pilha de CARTAZES DE DESAPARECIDA. Novos.
+       Impressos. Uns cinquenta.)
+      "..."
+      (nada mais. Ele fecha a gaveta. Sem uma linha.)
+      (nota: esta é a batida mais importante do setor, e ela tem que ser
+       MUDA. Se ele falar qualquer coisa aqui, vira explicação.)
+
+    O CRACHÁ NA PAREDE
+      "Meu número."
+      "Ainda não deram pra ninguém."
+
+
+===============================================================================
+CENA 4 — ARQUIVO MORTO  (subsolo -1)
+===============================================================================
+FUNÇÃO: a gaveta D. E as migalhas ficam agressivas.
+TEMPO:  ~8 min
+
+  Escada estreita pra baixo. Luz de emergência. Corredor comprido de
+  arquivos de aço, fileira após fileira, até o escuro.
+
+  Aqui a sanidade volta a cair. É o único setor do capítulo em que cai.
+
+    "Arquivo morto."
+    "Nome bonito pra porão."
+
+  ------- A GAVETA D -------
+
+  No Capítulo 2, no escritório do galpão, ele achou um arquivo de aço com
+  "pastas de A a C, e de E até Z. Só a gaveta do D não está aqui."
+
+  A gaveta do D está AQUI. E está CHEIA.
+
+  Todas as pastas com o nome dele. Uma pra cada ano.
+
+    "Uma pasta por ano."
+    (ele conta)
+    "Sete."
+    (conta de novo)
+    "Oito."
+    (nota: MIGALHA FAMÍLIA 3. Ele não comenta a diferença. Só fecha.)
+
+  Uma das pastas é a do caso. Ele abre — e é aqui que o flashback começa.
+  A transição NÃO é um corte: a luz muda no meio do movimento dele.
+
+  ------- O CORREDOR MAIS LONGO NA VOLTA -------
+
+  Na ida, o corredor até a gaveta tem um tamanho. Na volta, tem mais.
+  Sem barulho, sem susto, sem comentário. Só mais chão.
+
+  (nota: MIGALHA FAMÍLIA 5. Se ele falar disso, morre. Regra de ouro.)
+
+  COISAS PARA EXAMINAR:
+
+    ETIQUETAS DAS PRATELEIRAS
+      "A. B. C."
+      "E."
+      "Aqui embaixo o D existe. Lá em cima não existia."
+
+    CAIXA DE OBJETOS APREENDIDOS
+      "Coisas que pertenceram a alguém."
+      "Etiqueta, número, prateleira. É o que sobra."
+
+    LÂMPADA DO FUNDO
+      "Essa não pisca. Só está fraca."
+      "Prefiro as que piscam. Pelo menos avisam."
+
+
+===============================================================================
+CENA 5 — SETE ANOS ATRÁS  (flashback jogável)
+===============================================================================
+FUNÇÃO: mostrar que ele era BOM, e que ele TINHA gente. E fazer o jogador
+        executar o gesto.
+TEMPO:  ~12 min
+[JÁ NO JOGO — reescrito na sessão 20]
+
+  ⚠ REESCRITO em 07/08. A primeira versão deixava David na calçada olhando
+  uma FACHADA, e a família era só barulho atrás de uma porta. Estava
+  errado: se o jogador não conhece as duas, ele não perde nada quando elas
+  se vão. Ele ENTRA, CONVERSA, e só depois sai.
+
+  ⚠ SEM INIMIGO. SEM SANIDADE. SEM COMBATE. SEM PERIGO NENHUM.
+  Não tem tensão porque não pode ter: o jogador já sabe que ele sobrevive.
+  O que tem é uma noite boa, jogada por inteiro.
+
+  O QUE MUDA NA TELA:
+    · paleta menos dessaturada — ainda noite, mas com azul e verde vivos
+    · sem sobretudo rasgado, sem sangue no casaco
+    · e o ÓCIO DELE MUDA: parado, ele TIRA O CIGARRO, ACENDE, FUMA e
+      GUARDA O MAÇO. Sem hesitar. Sem "hoje não".
+
+  (nota: o jogador vai ver essa animação dezenas de vezes ao longo de doze
+   minutos, e vai achar que é só uma versão antiga do personagem. É a
+   preparação inteira da Cena 6.)
+
+  ------------------------------------------------------------------------
+  5a — A RUA
+  ------------------------------------------------------------------------
+
+  Ele estaciona na frente de casa. As janelas da sala estão acesas.
+
+    "Boa noite pra terminar cedo."
+    "Peguei o cara. Peguei o cara mesmo."
+    "A luz da sala está acesa. Ainda estão acordadas."
+
+  A PORTA DA FRENTE É INTERAGÍVEL. Ele entra.
+
+  ------------------------------------------------------------------------
+  5b — DENTRO DE CASA
+  ------------------------------------------------------------------------
+
+  A única sala quente do jogo inteiro. Televisão ligada sem ninguém
+  olhando, abajur, sofá, porta-retratos, mesa posta.
+
+  ⚠ REGRA: NADA de estranho aqui. Nenhuma migalha, nenhum relógio parado,
+  nenhum número que não fecha. Se esta sala tiver UM detalhe errado, o
+  jogador passa os doze minutos procurando o truque em vez de estar ali.
+
+    (ao entrar)
+    "Cheguei."
+    "Nem tirei o casaco e já to com fome."
+
+  ------- JULIE -------
+
+  Ordinária de propósito. Ela pergunta se ele comeu. Ele mente.
+
+    JULIE: "Você comeu?"
+    DAVID: "Comi um negócio lá."
+    JULIE: "Então não comeu."
+
+  E quando ele conta que fechou o caso:
+
+    JULIE: (para o que estava fazendo) "Aquele?"
+    DAVID: "Aquele."
+    JULIE: "David."
+    DAVID: "Eu sei."
+    JULIE: "Não, você não sabe. Faz dois anos que você não dorme por
+            causa dele."
+
+  Insistindo:
+
+    DAVID: "Acabou."
+    JULIE: "Acabou mesmo?"
+    DAVID: "Acabou."
+           (ela ri, e é a primeira vez em muito tempo)
+    JULIE: "Então amanhã você me leva pra algum lugar."
+    DAVID: "Levo."
+
+  ------- A MENINA -------
+
+  Devia estar dormindo há duas horas. Ficou esperando ele.
+
+    "Eu não estou acordada."
+    "Não. Isso aqui é sonho."
+
+  Ela está desenhando. O desenho é ele — e é só o casaco.
+
+    DAVID: "Por que o casaco?"
+    ELA:   "Porque é o que dá pra ver de longe."
+           "Quando você chega, primeiro aparece o casaco."
+
+  E ela se despede com "Boa noite, pai."
+
+  ⚠ REGRA DE ESCRITA: O NOME DELA NÃO É DITO POR NINGUÉM AQUI. Julie chama
+  de "ela"; a menina nunca se apresenta; o nome do falante na caixa de
+  diálogo é um TRAVESSÃO. O jogador termina o flashback sem nunca ter lido
+  o nome — e é exatamente por isso que a última cena do capítulo funciona.
+
+  ------------------------------------------------------------------------
+  O TELEFONE
+  ------------------------------------------------------------------------
+
+  Só depois das DUAS conversas, o telefone DELE toca. No bolso dele.
+
+    "Meu telefone."
+    "A essa hora só pode ser da delegacia."
+
+  Dentro de casa ele não atende:
+
+    "Aqui dentro não dá. Vou pra varanda."
+
+  ------------------------------------------------------------------------
+  A ÚLTIMA AÇÃO É DO JOGADOR
+  ------------------------------------------------------------------------
+
+  Ele tem que SAIR. Atravessar a porta, chegar na varanda, e atender.
+  Ninguém manda fazer isso. É a única coisa que resta.
+
+    "Alô."
+    (ele acende um cigarro enquanto espera — o jogador já viu esse gesto
+     dezenas de vezes e não repara que está vendo de novo)
+    "...alô?"
+
+  E aí, DE DENTRO DA CASA, OS GRITOS.
+
+  ⚠ NADA É MOSTRADO. Ele está de costas pra casa, no telefone, na varanda.
+  O som vem de dentro, abafado pela parede. Mostrar transformaria isto numa
+  cena de morte; não mostrar é o que faz o jogador levar isso embora.
+
+    "—"
+    (ele se vira. Tarde.)
+    "JULIE—"
+
+  Zumbido de ouvido. A tela apaga com ele ainda na varanda, com o cigarro
+  na mão — a mesma composição da Cena 4 do Capítulo 1, agachado de costas
+  pra porta. Sete anos antes.
+
+    (nota: essa rima de enquadramento é a coisa mais importante da cena.
+     Quem reparar, monta o jogo inteiro sozinho.)
+
+  ⚠ O QUE A LIGAÇÃO DIZ: NADA. Nem uma palavra, nem um tom de voz. Se o
+  jogador ouvir qualquer coisa, o Capítulo 4 perde a revelação.
+
+
+===============================================================================
+CENA 6 — A CELA
+===============================================================================
+FUNÇÃO: o degrau 4. E o nome.
+TEMPO:  ~10 min
+
+  Volta ao presente, no meio de um gesto — ele fecha a pasta.
+
+  No fim do subsolo tem o xadrez de custódia. Uma cela. Luz amarela. Um
+  banco de concreto, uma mesa de metal parafusada no chão.
+
+  E o CARLOS está lá dentro. Camiseta, sem sapato. Sentado. Calmo.
+
+  ⚠ POR QUE ELE ESTÁ AQUI — reescrito em 07/08 (sessão 20).
+  A primeira versão não explicava, e não explicar era o problema: um preso
+  de sete anos aparecendo no porão da delegacia sem motivo faz o jogador
+  parar de acreditar em tudo o resto. O motivo agora é o mais banal
+  possível, e o MICHAEL diz antes, lá em cima:
+
+    TRANSFERÊNCIA. Audiência de manhã. Ele passa a noite na custódia e
+    segue às sete. Michael ia ligar amanhã; David chegou antes.
+
+  É mundano, é verificável, e é exatamente o tipo de coincidência que o
+  jogo já ensinou o jogador a desconfiar. David pode comentar.
+
+  ------- ★ O INTERROGATÓRIO -------
+
+  Este é o formato clássico e é o certo pra um capítulo de conversa: você
+  senta, e a conversa dura o quanto o jogador aguentar.
+
+  ⚠ E ELE TEM QUE SER SOBRE ALGUMA COISA. A primeira versão era enigma
+  puro e não dizia nada. O NÚCLEO é este, e ele reescreve o caso inteiro:
+
+    DAVID PRENDEU O CARLOS ÀS 20h12.
+    A FAMÍLIA MORREU ÀS 02h14.
+    ELE ESTAVA NUMA CELA.
+
+    CARLOS: "O senhor me algemou às oito e doze."
+    DAVID:  "Eu sei a hora."
+    CARLOS: "Então o senhor sabe onde eu estava às duas e quatorze."
+    DAVID:  "Você tinha gente."
+    CARLOS: "Tinha. E eles foram todos ouvidos, um por um, e todos tinham
+             onde estar. O senhor mesmo assinou os depoimentos."
+
+  A TEORIA DA VINGANÇA NUNCA FECHOU. Michael confirma em cima:
+  "Nunca fechou pra ninguém aqui. Foi você que precisou que fechasse."
+
+  Isso é o capítulo inteiro: o jogador chega achando que sabe quem foi, e
+  sai sem ter ninguém para culpar além do próprio David.
+
+  Regras de escrita pro Carlos:
+    · nunca ameaça. Nunca levanta a voz. Nunca é "vilão".
+    · responde perguntas sobre DAVID com precisão desconfortável.
+    · e uma vez, uma vez só, ele diz algo que não teria como saber:
+      a VARANDA, o TELEFONE e o CIGARRO. E segue falando como se não
+      tivesse dito, reclamando que não tem relógio na cela.
+
+  ------- ★★★ O DEGRAU 4 — ELE NÃO DECIDE NADA ★★★ -------
+
+  A meio da conversa, o homem pede um cigarro.
+
+  E David dá. Estende pela grade e ACENDE PRA ELE, com o próprio isqueiro.
+
+  Isso é TÉCNICA. É ofício. É o que se faz pra um sujeito falar. Ele fez
+  isso mil vezes na vida.
+
+  E aí acende um pra ele mesmo.
+
+  No automático. Sem pensar. Sem hesitar. Sem uma linha de diálogo antes.
+
+  ⚠ O JOGO NÃO PERGUNTA NADA AO JOGADOR AQUI. Não tem escolha, não tem
+  botão, não tem prompt. Ele simplesmente faz. Se virar escolha, vira
+  vitória — e não é vitória.
+
+  Só DEPOIS, olhando pra própria mão:
+
+    "..."
+    "Sete anos."
+    (traga)
+    "Sete anos sem."
+
+  A PARTIR DAQUI o cigarro é consumível e restaura sanidade. (degrau 5,
+  o consumo compulsivo em sanidade baixa, continua valendo — PARTE VII.B.)
+
+  (nota de design: era isso que a PARTE VII.B pedia — "o jogador vai SENTIR
+   que ganhou alguma coisa, e vai levar um tempo para perceber que o
+   personagem PERDEU". Ele não cedeu a uma tentação. Ele ESCORREGOU, e nem
+   viu. É bem pior.)
+
+  ------- A MIGALHA -------
+
+  Quando ele olha de volta pra cela, não tem ninguém.
+
+  Dois cigarros acesos no cinzeiro em cima da mesa de metal. Da mesma marca.
+
+  E a PORTA DA CELA ESTÁ DESTRANCADA. Sem arrombamento. Sem chave na
+  fechadura. Só destrancada.
+
+    "..."
+    "Ela nunca esteve trancada."
+
+  O LIVRO DE VISITAS na parede tem uma linha por noite. Sete anos de linhas.
+  Todas com a mesma assinatura. A dele.
+
+  ------- ★★★ O FIM DO CAPÍTULO — O NOME ★★★ -------
+
+  Ele sobe. Pega a arma no escaninho 214. O plantonista devolve sem falar
+  nada.
+
+  Na saída, o plantonista chama:
+
+    PLANTONISTA: "Ah — o senhor esqueceu de assinar."
+    (empurra o livro pelo vidro)
+    PLANTONISTA: "E o nome dela, senhor. Pro cartaz."
+
+  E O JOGO PARA.
+
+  Não tem inimigo, não tem música, não tem tempo correndo. Só um homem
+  atrás de um vidro esperando uma palavra, e o cursor piscando no livro.
+
+  DUAS SAÍDAS, e as duas são finais válidos do capítulo:
+
+    ELE DIZ  ->  ele diz o nome, em voz alta, pela primeira vez em sete
+                 anos. E o plantonista escreve, agradece, e deseja boa
+                 noite. Nada acontece. Nada MESMO. E é isso que devasta.
+                 (marca uma flag: ele conseguiu dizer.)
+
+    ELE NÃO DIZ -> "..."  (pausa longa, o jogo espera)
+                 "Deixa pra próxima."
+                 O plantonista: "Como o senhor preferir. Boa noite, David."
+                 (e ninguém perguntou o nome DELE. de novo.)
+
+  ⚠ ESSA FLAG É A PRIMEIRA ESCOLHA DO JOGO QUE MUDA O CAPÍTULO 4.
+  (não muda mecânica, muda o que o Capítulo 4 pode cobrar dele.)
+
+  ------- E A SENHA -------
+
+  Ao passar pela sala de espera na saída, o painel está chamando o número
+  da senha do Credor.
+
+  A cadeira está VAZIA.
+
+    "Chamaram a senha dele."
+    (pausa)
+    "E ele não estava mais lá."
+
+  TELA PRETA.  C O N T I N U A
+
+
+-------------------------------------------------------------------------------
+IX.5 — O CREDOR NESTE CAPÍTULO
+-------------------------------------------------------------------------------
+
+  Ele NÃO persegue. Não ataca. Não faz barulho. A motosserra fica desligada
+  no colo dele o capítulo inteiro.
+
+  Ele só ESPERA A VEZ, e o número no painel sobe a cada setor novo:
+
+    Cena 1 ... 207     Cena 4 ... 212
+    Cena 2 ... 209     Cena 5 ... (o painel não existe no flashback)
+    Cena 3 ... 211     Cena 6 ... 214, e a cadeira está vazia
+
+  POR QUE ISSO FUNCIONA MELHOR QUE OUTRA FUGA:
+    · paga a promessa do "não era pra cobrar hoje" sem repetir uma hora
+      de motosserra, que o jogador acabou de fazer
+    · é ele com a coleira, e isso é mais assustador do que ele solto
+    · e o jogador vai VOLTAR na sala de espera de vez em quando só pra
+      olhar. Medo que o jogador procura sozinho é o melhor tipo.
+
+  ⚠ ELE NUNCA FALA. Nem uma linha. O Credor não tem voz e não pode ganhar
+    uma agora.
+
+
+-------------------------------------------------------------------------------
+IX.6 — AS MIGALHAS DO CAPÍTULO 3
+-------------------------------------------------------------------------------
+
+  Dosagem prevista na PARTE VIII.B: "Cap. 3 → o jogador já desconfia; as
+  migalhas ficam agressivas." Onze, e todas caladas:
+
+   1. O escaninho 214 já tem uma arma dentro. Do mesmo modelo.       (fam. 4)
+   2. A foto dele ainda está no quadro de homenagens.                (fam. 1)
+   3. Plantão cheio às 02h14.                                        (fam. 6)
+   4. A plaquinha da mesa do Parceiro tem o nome do David.           (fam. 1)
+   5. O relógio marca 02h14 e o ponteiro de segundos ANDA.           (fam. 2)
+   6. A ocorrência das 02h20 é ele entrando no bar.                  (fam. 6)
+   7. Poeira em tudo, menos na cadeira. Cinzeiro cheio.              (fam. 6)
+   8. A gaveta com cinquenta cartazes novos.                         (fam. 4)
+   9. Sete pastas na primeira contagem, oito na segunda.             (fam. 3)
+  10. O corredor do arquivo é mais longo na volta.                   (fam. 5)
+  11. Sete anos de assinaturas dele no livro de visitas da cela.     (fam. 1)
+
+  A REGRA DE OURO CONTINUA: David nunca junta duas em voz alta, nunca diz
+  "isso é impossível" duas vezes seguidas, e NUNCA especula sobre estar
+  louco. Ele comenta a conveniência, porque piada é a defesa dele. O resto
+  é do jogador.
+
+
+-------------------------------------------------------------------------------
+IX.7 — PESO SEM TROCAR A CÂMERA
+-------------------------------------------------------------------------------
+  Decidido em 07/08. O problema é real: lateral a 480x270 com um boneco de
+  62px achata conversa e achata ambiente. Mas 3D custa o jogo inteiro, e a
+  câmera de close foi cortada. Então o peso tem que vir daqui.
+
+  A) A CONVERSA — o corpo é que atua
+  ------------------------------------------------------------------------
+  Não dá pra ver o rosto. Então o rosto não pode ser o canal.
+
+  1. APROXIMAR A CÂMERA, sem cortar. A câmera já sobe 40px em conversa
+     (cam.offsetY). Ela passa a CHEGAR PERTO também — aproximação suave
+     durante a fala e afastamento no fim. Não é corte, é a mesma câmera.
+     ⚠ CUSTO REAL: aproximar amplia o pixel. A 1,6x o pixel do cenário
+     fica visivelmente maior que o do resto do jogo. Ou a gente aceita
+     isso (muitos jogos de pixel art aceitam) ou fica em 1,3x, que ajuda
+     menos e não denuncia. TESTAR OS DOIS NA TELA ANTES DE ESCOLHER.
+
+  2. ENCENAÇÃO. Hoje NPC e jogador ficam lado a lado como dois itens de
+     menu. Passam a: virar um pro outro, um pisar um pouco à frente do
+     outro (deslocamento vertical = profundidade), e o NPC VIRAR A CABEÇA
+     quando o David chega.
+
+  3. POSES DE REAÇÃO NO RIG. É a atuação inteira e é barata — são
+     poses-chave, o rig já faz. Braço cruzado, peso trocando de perna,
+     ombro caindo, mão na nuca, virar o rosto pro outro lado numa
+     pergunta ruim, parar de mexer no que estava mexendo.
+     Uma reação por batida importante do diálogo.
+
+  4. A LUZ FECHA. Durante a conversa, ambiente cai e uma poça de luz
+     estreita fica só em cima dos dois. O buffer de luz já faz isso hoje,
+     é só um alvo animado. Diz "isso importa" sem uma palavra.
+
+  5. O SOM ABAFA. O duck já existe (usado pela narração). Ambiente cai
+     durante as falas que pesam e volta depois.
+
+  6. TEMPO DE VERDADE. Uma fala pode segurar 2 segundos em "..." com nada
+     acontecendo. Silêncio é o único recurso de atuação que o jogo tem de
+     graça, e hoje ele não é usado em diálogo nenhum.
+
+  7. DERIVA DA CÂMERA. Movimento lentíssimo durante conversa longa, pra o
+     quadro não morrer.
+
+  B) O CENÁRIO — profundidade sem terceira dimensão
+  ------------------------------------------------------------------------
+  1. CAMADA DE PRIMEIRO PLANO DE VERDADE. Coisa passando NA FRENTE do
+     personagem: batente de porta, coluna, cabo pendurado, persiana, o
+     canto de uma mesa. Oclusão em primeiro plano é o maior ganho de
+     profundidade de um side-scroller, e é o que menos existe hoje.
+
+  2. SALAS ATRÁS DA PAREDE. Em vez de parede chapada, recortes: divisórias
+     de vidro, portas abertas, persianas — e atrás delas duas ou três
+     salas, cada uma mais escura. A delegacia é o lugar perfeito pra isso.
+
+  3. GENTE AO FUNDO. Alguém atravessando lá atrás, sem ser NPC, sem
+     interação. Cenário parado lê como parede pintada; cenário que se mexe
+     lê como espaço.
+
+  4. MÁQUINA MEXENDO. Ventilador de teto, persiana batendo, impressora
+     matricial, fita de máquina de escrever. Movimento pequeno e constante.
+
+  5. LUZ COM FORMA. As sombras longas da sessão 16 já existem. Puxar mais:
+     cone de luz atravessando batente e desenhando o formato da porta no
+     chão, e uma silhueta cruzando esse cone de vez em quando.
+
+  6. A REGRA NUMÉRICA DE LUZ, DESDE O PRIMEIRO DIA (erro M-04, já cometido
+     duas vezes): em qualquer setor acima de 800px, lâmpada forte a cada
+     ~400px E preenchimento fraco a cada ~200px na altura do chão. Não é
+     sensibilidade, é número.
+
+  7. DENSIDADE NA FAIXA DE LEITURA. O beco tem 450px vazios entre x=550 e
+     x=1000 desde a sessão 01 e isso nunca foi corrigido. Nenhum setor do
+     Capítulo 3 pode nascer com um vão desses.
+
+
+-------------------------------------------------------------------------------
+IX.8 — O QUE O CAPÍTULO 3 EXIGE QUE AINDA NÃO EXISTE
+-------------------------------------------------------------------------------
+
+  SISTEMAS
+    · verbo de dedução (juntar duas anotações → abre pergunta nova)
+    · tópicos de diálogo persistentes, que não somem depois de perguntados
+    · PRESSIONAR um tópico já respondido (custa sanidade, às vezes muda
+      a resposta) — é a única "mecânica" do capítulo
+    · aproximação de câmera em conversa + poças de luz animadas
+    · modo flashback: paleta alternativa, ócio alternativo, sem sanidade
+    · degraus 2, 3 e 4 do cigarro (o 1 já existe)
+
+  ARTE
+    · o Parceiro e o Plantonista (peças próprias, como zelador/telefonista)
+    · o criminoso da cela
+    · o David de sete anos atrás (mesmo rig, paleta e postura diferentes)
+    · seis setores novos, todos de interior
+    · camada de primeiro plano — pincel novo, não existe hoje
+
+  O QUE NÃO ENTRA
+    · perseguição (já teve)
+    · puzzle de circuito (já teve)
+    · combate (a arma fica na portaria)
+    · qualquer coisa em 3D ou em primeira pessoa
+      (o espelho do Cap. 2 é carta jogada uma vez só)
+
+
+===============================================================================
+PARTE X — PERGUNTAS PARA VOCÊ
+===============================================================================
+
+  Respondi tudo que dava para decidir sozinho. Estas eu não devo decidir.
+
+  ------------------------------------------------------------------------
+  JÁ RESPONDIDO (04/08)
+  ------------------------------------------------------------------------
+  ✓ Nome do detetive ............. DAVID (pronúncia inglesa) — ⚠ confirmar
+  ✓ Título do Capítulo 2 ......... "GENTILEZA"
+  ✓ O Credor ..................... APROVADO
+  ✓ Páginas que ele não escreveu . APROVADO
+  ✓ Fumar restaura sanidade ...... APROVADO (mas travado até o Cap. 3)
+  ✓ Cigarro vira item, não animação de parado
+  ✓ O espelho em 1ª pessoa ....... APROVADO — ele se vê desfigurado
+
+  ------------------------------------------------------------------------
+  RESPONDIDO NA SESSÃO 09 (04/08) — tudo isto já está no jogo
+  ------------------------------------------------------------------------
+
+  2. A FIGURA DO MEZANINO ...... A TELEFONISTA.
+
+  3. O NPC DO ESCRITÓRIO ....... SIM, o Vigia. Fala de um turno que acabou
+                                 há dez anos e se despede com "Boa noite,
+                                 David" — e ninguém perguntou o nome dele.
+
+  4. INIMIGOS DO CAP. 2 ........ OS TRÊS.
+                                 Empilhados e Sem-Rosto nas Estantes;
+                                 Sem-Rosto no Corredor e nas Máquinas;
+                                 Empilhado na Câmara Fria;
+                                 Ecoador solto, como alarme.
+
+  5. SANIDADE ATÉ O CAP. 3 ..... Três formas, e nenhuma é o cigarro:
+                                 · ESCREVER NO DIÁRIO (+7 por página nova)
+                                 · setores de respiro com luz forte
+                                   (escritório e vestiário devolvem 1,6/s)
+                                 · matar um inimigo devolve quase nada (+2).
+                                   A violência acalma, e isso é feio, e é
+                                   exatamente o ponto.
+
+  6. FALA DEPOIS DO ESPELHO .... "...era isso que eu não queria ver."
+
+  8. A ALUCINAÇÃO DA CÂMARA FRIA
+     No gancho está UM SOBRETUDO MARROM. Vazio. O dele.
+       "Tem alguma coisa pendurada ali."
+       "Um casaco. Marrom."
+     A chama do isqueiro apaga. Quando ele acende de novo:
+       "Não tem nada ali."
+       "Nunca teve."
+     (nota: o casaco é a única coisa que sobrou dele depois do sequestro —
+      "Deixaram o casaco. Que gentileza." É o título do capítulo pendurado
+      num gancho de açougue. E ele continua vestindo o dele.)
+
+  9. O PREÇO DA PISTOLA ........ ACEITO, na versão cheia.
+                                 Ao encostar nela: as luzes de emergência
+                                 caem a um quarto, TODAS as máquinas ligam
+                                 de uma vez, e três Sem-Rosto entram pela
+                                 porta por onde ele veio.
+                                   "Claro."
+                                   "Toda gentileza cobra na saída."
+
+  10. FIM DO CAPÍTULO .......... A DOCA 3.
+                                 Durante a fuga o portão de doca do
+                                 corredor — que estava trancado por fora o
+                                 capítulo inteiro — vira a saída. Do outro
+                                 lado, chuva.
+                                 A última coisa que a câmera mostra é o
+                                 Credor atrás do portão caído: ele arranca a
+                                 motosserra, ergue a grade até a altura do
+                                 peito e fica OLHANDO David ir embora.
+                                   "Ele não veio atrás."
+                                   "Só ficou olhando."
+                                   "Não era pra cobrar hoje."
+
+  ------------------------------------------------------------------------
+  AINDA EM ABERTO
+  ------------------------------------------------------------------------
+
+  1. SOBRENOME DO DAVID .............................. [ESCREVER AQUI]
+     ⚠ DEIXOU DE SER OPCIONAL EM 07/08. O Capítulo 3 tem pasta de arquivo,
+     livro de visitas, plaquinha de mesa e crachá na parede. Os quatro
+     pedem um sobrenome escrito na tela.
+
+  7. A FALA DA PRIMEIRA TRAGADA (Cap. 3)
+     ✓ RESOLVIDO em 07/08 — fica a sugestão original, e o contexto mudou:
+     ele não escolhe fumar, ele acende no automático depois de acender um
+     pro homem da cela, e só percebe olhando pra própria mão.
+       "..." / "Sete anos." / (traga) / "Sete anos sem."
+
+  ------------------------------------------------------------------------
+  ABERTO A PARTIR DA SESSÃO 18 (07/08) — ver PARTE IX
+  ------------------------------------------------------------------------
+
+  ✓ 11 a 14 — NOMES: RESPONDIDOS em 07/08.
+      DAVID HENRY · JENNA (filha) · JULIE (mulher) · CARLOS (o homem que
+      ele prendeu) · MICHAEL (o parceiro). Ver IX.0.
+
+  15. TÍTULO DO CAPÍTULO 3
+      Proposto: "GAVETA D". Alternativas: "HORA EXTRA" · "O TURNO DA
+      NOITE" · "CONTA DIREITO" · "DEPOIMENTO".
+
+  16. A APROXIMAÇÃO DE CÂMERA EM CONVERSA amplia o pixel do cenário.
+      1,6x ajuda muito e denuncia; 1,3x ajuda pouco e não denuncia.
+      Tem que ser decidido OLHANDO NA TELA, não no papel. (ver IX.7.A.1)
+
+
+===============================================================================
+ANEXO — NARRAÇÃO ANTIGA (DESCARTADA)
+===============================================================================
+
+  Este era o monólogo de abertura que eu tinha escrito antes de você mandar
+  o seu. Está aqui só como material morto, caso queira aproveitar alguma
+  ideia. NÃO está mais no jogo.
+
+    "Todo detetive tem um caso que não fecha."
+    "O meu tem sete anos e um nome que eu não digo em voz alta."
+    "Perdi o distintivo. Depois a casa. Depois o resto."
+    "Sobrou o telefone. E ele nunca tocava."
+    "Até hoje, duas e quatorze da manhã."
+    "Uma voz de mulher. Sem nome. Sem pressa."
+    "'O senhor foi o único que atendeu', ela disse."
+    "Deu um endereço. Um bar fechado há seis anos."
+    "Eu devia ter desligado. Todo mundo devia."
+    "Mas quem não tem nada não tem medo de perder."
+
+  Do que foi descartado, três coisas ainda são canônicas porque estão
+  espalhadas pelo jogo:
+
+    - o bar está fechado há SEIS ANOS
+    - a ligação foi às 2h14 da manhã
+    - o caso que ele não fecha tem SETE ANOS
+
+  A "voz de mulher" e a frase "o senhor foi o único que atendeu" ficaram
+  órfãs.
+
+  ✓ RESOLVIDO em 07/08. As duas VOLTAM, e viraram a espinha do jogo.
+    A frase já foi usada pela Telefonista no mezanino do Capítulo 2, e a
+    PARTE IX.0 explica de onde ela vem: às 02h14 de sete anos atrás o
+    telefone tocou, David saiu pra atender, acendeu um cigarro na varanda
+    — e foi nesse intervalo que aconteceu. Ele atende essa mesma ligação
+    toda noite desde então.
+    ⚠ Isso é revelação do CAPÍTULO 4. O Capítulo 3 só planta.
+
+
+===============================================================================
+                                FIM DO ARQUIVO
+===============================================================================

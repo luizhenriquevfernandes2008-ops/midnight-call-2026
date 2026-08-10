@@ -1,0 +1,598 @@
+// player.js — o detetive controlavel.
+//
+// So existe eixo X: andar, correr, socar, interagir. E de proposito — o
+// jogo e um corredor lateral e a tensao vem de nao poder desviar.
+//
+// A regra de ouro do controle: o jogador nunca fica preso numa animacao
+// sem saber por que. Soco e interacao travam o movimento por menos de meio
+// segundo; a animacao do cigarro e cancelada por QUALQUER tecla.
+
+import { Detective } from '../art/detective.js';
+import { clamp, gfx } from '../core/gfx.js';
+import { input } from '../core/input.js';
+import { audio } from '../core/audio.js';
+import { t as T } from '../i18n.js';
+
+const ACC = 620;
+const FRICTION = 1000;
+const SPEED_WALK = 48;
+const SPEED_RUN = 104;
+const IDLE_TO_SMOKE = 7.0;
+
+export class Player {
+  constructor(fx) {
+    this.det = new Detective();
+    this.fx = fx;
+    this.x = 100; this.y = 214;
+    this.vx = 0;
+    this.facing = 1;
+    this.state = 'idle';
+    this.idleTime = 0;
+    this.lockTime = 0;
+    this.comboWindow = 0;
+    this.comboNext = false;
+    this.wet = true;
+    this.stepMaterial = 'wet';
+    this.noiseT = 0;
+    this.noiseRange = 0;
+    this.noiseX = 0;
+    this.onNoise = null;
+    this.onInteract = null;
+    this.onAnimEvent = null;
+    this.controllable = true;
+    this.floatText = null;
+    this.barkQueue = [];
+    this.barkGap = 0;
+
+    // corpo. So aparece na tela quando ele apanha — barra de vida
+    // permanente num jogo de terror avisa o jogador de que ele e um
+    // personagem, e nao um homem.
+    this.hp = 100;
+    this.hurtT = 0;
+    this.invuln = 0;
+    this.onHurt = null;
+
+    // o porrete. Dois golpes e ele precisa respirar: peso e o que separa
+    // uma ripa de palete de uma espada.
+    this.club = false;
+    this.folego = 2;
+    this.folegoT = 0;
+    this.onClubHit = null;
+    this.onPunchHit = null;
+
+    // arma
+    this.gun = 'holstered';   // holstered | drawing | ready | holstering | reloading
+    this.gunT = 0;
+    this.aimAngle = 0;
+    this.ammo = 6;
+    this.clipSize = 6;
+    this.reserve = 18;
+    this.ammoHud = 0;         // quanto tempo o contador ainda fica na tela
+    this.fireCd = 0;
+    this.aimTurn = 0;
+    this.injuryBreathT = 2.5;
+
+    this.det.onEvent = (ev) => this._animEvent(ev);
+  }
+
+  get aiming() { return this.det.aim.on; }
+
+  spawn(x, facing, y) {
+    this.x = x; this.facing = facing || 1;
+    if (y !== undefined) this.y = y;
+    this.vx = 0;
+    this.state = 'idle';
+    this.idleTime = 0;
+    this.lockTime = 0;
+    this.det.facing = this.facing;
+    this.det.flipT = 1;
+    this.det.play('idle', { restart: true, blend: 0 });
+    this.noiseT = 0;
+  }
+
+  _animEvent(ev) {
+    switch (ev) {
+      case 'step': {
+        const running = this.state === 'run';
+        const material = this.stepMaterial || (this.wet ? 'wet' : 'concrete');
+        audio.step(this.wet, running ? 1.15 : 0.85, material);
+        const base = { metal: 225, ice: 165, tile: 185, wood: 205, wet: 195, concrete: 142 }[material] || 150;
+        this.noiseRange = base * (running ? 1.25 : 0.72);
+        this.noiseT = running ? 0.42 : 0.28;
+        this.noiseX = this.x;
+        if (this.onNoise) this.onNoise(this.noiseX, this.noiseRange, material, running);
+        if (this.wet && this.fx) {
+          const bx = this.x - this.facing * 4;
+          this.fx.burst(4 + (running ? 4 : 0), () => ({
+            x: bx + (Math.random() - 0.5) * 6, y: this.y - 1,
+            vx: (Math.random() - 0.5) * 46 - this.facing * 18,
+            vy: -24 - Math.random() * 34, ay: 210,
+            life: 0.24 + Math.random() * 0.18, size: 1,
+            color: '#7f9cc4', a: 0.5, fade: 1.4,
+          }));
+        }
+        break;
+      }
+      case 'whoosh': audio.whoosh(1); break;
+      case 'hit':
+        audio.punchHit(0.7);
+        if (!this.club && this.onPunchHit) this.onPunchHit();
+        break;
+      case 'clubhit': if (this.onClubHit) this.onClubHit(); break;
+      case 'lighter_flick': audio.lighterFlick(); break;
+      case 'flame_on': audio.flameWhoosh(0.8); break;
+      case 'say_not_today':
+        this.say('not_today', 2.6);
+        break;
+      case 'cig_toss':
+        if (this.fx) {
+          this.fx.spawn({
+            x: this.x + this.facing * 12, y: this.y - 42,
+            vx: this.facing * 60 + 10, vy: -30, ay: 260,
+            life: 1.6, size: 1, color: '#ded6c4', a: 0.9, fade: 0.4,
+          });
+        }
+        break;
+      case 'sigh': audio.blip(0.4); break;
+    }
+    if (this.onAnimEvent) this.onAnimEvent(ev);
+  }
+
+  cancelIdleAnim() {
+    if (this.state === 'smoke') {
+      this.state = 'idle';
+      this.idleTime = 0;
+      this.det.play('idle', { blend: 0.22 });
+    } else if (this.state === 'sit') {
+      // Ele nao teleporta para de pe: levanta, e isso custa meio segundo.
+      this.state = 'standing';
+      this.idleTime = 0;
+      this.lockTime = 0.5;
+      this.det.play('standUp', { restart: true, blend: 0.15 });
+    }
+  }
+
+  // -------------------------------------------------------------------
+  // arma
+  // -------------------------------------------------------------------
+
+  _updateGun(dt, canAct) {
+    const d = this.det;
+    if (this.gunT > 0) this.gunT -= dt;
+    if (this.fireCd > 0) this.fireCd -= dt;
+    if (this.ammoHud > 0) this.ammoHud -= dt;
+
+    // sem arma no coldre nao ha o que sacar
+    if (this.hasGun === false) { d.aim.on = false; this.gun = 'holstered'; return; }
+    const querMirar = canAct && input.mouse.right && this.state !== 'punch' && this.state !== 'interact';
+
+    if (this.gun === 'holstered') {
+      if (querMirar) {
+        this.gun = 'drawing'; this.gunT = 0.30;
+        this.aimAngle = 0;
+        this.aimTurn = 0;
+        audio.leather(1);
+      }
+    } else if (this.gun === 'drawing') {
+      if (this.gunT <= 0) {
+        this.gun = 'ready';
+        d.props.gun = 'hand';
+        this.ammoHud = 3;
+        audio.reloadClick(1.3);
+      }
+      if (!input.mouse.right) { this.gun = 'holstered'; this.gunT = 0; }
+    } else if (this.gun === 'reloading') {
+      if (this.gunT <= 0) {
+        const falta = this.clipSize - this.ammo;
+        const usa = Math.min(falta, this.reserve);
+        this.ammo += usa; this.reserve -= usa;
+        this.gun = 'ready';
+        this.ammoHud = 3;
+        audio.reloadClick(0.8);
+      }
+    } else if (this.gun === 'ready') {
+      if (querMirar) {
+        // Mouse para CIMA levanta a mira. O eixo horizontal acumula uma
+        // intencao curta: cruzar para o outro lado vira o corpo inteiro sem
+        // obrigar o jogador a soltar a mira e usar o teclado.
+        this.aimAngle = clamp(this.aimAngle - input.mouse.dy * 0.30, -38, 46);
+        this.aimTurn = clamp(this.aimTurn + input.mouse.dx, -26, 26);
+        if (this.aimTurn <= -13 && this.facing > 0) {
+          this.facing = -1; d.setFacing(-1); this.aimTurn = 0; audio.leather(0.26);
+        } else if (this.aimTurn >= 13 && this.facing < 0) {
+          this.facing = 1; d.setFacing(1); this.aimTurn = 0; audio.leather(0.26);
+        }
+        d.aim.on = true;
+        d.aim.angle = this.aimAngle;
+        this.vx = 0;                       // mirar prende os pes no chao
+        if (input.mouse.pressed) this._fire();
+        if (input.pressedFrame.has('KeyR') && this.ammo < this.clipSize && this.reserve > 0) {
+          this.gun = 'reloading'; this.gunT = 1.0;
+          d.aim.on = false;
+          audio.reloadClick(0.7);
+          setTimeout(() => audio.reloadClick(1.1), 340);
+        }
+      } else {
+        this.gunT -= dt;
+        if (this.gunT < -0.5) { this.gun = 'holstering'; this.gunT = 0.28; audio.leather(0.8); }
+      }
+    } else if (this.gun === 'holstering') {
+      d.aim.on = false;
+      if (this.gunT <= 0) { this.gun = 'holstered'; d.props.gun = 'holstered'; }
+      if (querMirar) { this.gun = 'ready'; d.props.gun = 'hand'; this.gunT = 0; }
+    }
+
+    if (this.gun !== 'ready' || !input.mouse.right) d.aim.on = this.gun === 'ready' && input.mouse.right;
+  }
+
+  _fire() {
+    if (this.fireCd > 0) return;
+    const d = this.det;
+    this.ammoHud = 4;
+    if (this.ammo <= 0) {
+      this.fireCd = 0.28;
+      audio.dryClick();
+      this.say(this.reserve > 0 ? 'bark_reload' : 'bark_dry', 2.0);
+      return;
+    }
+    this.ammo--;
+    this.fireCd = 0.34;
+    d.aim.recoil = 1;
+    d.muzzleT = 0.055;
+    audio.gunshot(1);
+    gfx.shake(2.6, 0.22);
+    gfx.flash = 0.05;
+
+    const rad = this.aimAngle * Math.PI / 180;
+    const ox = this.x + this.facing * 22;
+    const oy = this.y - 48 - Math.sin(rad) * 10;
+
+    // cartucho saltando
+    this.fx.spawn({
+      x: ox, y: oy - 2, vx: -this.facing * 40 + (Math.random() - 0.5) * 20,
+      vy: -70 - Math.random() * 30, ay: 320, life: 1.2, size: 1,
+      color: '#c8a45a', a: 1, fade: 0.3,
+    });
+    // fumaca da boca do cano
+    this.fx.burst(7, () => ({
+      x: ox + this.facing * 12, y: oy - Math.random() * 3,
+      vx: this.facing * (30 + Math.random() * 50), vy: -8 - Math.random() * 16,
+      ay: -6, drag: 2.2, life: 0.5 + Math.random() * 0.4, size: 1,
+      color: '#8d8779', a: 0.35, fade: 1.4,
+    }));
+    // faisca onde a bala bate
+    const dist = 150 + Math.random() * 70;
+    const hx = this.x + this.facing * dist;
+    const hy = oy - Math.tan(rad) * dist;
+    this.fx.burst(9, () => ({
+      x: hx, y: hy, vx: -this.facing * (30 + Math.random() * 90),
+      vy: (Math.random() - 0.5) * 120, ay: 240, life: 0.3 + Math.random() * 0.25,
+      size: 1, color: Math.random() > 0.5 ? '#ffd07a' : '#fff2c8', a: 1, fade: 1.2, glow: true,
+    }));
+
+    // Quem decide se a bala acertou alguem e o jogo, nao o jogador: aqui so
+    // se sabe de onde ela saiu e para onde apontava.
+    if (this.onShot) this.onShot(this.x, this.facing, this.aimAngle);
+  }
+
+  update(dt, level, allow = true) {
+    const d = this.det;
+    // Congelado: preso, amarrado, numa cena. A animacao continua rodando,
+    // o resto da maquina de estados nao encosta nela.
+    if (this.frozen) { this.vx = 0; this._updateBarks(dt); d.update(dt); return; }
+    const canAct = allow && this.controllable;
+
+    if (this.lockTime > 0) this.lockTime -= dt;
+    if (this.comboWindow > 0) this.comboWindow -= dt;
+    if (this.invuln > 0) this.invuln -= dt;
+    if (this.hurtT > 0) this.hurtT -= dt;
+    if (this.noiseT > 0) this.noiseT -= dt;
+    this.det.injury = clamp((100 - this.hp) / 100, 0, 1);
+    if (this.hp < 35 && canAct) {
+      this.injuryBreathT -= dt;
+      if (this.injuryBreathT <= 0) {
+        this.injuryBreathT = 2.4 + Math.random() * 2.8;
+        audio.breath(0.38 + (35 - this.hp) / 70);
+      }
+    } else this.injuryBreathT = Math.min(this.injuryBreathT, 2.5);
+    // O folego volta sozinho, devagar. Nao ha barra: o jogador aprende pelo
+    // "Preciso... de um segundo" que ele diz quando tenta e nao consegue.
+    if (this.folego < 2) {
+      this.folegoT -= dt;
+      if (this.folegoT <= 0) { this.folego++; this.folegoT = 1.5; }
+    }
+    this._updateGun(dt, canAct);
+
+    const mirando = this.aiming;
+    let ax = 0;
+    const wantRun = input.isDown('run') && !mirando;
+    const dir = (canAct && this.lockTime <= 0 && !mirando) ? input.axisX() : 0;
+
+    if (canAct && (input.axisX() !== 0 || input.pressed('attack') || input.pressed('interact')
+                   || input.mouse.right)) {
+      this.cancelIdleAnim();
+    }
+
+    // ---- ataque (soco desativado com a arma na mao) ----
+    if (canAct && !mirando && this.state !== 'hurt' && this.gun === 'holstered' && input.pressed('attack')) {
+      if (this.state === 'punch' && this.comboWindow > 0 && !this.comboNext) {
+        this.comboNext = true;
+      } else if (this.state !== 'punch') {
+        this._startPunch(1);
+      }
+    }
+
+    // ---- interagir ----
+    if (canAct && input.pressed('interact') && this.lockTime <= 0 && this.state !== 'punch') {
+      const it = level && level.nearest(this.x);
+      if (it) {
+        this.vx = 0;
+        if (it.action === 'goto') {
+          // Portas respondem no quadro do comando. Esperar os 0,6s da pose
+          // de alcance deixava o Credor cancelar a transicao com um golpe.
+          this.state = 'idle';
+          this.lockTime = 0.08;
+          this._pending = null;
+          if (this.onInteract) this.onInteract(it);
+        } else {
+          this.state = 'interact';
+          this.lockTime = 0.34;
+          d.play('interact', { restart: true });
+          this._pending = it;
+        }
+      }
+    }
+
+    // ---- movimento ----
+    if (dir !== 0 && this.state !== 'punch' && this.state !== 'interact'
+        && this.state !== 'hurt' && this.state !== 'sit' && this.state !== 'standing') {
+      ax = dir * ACC;
+      this.facing = dir;
+      d.setFacing(dir);
+      this.state = wantRun ? 'run' : 'walk';
+      this.idleTime = 0;
+    } else if (this.state === 'walk' || this.state === 'run') {
+      this.state = 'idle';
+    }
+
+    const maxV = wantRun ? SPEED_RUN : SPEED_WALK;
+    this.vx += ax * dt;
+    if (ax === 0) {
+      const f = FRICTION * dt;
+      if (Math.abs(this.vx) <= f) this.vx = 0; else this.vx -= Math.sign(this.vx) * f;
+    }
+    this.vx = clamp(this.vx, -maxV, maxV);
+    this.x += this.vx * dt;
+
+    if (level) this.x = clamp(this.x, level.minX, level.maxX);
+
+    // ---- estados de animacao ----
+    if (this.state === 'punch') {
+      if (d.done) {
+        if (this.comboNext) { this.comboNext = false; this._startPunch(2); }
+        else { this.state = 'idle'; this.lockTime = 0; }
+      }
+    } else if (this.state === 'interact') {
+      if (d.done) {
+        this.state = 'idle';
+        if (this._pending) { const it = this._pending; this._pending = null; if (this.onInteract) this.onInteract(it); }
+      }
+    } else if (this.state === 'hurt') {
+      if (d.done) { this.state = 'idle'; this.lockTime = 0; }
+    } else if (this.state === 'smoke') {
+      if (d.done) { this.state = 'idle'; this.idleTime = 0; }
+    } else if (this.state === 'sit') {
+      // sitDown termina e ele fica sentado, batendo o pe, ate mandarem
+      if (d.anim === 'sitDown' && d.done) d.play('sitImpatient', { blend: 0.25 });
+    } else if (this.state === 'standing') {
+      if (d.done) { this.state = 'idle'; this.idleTime = 0; }
+    } else {
+      const sp = Math.abs(this.vx);
+      if (sp > SPEED_WALK + 6) { if (d.anim !== 'run') d.play('run'); d.speed = clamp(sp / SPEED_RUN, 0.72, 1.25); }
+      else if (sp > 3) {
+        const walkAnim = this.hp < 35 ? 'limp' : 'walk';
+        if (d.anim !== walkAnim) d.play(walkAnim);
+        d.speed = clamp(sp / SPEED_WALK, 0.6, 1.3);
+      }
+      else {
+        d.speed = 1;
+        // com a arma na mao ele nao vai procurar cigarro
+        if (this.gun !== 'holstered') this.idleTime = 0;
+        else this.idleTime += dt;
+        // O que ele faz quando fica parado depende do que ainda tem no
+        // bolso. Com cigarro: tenta fumar e desiste. Sem nada, depois do
+        // sequestro: cansa de esperar em pe e senta. Nos dois casos ele
+        // passa PRIMEIRO um tempo simplesmente parado — sentar na hora
+        // pareceria um comando, nao um cansaco.
+        if (this.idleTime > IDLE_TO_SMOKE && canAct) {
+          if (this.idleMode === 'sit') {
+            this.state = 'sit';
+            d.play('sitDown', { restart: true, blend: 0.3 });
+          } else if (this.idleMode === 'smokeFree') {
+            // Sete anos atras. Ele TIRA, ACENDE e FUMA — sem hesitar, sem
+            // "hoje nao". E a versao com isqueiro, cuja chama e luz de
+            // verdade, guardada no rig desde a sessao 04 exatamente para
+            // este momento. O jogador vai ver isso dezenas de vezes ao longo
+            // do flashback e so entender na cela.
+            this.state = 'smoke';
+            d.play('smokeLighter', { restart: true, blend: 0.3 });
+          } else {
+            this.state = 'smoke';
+            d.play('smoke', { restart: true, blend: 0.3 });
+          }
+        } else {
+          const idleAnim = this.hp < 35 ? 'woundedIdle' : 'idle';
+          if (d.anim !== idleAnim) d.play(idleAnim, { blend: 0.3 });
+        }
+      }
+    }
+
+    this._updateBarks(dt);
+    d.update(dt);
+  }
+
+  // Falas soltas em cima da cabeca. Uma de cada vez, com um respiro entre
+  // elas — duas ao mesmo tempo viram ruido e ninguem le nenhuma.
+  // `agora` corta o que estiver na tela e a fila inteira. Serve para o que
+  // ele precisa dizer no instante em que ve — uma poca de sangue nao pode
+  // esperar tres falas sobre cadeiras empilhadas.
+  // Quanto tempo uma fala fica na tela.
+  //
+  // Antes era 2,6s para tudo. Uma frase de quatro palavras sobrava na tela
+  // e uma de quinze sumia antes de ser lida — e, entrando numa sala, duas
+  // ou tres falas engatilhadas passavam antes de o jogador terminar o
+  // fade-in. Agora o tempo sai do TAMANHO do que ele diz, com um piso
+  // generoso: ninguem le a 12 caracteres por segundo.
+  _duracao(key) {
+    const s = T(key) || '';
+    return clamp(2.2 + s.length * 0.062, 2.6, 7.0);
+  }
+
+  say(key, dur, agora = false) {
+    if (agora) { this.floatText = null; this.barkQueue.length = 0; this.barkGap = 0; }
+    else {
+      if (this.floatText && this.floatText.key === key) return;
+      if (this.barkQueue.some(b => b.key === key)) return;
+      // Fila curta de proposito. Ele fala sozinho porque nao tem com quem
+      // falar, nao porque e tagarela — acumular seis frases faz o jogador
+      // parar de ler todas.
+      if (this.barkQueue.length >= 2) return;
+    }
+    this.barkQueue.push({ key, dur: dur || this._duracao(key) });
+  }
+
+  sayAll(keys, agora = false) {
+    for (let i = 0; i < keys.length; i++) this.say(keys[i], 0, agora && i === 0);
+  }
+
+  _updateBarks(dt) {
+    if (this.barkDelay > 0) { this.barkDelay -= dt; return; }
+    if (this.floatText) {
+      this.floatText.t += dt;
+      if (this.floatText.t >= this.floatText.dur) { this.floatText = null; this.barkGap = 0.9; }
+    } else if (this.barkGap > 0) {
+      this.barkGap -= dt;
+    } else if (this.barkQueue.length) {
+      const b = this.barkQueue.shift();
+      this.floatText = { key: b.key, dur: b.dur, t: 0 };
+    }
+  }
+
+  clearBarks() {
+    this.floatText = null;
+    this.barkQueue.length = 0;
+    this.barkGap = 0;
+    this.barkDelay = 0;
+  }
+
+  // Ao entrar numa sala a primeira fala espera o fade-in acabar. Sem isso
+  // ela nasce e morre atras da tela preta.
+  atrasarFala(s) { this.barkDelay = s; }
+
+  // Alpha da falinha em cima da cabeca: entra rapido, fica, some devagar.
+  floatAlpha() {
+    if (!this.floatText) return 0;
+    const { t, dur } = this.floatText;
+    if (t < 0.25) return t / 0.25;
+    if (t > dur - 0.9) return Math.max(0, (dur - t) / 0.9);
+    return 1;
+  }
+
+  _startPunch(n) {
+    // Com a ripa na mao o golpe e outro: mais lento, mais pesado, e cobra
+    // folego. Dois e ele precisa parar para respirar — sem isso o porrete
+    // vira metralhadora de madeira e o combate perde o medo.
+    if (this.club) {
+      if (this.folego <= 0) {
+        this.say('b2_swing_tired', 1.8);
+        return;
+      }
+      this.folego--;
+      this.folegoT = 1.5;
+      this.state = 'punch';
+      this.comboNext = false;
+      this.comboWindow = 0.30;
+      this.lockTime = n === 1 ? 0.56 : 0.62;
+      this.vx = this.facing * 20;
+      this.det.play(n === 1 ? 'swing1' : 'swing2', { restart: true, blend: 0.05 });
+      return;
+    }
+    this.state = 'punch';
+    this.comboNext = false;
+    this.comboWindow = n === 1 ? 0.34 : 0;
+    this.lockTime = n === 1 ? 0.40 : 0.48;
+    this.vx = this.facing * 26;
+    this.det.play(n === 1 ? 'punch1' : 'punch2', { restart: true, blend: 0.06 });
+  }
+
+  // -------------------------------------------------------------------
+  // apanhar
+  // -------------------------------------------------------------------
+
+  takeDamage(n, deX) {
+    if (this.invuln > 0 || this.hp <= 0) return false;
+    this.hp = clamp(this.hp - n, 0, 100);
+    this.det.injury = clamp((100 - this.hp) / 100, 0, 1);
+    this.invuln = 0.9;
+    this.hurtT = 1.4;
+    this.state = 'hurt';
+    this.lockTime = 0.34;
+    this.vx = -Math.sign(deX - this.x || 1) * 70;
+    this.det.play('hurt', { restart: true, blend: 0.04 });
+    audio.punchHit(1);
+    audio.thud(0.5);
+    gfx.shake(3.4, 0.35);
+    if (this.onHurt) this.onHurt(n, this.hp);
+    return true;
+  }
+
+  // Caixa do corpo, em coordenadas de mundo. O jogo inteiro so tinha
+  // distancia em X, e por isso um bicho andando de quatro — que ocupa 30px
+  // de altura e nao 62 — era quase impossivel de acertar: o golpe "passava"
+  // em X e ninguem checava se havia corpo naquela altura.
+  caixa() {
+    return { x0: this.x - 10, x1: this.x + 10, y0: this.y - 60, y1: this.y };
+  }
+
+  // Caixa do golpe: um retangulo na frente dele, na altura do peito ate o
+  // chao. Vai baixo de proposito, para o porrete alcancar quem rasteja.
+  caixaGolpe() {
+    const f = this.facing;
+    const x0 = f > 0 ? this.x + 2 : this.x - 44;
+    return { x0, x1: x0 + 42, y0: this.y - 54, y1: this.y + 4 };
+  }
+
+  segurarPorrete(sim) {
+    this.club = !!sim;
+    this.det.props.club = sim ? 'hand' : 'none';
+    if (sim) { this.det.props.gun = 'none'; this.hasGun = false; }
+  }
+
+  // Faz o personagem caminhar sozinho ate um X. Usado pela cutscene.
+  autoWalk(dt, targetX, run) {
+    const d = this.det;
+    const dir = Math.sign(targetX - this.x);
+    if (Math.abs(targetX - this.x) < 2) {
+      this.vx = 0;
+      if (d.anim !== 'idle') d.play('idle');
+      d.update(dt);
+      return true;
+    }
+    this.facing = dir; d.setFacing(dir);
+    const sp = run ? SPEED_RUN : SPEED_WALK;
+    this.vx = dir * sp;
+    this.x += this.vx * dt;
+    const want = run ? 'run' : 'walk';
+    if (d.anim !== want) d.play(want);
+    d.update(dt);
+    return false;
+  }
+
+  draw(ctx, cam) {
+    this.det.draw(ctx, this.x - cam.ix, this.y - cam.iy);
+  }
+
+  lights(cam) {
+    return this.det.lights(this.x - cam.ix, this.y - cam.iy);
+  }
+}

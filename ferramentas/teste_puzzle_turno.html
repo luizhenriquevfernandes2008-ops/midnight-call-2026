@@ -1,0 +1,221 @@
+<!doctype html>
+<html lang="pt-br">
+<meta charset="utf-8">
+<title>Teste — puzzle do turno</title>
+<style>
+  body { margin: 0; background: #111; color: #ddd; font: 15px Consolas, monospace; }
+  main { width: 980px; margin: 18px auto; }
+  h1 { font-size: 19px; font-weight: normal; color: #d3b75f; }
+  .acoes { display: flex; gap: 10px; margin: 10px 0; }
+  button { padding: 9px 14px; background: #302b24; color: #eee; border: 1px solid #76633a; cursor: pointer; }
+  iframe { width: 960px; height: 540px; border: 1px solid #444; background: #000; }
+  pre { min-height: 110px; white-space: pre-wrap; color: #aaa; }
+  .ok { color: #8bd18b; } .erro { color: #e8796f; }
+</style>
+<main>
+  <h1>REGRESSAO — O TURNO DE 02h14</h1>
+  <div class="acoes">
+    <button id="visual">MOSTRAR PUZZLE</button>
+    <button id="mapa">MAPA ATUALIZADO</button>
+    <button id="offline">USAR JOGO_OFFLINE</button>
+    <button id="run">RODAR TESTE COMPLETO</button>
+  </div>
+  <div class="acoes">
+    <button data-room="ch2_infirmary" data-x="520">ENFERMARIA</button>
+    <button data-room="ch2_evidence" data-x="400">EVIDENCIAS</button>
+    <button data-room="ch2_comms" data-x="460">COMUNICACOES</button>
+    <button data-room="ch2_security" data-x="350">SEGURANCA</button>
+  </div>
+  <iframe id="jogo" src="../index.html"></iframe>
+  <pre id="saida">Aguardando o jogo montar as fases...</pre>
+  <div id="estado"></div>
+</main>
+<script>
+const frame = document.getElementById('jogo');
+const saida = document.getElementById('saida');
+const estado = document.getElementById('estado');
+
+document.getElementById('offline').onclick = () => {
+  frame.src = '../JOGO_OFFLINE.html';
+  saida.textContent = 'Carregando o pacote offline para o mesmo teste...';
+  saida.className = '';
+};
+
+function game() { return frame.contentWindow.game; }
+function assert(ok, msg) { if (!ok) throw new Error(msg); }
+function clone(v) { return JSON.parse(JSON.stringify(v)); }
+function log(msg, cls = '') {
+  saida.textContent += msg + '\n';
+  if (cls) saida.className = cls;
+}
+
+async function pronto() {
+  for (let i = 0; i < 100; i++) {
+    const g = game();
+    if (g && g.levels && g.levels.ch2_security && g.shiftPuzzle) return g;
+    await new Promise(r => setTimeout(r, 80));
+  }
+  throw new Error('O jogo nao terminou o boot.');
+}
+
+function limpar(g) {
+  const doc = frame.contentDocument;
+  const boot = doc && doc.getElementById('boot');
+  if (boot) boot.classList.add('gone');
+  if (doc) doc.body.classList.add('playing');
+  g.flags = { cap2: true, caderno: true, visto: {} };
+  g._aplicarMundo(null);
+  g.shiftPuzzle.reset();
+  g.journal.reset();
+  g.inv.reset();
+  g.sanity.enabled = true;
+  g.dialogue.active = false;
+  g.player.barkQueue.length = 0;
+  g.player.floatText = null;
+}
+
+document.getElementById('visual').onclick = async () => {
+  try {
+    const g = await pronto();
+    limpar(g);
+    g.flags.relay_hand = g.flags.relay_eye = g.flags.relay_voice = true;
+    frame.contentWindow.__dev.ir('ch2_security', 350, 1);
+    const painel = g.level.interactables.find(i => i.action === 'puzzle_panel');
+    g.doInteractCh2(painel);
+    saida.textContent = 'Puzzle aberto. Use setas/WASD e E, Espaco ou clique para girar.';
+    saida.className = 'ok';
+  } catch (e) {
+    saida.textContent = 'ERRO: ' + e.message;
+    saida.className = 'erro';
+  }
+};
+
+document.getElementById('mapa').onclick = async () => {
+  try {
+    const g = await pronto();
+    limpar(g);
+    frame.contentWindow.__dev.ir('ch2_corridor', 800, 1);
+    for (const id of Object.keys(g.levels)) if (id.startsWith('ch2_')) g.flags.visto[id] = true;
+    g.mapaAberto = true;
+    g.mapaFade = 1;
+    saida.textContent = 'Mapa aberto com todos os setores visitados.';
+    saida.className = 'ok';
+  } catch (e) {
+    saida.textContent = 'ERRO: ' + e.message;
+    saida.className = 'erro';
+  }
+};
+
+for (const botao of document.querySelectorAll('[data-room]')) {
+  botao.onclick = async () => {
+    try {
+      const g = await pronto();
+      limpar(g);
+      const id = botao.dataset.room;
+      frame.contentWindow.__dev.ir(id, Number(botao.dataset.x), 1);
+      saida.textContent = 'Sala aberta para inspecao: ' + id;
+      saida.className = 'ok';
+    } catch (e) {
+      saida.textContent = 'ERRO: ' + e.message;
+      saida.className = 'erro';
+    }
+  };
+}
+
+document.getElementById('run').onclick = async () => {
+  saida.textContent = '';
+  saida.className = '';
+  try {
+    const g = await pronto();
+    limpar(g);
+
+    const ids = ['ch2_infirmary', 'ch2_evidence', 'ch2_comms', 'ch2_security'];
+    for (const id of ids) assert(g.levels[id], 'Sala ausente: ' + id);
+    log('OK  quatro salas novas montadas');
+
+    const arq = g.levels.ch2_arquivo;
+    assert(!arq.interactables.some(i => i.id === 'chave'), 'A chave antiga ainda esta no arquivo');
+    assert(arq.interactables.some(i => i.to === 'ch2_evidence'), 'Arquivo nao leva a evidencias');
+    assert(g.levels.ch2_locker.interactables.some(i => i.to === 'ch2_infirmary'), 'Vestario nao leva a enfermaria');
+    assert(g.levels.ch2_comms.interactables.some(i => i.to === 'ch2_security'), 'Comunicacoes nao leva a seguranca');
+    log('OK  rotas do puzzle conectadas e chave antiga removida');
+
+    const relays = [
+      ['ch2_infirmary', 'hand'], ['ch2_evidence', 'eye'], ['ch2_comms', 'voice'],
+    ];
+    for (const [lv, nome] of relays) {
+      frame.contentWindow.__dev.ir(lv, 300, 1);
+      const item = g.level.interactables.find(i => i.action === 'take_relay' && i.relay === nome);
+      assert(item && !item.disabled, 'Rele nao coletavel: ' + nome);
+      g.doInteractCh2(item);
+      assert(g.flags['relay_' + nome], 'Flag do rele nao gravada: ' + nome);
+      assert(g.level.pego[item.id] && item.disabled, 'Rele nao sumiu do cenario: ' + nome);
+      assert(g.inv.has('relay_' + nome), 'Rele nao entrou no inventario: ' + nome);
+    }
+    log('OK  MAO, OLHO e VOZ saem do cenario e entram no casaco');
+
+    frame.contentWindow.__dev.ir('ch2_security', 350, 1);
+    const panel = g.level.interactables.find(i => i.action === 'puzzle_panel');
+    g.doInteractCh2(panel);
+    assert(g.shiftPuzzle.open, 'Painel nao abriu com os tres reles');
+    assert(g.flags.relays_installed && !g.inv.has('relay_hand') && !g.inv.has('relay_eye') && !g.inv.has('relay_voice'), 'Painel nao removeu os reles instalados do casaco');
+    assert(!g.shiftPuzzle._power().solved, 'Posicao inicial ja veio resolvida');
+
+    const solution = g.shiftPuzzle.rot.slice();
+    Object.assign(solution, { 5: 0, 6: 0, 7: 2, 8: 1, 9: 2, 12: 0, 13: 3, 14: 0 });
+    g.shiftPuzzle.rot = solution;
+    assert(g.shiftPuzzle._power().solved, 'Circuito correto nao foi reconhecido');
+    g.shiftPuzzle.onSolved(solution.slice());
+    g.shiftPuzzle.solved = true;
+    const key = g.level.interactables.find(i => i.id === 'chave');
+    assert(g.flags.puzzle_solved && g.level.keyVisible && !key.disabled, 'Armario nao liberou a chave');
+    log('OK  circuito 02h14 reconhecido e armario liberado');
+
+    g.doInteractCh2(key);
+    assert(g.flags.chave && g.level.pego.chave && !g.level.keyVisible, 'Chave nao foi recolhida corretamente');
+    log('OK  chave entregue apenas depois do puzzle');
+
+    // Regressao de save: salva depois de MAO, pega OLHO em seguida e volta.
+    // O OLHO precisa reaparecer; MAO precisa continuar ausente.
+    limpar(g);
+    frame.contentWindow.__dev.ir('ch2_infirmary', 300, 1);
+    const mao = g.level.interactables.find(i => i.id === 'relay_hand');
+    g.doInteractCh2(mao);
+    const flagsSalvas = clone(g.flags);
+    const mundoSalvo = clone(g._estadoDoMundo());
+    const invSalvo = clone(g.inv.save());
+
+    frame.contentWindow.__dev.ir('ch2_evidence', 300, 1);
+    const olho = g.level.interactables.find(i => i.id === 'relay_eye');
+    g.doInteractCh2(olho);
+    assert(g.flags.relay_eye, 'Preparacao do reload falhou');
+
+    g.flags = flagsSalvas;
+    g.inv.load(invSalvo);
+    g._aplicarMundo(mundoSalvo);
+    frame.contentWindow.__dev.ir('ch2_infirmary', 300, 1);
+    assert(g.level.pego.relay_hand, 'Reload devolveu MAO que ja existia no save');
+    assert(g.inv.has('relay_hand') && !g.inv.has('relay_eye'), 'Reload nao restaurou os reles corretos no inventario');
+    frame.contentWindow.__dev.ir('ch2_evidence', 300, 1);
+    const olhoDepois = g.level.interactables.find(i => i.id === 'relay_eye');
+    assert(!g.level.pego.relay_eye && !olhoDepois.disabled, 'Reload nao devolveu OLHO ao cenario');
+    log('OK  reload restaura reles pegos depois do save');
+
+    saida.className = 'ok';
+    log('\nTODOS OS TESTES PASSARAM');
+  } catch (e) {
+    log('\nERRO  ' + e.message, 'erro');
+    console.error(e);
+  }
+};
+
+setInterval(() => {
+  const g = game();
+  if (g && g.flags && g.flags.puzzle_solved) {
+    estado.textContent = 'RESOLVIDO — armario liberado';
+  } else if (g && g.shiftPuzzle && g.shiftPuzzle.open) {
+    estado.textContent = 'cursor=' + g.shiftPuzzle.cursor + '  giro-fonte=' + g.shiftPuzzle.rot[5];
+  } else estado.textContent = '';
+}, 100);
+</script>
+</html>

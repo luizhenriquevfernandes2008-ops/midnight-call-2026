@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="pt-BR">
+<meta charset="utf-8">
+<title>Teste de regressao — save de itens</title>
+<style>
+  body { background:#111; color:#ddd; font:16px Consolas,monospace; padding:24px }
+  iframe { width:480px; height:270px; border:1px solid #444; display:block; margin-bottom:16px }
+  button { font:inherit; padding:10px 18px }
+  #resultado { white-space:pre-wrap; margin-top:16px }
+  .ok { color:#7ee787 } .erro { color:#ff7b72 }
+</style>
+<iframe id="jogo" src="../index.html"></iframe>
+<button id="rodar">RODAR TESTE</button>
+<div id="resultado">Aguardando...</div>
+<script>
+const out = document.getElementById('resultado');
+const frame = document.getElementById('jogo');
+const espera = ms => new Promise(r => setTimeout(r, ms));
+
+async function pronto() {
+  for (let i = 0; i < 100; i++) {
+    const w = frame.contentWindow;
+    if (w.game && w.game.levels && w.game.levels.ch2_office && w.game.state === 'waitkey') return w;
+    await espera(100);
+  }
+  throw new Error('O jogo nao terminou o boot.');
+}
+
+document.getElementById('rodar').onclick = async () => {
+  try {
+    out.className = '';
+    out.textContent = 'Executando...';
+    const w = await pronto();
+    const g = w.game;
+    g.flags = { cap2: true, caderno: true };
+    g.resetChapter2();
+    g.sanity.enabled = true;
+    w.__dev.ir('ch2_office', 200, 1);
+
+    const lv = g.levels.ch2_office;
+    const item = lv.interactables.find(x => x.id === 'mapa');
+    if (!item) throw new Error('Item de teste nao encontrado.');
+
+    // SAVE A: mapa ainda existe no cenario.
+    item.disabled = false;
+    delete lv.pego.mapa;
+    g.saveSlot(2);
+
+    // Depois do SAVE A, o jogador pega o mapa.
+    item.disabled = true;
+    lv.pego.mapa = true;
+    if (!item.disabled || !lv.pego.mapa) throw new Error('Falha ao preparar item pego.');
+
+    // Recarrega o SAVE A: o mapa precisa voltar.
+    g.loadSlot(2);
+    g._aplicarSave(g.pendente);
+    const voltou = !item.disabled && !lv.pego.mapa;
+
+    // SAVE B: agora o mapa ja estava pego no momento de salvar.
+    item.disabled = true;
+    lv.pego.mapa = true;
+    g.saveSlot(2);
+
+    // Bagunca o estado atual e recarrega o SAVE B.
+    item.disabled = false;
+    delete lv.pego.mapa;
+    g.loadSlot(2);
+    g._aplicarSave(g.pendente);
+    const ficouPego = item.disabled && lv.pego.mapa === true;
+
+    if (!voltou) throw new Error('SAVE A falhou: item nao reapareceu.');
+    if (!ficouPego) throw new Error('SAVE B falhou: item salvo como pego reapareceu.');
+
+    out.className = 'ok';
+    out.textContent = 'PASSOU\n\n' +
+      '✓ Item pego depois do save reapareceu ao recarregar.\n' +
+      '✓ Item ja pego no save continuou ausente.\n' +
+      '✓ Inventario e mundo voltaram para o mesmo instante.';
+  } catch (e) {
+    out.className = 'erro';
+    out.textContent = 'FALHOU\n\n' + (e.stack || e);
+  }
+};
+</script>
+</html>

@@ -1,0 +1,16 @@
+# capturas do servidor de desenvolvimento — geradas, nao versionadas
+ferramentas/capturas/
+
+# projetos de audio (arquivos enormes; o que importa e o mp3 exportado)
+*.aup3
+*.aup3-shm
+*.aup3-wal
+
+# lixo do sistema
+Thumbs.db
+desktop.ini
+.DS_Store
+assets/reference/
+
+# arte conceitual de terceiros usada so como referencia de desenvolvimento.
+# NAO vai para repositorio publico (ressalva R-05 do documento mestre).

@@ -1,0 +1,1503 @@
+// detective.js — o protagonista: pecas, esqueleto, animacoes e desenho.
+//
+// O personagem NAO e uma folha de sprites com quadros prontos. Ele e um
+// boneco articulado: cada membro e um pedacinho de pixel art que gira em
+// volta de uma junta. As animacoes sao poses-chave interpoladas, o que da
+// movimento continuo (60 fps de verdade) mantendo a cara de pixel.
+//
+// Trocar isso por sprite sheet depois e barato: basta outra implementacao
+// de _renderRig(). Todo o resto do jogo so chama play() e draw().
+
+import { PAL } from './palette.js';
+import { sprite, darken, stamp, rimPass, silhouettePass, tintPass, DEG } from './pixel.js';
+import { makeBuffer, lerp, clamp, easeInOut } from '../core/gfx.js';
+
+// ---------------------------------------------------------------------------
+// paleta de caracteres das grades
+// ---------------------------------------------------------------------------
+
+const MAP = {
+  S: PAL.skin, s: PAL.skinSh, t: PAL.skinHi, q: PAL.skinDk,
+  H: PAL.hairDk, h: PAL.hair, g: PAL.hairHi,
+  W: PAL.shirtHi, w: PAL.shirt, x: PAL.shirtSh, X: PAL.shirtDk,
+  V: PAL.vestHi, v: PAL.vest, u: PAL.vestDk,
+  R: PAL.tieHi, r: PAL.tie, z: PAL.tieDk,
+  P: PAL.pantHi, p: PAL.pant, d: PAL.pantDk,
+  B: PAL.bootHi, b: PAL.boot, k: PAL.coatEdge,
+  L: PAL.leather, l: PAL.leathDk,
+  n: PAL.brass, e: PAL.eye, E: PAL.sclera, o: PAL.brow, K: '#7a3f36',
+  C: PAL.coatHi, c: PAL.coat, j: PAL.coatDk, y: PAL.coatEdge,
+  i: '#ded6c4', a: '#9d9484', N: '#ff6a2a',   // cigarro: papel, sombra, brasa
+  F: '#ffb347', f: '#ff7a1a', Y: '#fff3c0',   // chama e fogo de boca
+  M: '#727880', m: '#4b5158',                 // metal da arma
+  D: PAL.woodHi, G: PAL.wood, Z: PAL.woodDk,  // ripa de palete
+  I: '#8f959e', T: '#3a2f26',                 // prego e ferrugem
+};
+
+// Medidas do esqueleto, em pixels, a partir do chao. Proporcao puxada da
+// referencia "Urban Detective": cabeca grande (quase 1/4 da altura), ombro
+// largo, perna curta. Boneco realista fica ilegivel neste tamanho.
+export const HIP_Y = -28;
+export const SHOULDER_OFF = -20;   // do quadril ate a linha do ombro
+export const THIGH_LEN = 13;
+export const SHIN_LEN = 11;
+export const UPPER_LEN = 10;
+export const FORE_LEN = 9;
+// O braco de tras fica mais afastado que o da frente. Com os dois no mesmo
+// deslocamento ele desaparecia dentro da silhueta do tronco — parecia que o
+// personagem so tinha um braco.
+export const ARM_X = 6;
+export const ARM_X_BACK = 7;
+export const LEG_X = 3;
+export const HEIGHT = 62;
+
+// ---------------------------------------------------------------------------
+// pecas
+// ---------------------------------------------------------------------------
+
+const P = {};
+
+function buildParts() {
+  // Cabeca em tres-quartos virada para a DIREITA. O que faz a direcao ser
+  // lida sem duvida: um olho so (o de tras fica escondido pelo volume do
+  // rosto), o nariz saindo da silhueta em x12, a orelha marcada em x3 e a
+  // massa de cabelo empurrada para tras. Com dois olhos simetricos ele
+  // parecia estar de frente — ou pior, de costas.
+  // O olho tem quatro pixels com funcoes diferentes: sobrancelha (o),
+  // esclera (E), pupila (e) e a sombra embaixo (q). Um ponto preto sozinho
+  // nao e olho, e furo — e era exatamente essa a cara que ele tinha.
+  P.head = sprite({
+    pivot: [6, 14], map: MAP, rows: [
+      '...HHHHHHH....',
+      '..HHhhhhhhhH..',
+      '.HHhhhgggggh..',
+      '.HHhhgggggSSt.',
+      '.HHhhgSSSSSSt.',
+      '.HHhhqSSooSSt.',
+      '.HHhhqSSEeSst.',
+      '.HHhhqSSqSStS.',
+      '.HHhhqSSSSSqS.',
+      '.HHhhSSSSSSst.',
+      '..hhqSSKKKSst.',
+      '..shSSSSSSSs..',
+      '...sSSSSSSs...',
+      '....sSSSs.....',
+      '....sSSSs.....',
+    ]
+  });
+
+  // Ponte real entre cabeça e tronco. A gola esconde quase tudo, mas estes
+  // pixels de pele/sombra impedem que a cabeça pareça colada sobre o casaco
+  // quando ele olha, corre ou vira.
+  P.neck = sprite({
+    pivot: [3, 2], map: MAP, rows: [
+      '..qSq..',
+      '.qSSSq.',
+      '.qSSSq.',
+      '.qSSSq.',
+      '..qqq..',
+    ]
+  });
+
+  // Gola levantada do sobretudo, desenhada ATRAS da cabeca. E ela que
+  // costura o pescoco no corpo: antes a cabeca pousava em cima de um
+  // pescoco de 2px e parecia recortada e colada.
+  P.collar = sprite({
+    pivot: [8, 9], map: MAP, rows: [
+      '..yCy......yCy..',
+      '..yCy......yCy..',
+      '.yCCy......yCCy.',
+      '.yCCy......yCCy.',
+      'yCCCy......yCCCy',
+      'yCCCyy....yyCCCy',
+      'yCCCCy....yCCCCy',
+      'yCCCCCyyyyCCCCCy',
+      'yyCcccccccccCCyy',
+    ]
+  });
+
+  // Aba do sobretudo, presa no quadril. Cai ate um pouco abaixo do joelho,
+  // deixando canela e bota de fora para o ciclo de caminhada continuar
+  // legivel.
+  P.coatSkirt = sprite({
+    pivot: [10, 0], map: MAP, rows: [
+      '...yjCCCCCCjy.......',
+      '..yjCCCCCCCCjy......',
+      '..yjCCCCCCCCjy......',
+      '.yjCCCCCCCCCCjy.....',
+      '.yjCCCCCCCCCCjy.....',
+      '.yjCCCcjCCCCCjy.....',
+      '.yjCCCcjCCCCCjy.....',
+      'yjCCCCcjCCCCCCjy....',
+      'yjCCCCcjCCCCCCjy....',
+      'yjCCCCcjCCCCCCjy....',
+      'yjCcCCcjCcCCCCjy....',
+      'yjCcCCcjCcCCCCjy....',
+      'yjCcCCcjCcCCCjjy....',
+      'yjjcccjjjcccjjy.....',
+      '.yyjjjyyyjjjyy......',
+    ]
+  });
+
+  // Tronco tambem em tres-quartos: o painel de camisa e gravata fica a
+  // DIREITA do centro, o colete tem uma aba larga atras e uma estreita na
+  // frente, e a alca do coldre passa so pelas costas. Antes era simetrico,
+  // e simetria em vista lateral le como "de costas".
+  // Tronco: sobretudo FECHADO.
+  //
+  // A versao anterior mostrava camisa e gravata descendo pelo meio do
+  // peito — que e o que se ve de FRENTE. Num jogo lateral a camera olha o
+  // costado do casaco, e ali nao ha abertura nenhuma: so pano, a lapela
+  // dobrada perto do pescoco e a fileira de botoes na beirada da frente.
+  // A unica camisa visivel e o triangulo do colarinho.
+  P.torso = sprite({
+    pivot: [9, 20], map: MAP, rows: [
+      '...yjCCCCCCCjy....',
+      '..yjCCCCCCCCCjy...',
+      '.yjCCCCCCCCCWWjy..',
+      '.yjCCCCCCCCcWCjy..',
+      '.yjCCCCCCCCcjCjy..',
+      '.yjCCcCCCCCcjCjy..',
+      '.yjCCcCCCCCcjCjy..',
+      '.yjCCcCCCCCcjnjy..',
+      '.yjCCcCCCCCcjCjy..',
+      '.yjCCcCCCCCcjCjy..',
+      '.yjCCcCCCCCcjnjy..',
+      '.yjCCcCCCCCcjCjy..',
+      '.yjCCcCCCCCcjCjy..',
+      '.yjCCcCCCCCcjnjy..',
+      '.yjLLLLLLLLLLLjy..',
+      '.yjllllllllllljy..',
+      '.yjCCcCCCCCcjCjy..',
+      '.yjCCcCCCCCcjCjy..',
+      '..yjCCcCCCCcjCjy..',
+      '..yjCCCCCCCCCjy...',
+      '...yjCCCCCCCjy....',
+    ]
+  });
+
+  // Coldre no quadril, do lado que a camera ve. Fica POR CIMA do casaco:
+  // debaixo dele seria mais realista e completamente invisivel.
+  P.holster = sprite({
+    pivot: [3, 0], map: MAP, rows: [
+      'lLLLLLl', 'lLLLLLl', 'lLLLLLl', 'lLLLLLl', 'lLLLLLl',
+      'lLLLLLl', '.lLLLl.', '.lLLLl.', '..lLl..', '..lll..',
+    ]
+  });
+
+  // cabo da arma saindo do coldre (some quando ela esta na mao)
+  P.gunButt = sprite({
+    pivot: [2, 5], map: MAP, rows: [
+      '.mmm.', 'mMMmk', 'mMMmk', 'kmmkk', '.kk..',
+    ]
+  });
+
+  P.gun = sprite({
+    pivot: [1, 3], map: MAP, rows: [
+      '...mMMMMMMm',
+      '..mMMMMMMMm',
+      '.mMMMmmmmmm',
+      'mMMMm......',
+      'kMMk.......',
+      '.kk........',
+    ]
+  });
+
+  P.muzzle = sprite({
+    pivot: [0, 3], map: MAP, rows: [
+      '..Y....', '.YFY...', 'YFFFY..', 'YFFFFYf', 'YFFFY..', '.YFY...', '..Y....',
+    ]
+  });
+
+  // Mangas do sobretudo, com punho mais claro na ponta.
+  P.upperArm = sprite({
+    pivot: [2, 1], map: MAP, rows: [
+      'yjCCcy', 'yjCCcy', 'yjCCcy', 'yjCCcy', 'yjCCcy', 'yjCCcy',
+      'yjCCcy', 'yjCCcy', 'yjCCcy', '.yjCcy', '.yjccy',
+    ]
+  });
+
+  P.forearm = sprite({
+    pivot: [2, 1], map: MAP, rows: [
+      'yjCCcy', 'yjCCcy', 'yjCCcy', 'yjCCcy', '.yjCcy', '.yjCcy',
+      '.yjCcy', '.yjCcy', 'yCCCCy', '.yyyy.',
+    ]
+  });
+
+  P.hand = sprite({
+    pivot: [2, 0], map: MAP, rows: [
+      '.sSs.', 'sSSSs', 'sSSSs', '.sSs.', '..q..',
+    ]
+  });
+
+  P.thigh = sprite({
+    pivot: [4, 1], map: MAP, rows: [
+      'dpPPPPpd', 'dpPPPPpd', 'dpPPPPpd', 'dpPPPPpd',
+      'dpPPPPpd', 'dpPPPPpd', 'dpPPPPpd', 'dpPPPPpd',
+      '.dpPPPpd', '.dpPPPpd', '.dpPPPpd', '.dpPPPpd',
+      '.dpPPPpd', '..dpPpd.',
+    ]
+  });
+
+  P.shin = sprite({
+    pivot: [3, 1], map: MAP, rows: [
+      '.dpPPpd', '.dpPPpd', '.dpPPpd', '.dpPPpd', '.dpPPpd',
+      'kbBBBBk', 'kbBBBBk', 'kbBBBBk', 'kbBBBBk', 'kbBBBBk',
+      'kbBBBBk', 'kkbbbkk',
+    ]
+  });
+
+  P.foot = sprite({
+    pivot: [3, 0], map: MAP, rows: [
+      '.kbBBBBk..', 'kbBBBBBBBk', 'kbbbbbbbbk', '.kkkkkkkk.',
+    ]
+  });
+
+  // Rosto ALISADO: a mesma cabeca, o mesmo cabelo, e nenhum tra o dentro
+  // dela. Nao e um monstro — e uma pessoa de quem ele nao lembra mais a
+  // cara. Por isso a silhueta precisa continuar identica a de gente.
+  P.headBlank = sprite({
+    pivot: [6, 14], map: MAP, rows: [
+      '...HHHHHHH....',
+      '..HHhhhhhhhH..',
+      '.HHhhhgggggh..',
+      '.HHhhgggggSSt.',
+      '.HHhhgSSSSSSt.',
+      '.HHhhqSSSSSSt.',
+      '.HHhhqSSSSSst.',
+      '.HHhhqSSSSStS.',
+      '.HHhhqSSSSSqS.',
+      '.HHhhSSSSSSst.',
+      '..hhqSSSSSSst.',
+      '..shSSSSSSSs..',
+      '...sSSSSSSs...',
+      '....sSSSs.....',
+      '....sSSSs.....',
+    ]
+  });
+
+  // Ripa de palete com um prego torto na ponta. Fica na mao da frente,
+  // seguindo o antebraco — nao precisa de rotacao propria: o eixo "para
+  // fora da mao" ja e o +y local da cadeia do braco.
+  // Doze pixels, nao quinze: com a ripa mais comprida a ponta encostava no
+  // chao quando o braco ficava pendurado, e ela sumia dentro do assoalho.
+  P.club = sprite({
+    pivot: [1, 0], map: MAP, rows: [
+      'GDG', 'GDG', 'ZDG', 'GDG', 'GDZ', 'GDG', 'ZDG', 'GDG',
+      'GDZ', 'GDG', 'ZGZ', '.I.',
+    ]
+  });
+
+  // Cano de metal, enferrujado. O detetive se solta dele no fim do Cap. 1 —
+  // e o Credor arrasta o mesmo cano pelo chao no Cap. 2.
+  P.pipe = sprite({
+    pivot: [1, 0], map: MAP, rows: [
+      'mMm', 'mMm', 'mTm', 'mMm', 'mMm', 'mTm', 'mMm', 'mMm',
+      'mTm', 'mMm', 'mMm', 'mTm', 'mMm', 'mMm', 'kmk',
+    ]
+  });
+
+  P.cigLit = sprite({ pivot: [0, 0], map: MAP, rows: ['Niii'] });
+  P.cigOff = sprite({ pivot: [0, 0], map: MAP, rows: ['aiii'] });
+
+  P.lighter = sprite({
+    pivot: [1, 0], map: MAP, rows: ['.nn.', 'nnnn', 'kkkk', 'kBBk', 'kkkk'],
+  });
+
+  P.flame = sprite({
+    pivot: [2, 7], map: MAP, rows: [
+      '..Y..', '.YFY.', '.YFY.', 'YFFFY', 'YFFFY', '.fFf.', '..f..',
+    ]
+  });
+
+  // Membros do lado oposto a camera. O braco de tras precisa ficar CLARO o
+  // bastante para ser visto (antes sumia dentro do tronco), mas a perna de
+  // tras precisa ficar ESCURA o bastante para nao grudar na da frente — as
+  // duas quase se encostam e viravam um bloco so. Por isso dois valores.
+  const K_BRACO = 0.80, K_PERNA = 0.64, TINT = '#22304a';
+  P.dUpperArm = darken(P.upperArm, K_BRACO, TINT);
+  P.dForearm = darken(P.forearm, K_BRACO, TINT);
+  P.dHand = darken(P.hand, K_BRACO, TINT);
+  P.dThigh = darken(P.thigh, K_PERNA, TINT);
+  P.dShin = darken(P.shin, K_PERNA, TINT);
+  P.dFoot = darken(P.foot, K_PERNA, TINT);
+}
+
+// ---------------------------------------------------------------------------
+// poses e animacoes
+// ---------------------------------------------------------------------------
+
+const FIELDS = ['hx', 'hy', 'torso', 'head', 'aBu', 'aBf', 'aFu', 'aFf',
+  'lBt', 'lBs', 'lBf', 'lFt', 'lFs', 'lFf'];
+
+const REST = {
+  hx: 0, hy: 0, torso: -2, head: 1,
+  aBu: 3, aBf: 7, aFu: -4, aFf: 9,
+  // pernas levemente abertas: paradas em paralelo elas viram um bloco so
+  lBt: 4, lBs: -3, lBf: 0, lFt: -4, lFs: -2, lFf: 0,
+};
+
+function pose(o) { return Object.assign({}, REST, o); }
+
+export const ANIM = {
+  idle: {
+    dur: 4.2, loop: true,
+    keys: [
+      { t: 0.00, p: pose({}) },
+      { t: 0.28, p: pose({ hy: -0.6, torso: -3.2, head: 0, aFu: -5, aFf: 11, aBu: 4, aBf: 8 }) },
+      { t: 0.55, p: pose({ hy: -0.9, torso: -3.6, head: 0.5, aFu: -5.5, aFf: 11.5, aBu: 4.5, aBf: 8.5 }) },
+      { t: 0.80, p: pose({ hy: -0.2, torso: -2.4, head: 1.4, aFu: -4, aFf: 9.5, aBu: 3, aBf: 7.5 }) },
+      { t: 1.00, p: pose({}) },
+    ],
+  },
+
+  // Andar: o cotovelo quase nao dobra (aXf entre 8 e 14). Braco que dobra
+  // muito enquanto anda parece desarticulado — o balanco tem que vir do
+  // OMBRO, com o antebraco praticamente travado.
+  walk: {
+    dur: 0.76, loop: true, ease: 'linear',
+    keys: [
+      { t: 0.00, p: pose({ torso: -5, head: 3, hy: 0, lFt: 24, lFs: -5, lFf: 9, lBt: -22, lBs: -24, lBf: -25, aFu: -20, aFf: 10, aBu: 20, aBf: 12 }) },
+      { t: 0.25, p: pose({ torso: -5, head: 3, hy: -1.6, lFt: 6, lFs: -3, lFf: 0, lBt: 4, lBs: -48, lBf: -14, aFu: -7, aFf: 9, aBu: 7, aBf: 13 }) },
+      { t: 0.50, p: pose({ torso: -5, head: 3, hy: 0, lFt: -22, lFs: -24, lFf: -25, lBt: 24, lBs: -5, lBf: 9, aFu: 20, aFf: 12, aBu: -20, aBf: 10 }) },
+      { t: 0.75, p: pose({ torso: -5, head: 3, hy: -1.6, lFt: 4, lFs: -48, lFf: -14, lBt: 6, lBs: -3, lBf: 0, aFu: 7, aFf: 13, aBu: -7, aBf: 9 }) },
+      { t: 1.00, p: pose({ torso: -5, head: 3, hy: 0, lFt: 24, lFs: -5, lFf: 9, lBt: -22, lBs: -24, lBf: -25, aFu: -20, aFf: 10, aBu: 20, aBf: 12 }) },
+    ],
+    events: [{ t: 0.02, ev: 'step' }, { t: 0.52, ev: 'step' }],
+  },
+
+  // Correr: aí sim o cotovelo trava dobrado (~55 graus) e QUASE NAO MUDA.
+  // Quem corre nao abre e fecha o braco, leva ele preso perto do corpo.
+  run: {
+    dur: 0.50, loop: true, ease: 'linear',
+    keys: [
+      { t: 0.00, p: pose({ torso: -13, head: 9, hx: 1, hy: -1, lFt: 40, lFs: -22, lFf: 6, lBt: -34, lBs: -52, lBf: -30, aFu: -40, aFf: 56, aBu: 38, aBf: 58 }) },
+      { t: 0.25, p: pose({ torso: -13, head: 9, hx: 1, hy: -3.2, lFt: 10, lFs: -14, lFf: -4, lBt: 12, lBs: -92, lBf: -18, aFu: -14, aFf: 58, aBu: 14, aBf: 60 }) },
+      { t: 0.50, p: pose({ torso: -13, head: 9, hx: 1, hy: -1, lFt: -34, lFs: -52, lFf: -30, lBt: 40, lBs: -22, lBf: 6, aFu: 38, aFf: 58, aBu: -40, aBf: 56 }) },
+      { t: 0.75, p: pose({ torso: -13, head: 9, hx: 1, hy: -3.2, lFt: 12, lFs: -92, lFf: -18, lBt: 10, lBs: -14, lBf: -4, aFu: 14, aFf: 60, aBu: -14, aBf: 58 }) },
+      { t: 1.00, p: pose({ torso: -13, head: 9, hx: 1, hy: -1, lFt: 40, lFs: -22, lFf: 6, lBt: -34, lBs: -52, lBf: -30, aFu: -40, aFf: 56, aBu: 38, aBf: 58 }) },
+    ],
+    events: [{ t: 0.02, ev: 'step' }, { t: 0.52, ev: 'step' }],
+  },
+
+  // Soco: recuo curto, extensao rapida, PARADA no impacto e recolhimento.
+  // A pose 0.60 quase igual a 0.52 e o "hold" — sem ele o braco volta
+  // deslizando e o golpe nao tem peso nenhum.
+  punch1: {
+    dur: 0.38, loop: false, ease: 'linear',
+    keys: [
+      { t: 0.00, p: pose({}) },
+      { t: 0.26, p: pose({ torso: -12, head: 6, hx: -1.5, aFu: -26, aFf: -78, aBu: 10, aBf: -22, lFt: -6, lBt: 6 }) },
+      { t: 0.46, p: pose({ torso: 8, head: 3, hx: 3.5, aFu: 76, aFf: -4, aBu: -16, aBf: -38, lFt: 8, lBt: -8 }) },
+      { t: 0.60, p: pose({ torso: 8, head: 3, hx: 3.2, aFu: 74, aFf: -5, aBu: -15, aBf: -36, lFt: 8, lBt: -8 }) },
+      { t: 1.00, p: pose({}) },
+    ],
+    events: [{ t: 0.28, ev: 'whoosh' }, { t: 0.46, ev: 'hit' }],
+  },
+
+  punch2: {
+    dur: 0.46, loop: false, ease: 'linear',
+    keys: [
+      { t: 0.00, p: pose({}) },
+      { t: 0.24, p: pose({ torso: 10, head: -5, hx: -2, aBu: -32, aBf: -86, aFu: 14, aFf: -26, lFt: -8, lBt: 8 }) },
+      { t: 0.46, p: pose({ torso: -11, head: 5, hx: 5, aBu: 84, aBf: -2, aFu: -20, aFf: -44, lFt: 12, lBt: -12 }) },
+      { t: 0.62, p: pose({ torso: -11, head: 5, hx: 4.6, aBu: 82, aBf: -3, aFu: -19, aFf: -42, lFt: 11, lBt: -11 }) },
+      { t: 1.00, p: pose({}) },
+    ],
+    events: [{ t: 0.26, ev: 'whoosh' }, { t: 0.46, ev: 'hit' }],
+  },
+
+  interact: {
+    dur: 0.60, loop: false,
+    keys: [
+      { t: 0.00, p: pose({}) },
+      { t: 0.35, p: pose({ torso: 3, head: 6, aFu: 56, aFf: -32, aBu: -4, aBf: 10 }) },
+      { t: 0.60, p: pose({ torso: 3, head: 6, aFu: 58, aFf: -30, aBu: -4, aBf: 10 }) },
+      { t: 1.00, p: pose({}) },
+    ],
+    events: [{ t: 0.38, ev: 'reach' }],
+  },
+
+  // A animacao que da nome ao personagem: ele pega o cigarro, olha para
+  // ele, e joga fora. Nao acende.
+  //
+  // Antes ele acendia com a mao de tras enquanto o cigarro estava na mao da
+  // frente — duas maos fazendo coisas que nao combinavam. Agora e uma mao
+  // so, do inicio ao fim, e a decisao esta na pausa em que ele fica
+  // olhando, nao no isqueiro.
+  smoke: {
+    dur: 7.2, loop: false,
+    keys: [
+      { t: 0.000, p: pose({}) },
+      { t: 0.100, p: pose({ head: 8, torso: -4, hy: -0.5 }) },
+      { t: 0.220, p: pose({ head: 7, torso: -1, aFu: 30, aFf: -72 }) },
+      { t: 0.300, p: pose({ head: 7, torso: -1, aFu: 27, aFf: -68 }) },
+      { t: 0.420, p: pose({ head: 12, torso: 2, aFu: 22, aFf: -125 }) },
+      { t: 0.560, p: pose({ head: 13, torso: 2, aFu: 21, aFf: -127 }) },
+      { t: 0.660, p: pose({ head: 12, torso: 1, aFu: 22, aFf: -124 }) },
+      { t: 0.760, p: pose({ head: -4, torso: -6, aFu: 20, aFf: -120 }) },
+      { t: 0.820, p: pose({ head: 2, torso: 4, aFu: 50, aFf: 20, hx: 1 }) },
+      { t: 0.880, p: pose({ head: 4, torso: 2, aFu: 30, aFf: 14 }) },
+      { t: 1.000, p: pose({ head: 5 }) },
+    ],
+    events: [
+      { t: 0.300, ev: 'cig_grab' },
+      { t: 0.560, ev: 'hesitate' },
+      { t: 0.700, ev: 'say_not_today' },
+      { t: 0.820, ev: 'cig_toss' },
+      { t: 0.960, ev: 'sigh' },
+    ],
+  },
+
+  // Guardada: a versao com isqueiro, caso volte a ser util mais para a
+  // frente (a chama e uma fonte de luz de verdade).
+  smokeLighter: {
+    dur: 10.2, loop: false,
+    keys: [
+      // Os angulos de "mao no rosto" sao contra-intuitivos: o braco sobe
+      // POUCO (aXu perto de 10..16) e o cotovelo dobra quase 180 graus.
+      // Levantar o ombro joga a mao para longe da cabeca, nao para perto.
+      { t: 0.000, p: pose({}) },
+      { t: 0.098, p: pose({ head: 7, torso: -4, hy: -0.5 }) },
+      { t: 0.196, p: pose({ head: 6, torso: -1, aFu: 34, aFf: -78, aBu: 4, aBf: 8 }) },
+      { t: 0.255, p: pose({ head: 6, torso: -1, aFu: 30, aFf: -74, aBu: 4, aBf: 8 }) },
+      { t: 0.333, p: pose({ head: 2, torso: -3, aFu: 10, aFf: -175, aBu: 4, aBf: 8 }) },
+      { t: 0.392, p: pose({ head: 2, torso: -3, aFu: 12, aFf: -178, aBu: 4, aBf: 8 }) },
+      { t: 0.451, p: pose({ head: 1, torso: -3, aFu: -6, aFf: 10, aBu: 4, aBf: 8 }) },
+      { t: 0.510, p: pose({ head: 1, torso: -1, aFu: -6, aFf: 10, aBu: 30, aBf: -70 }) },
+      { t: 0.588, p: pose({ head: 0, torso: -3, aFu: -6, aFf: 10, aBu: 16, aBf: -172 }) },
+      { t: 0.637, p: pose({ head: 0, torso: -3, aFu: -6, aFf: 10, aBu: 18, aBf: -174 }) },
+      { t: 0.676, p: pose({ head: -1, torso: -3, aFu: -6, aFf: 10, aBu: 16, aBf: -172 }) },
+      { t: 0.745, p: pose({ head: -9, torso: -7, aFu: -6, aFf: 10, aBu: 14, aBf: -168 }) },
+      { t: 0.804, p: pose({ head: -6, torso: -6, aFu: -6, aFf: 10, aBu: 20, aBf: -150 }) },
+      { t: 0.853, p: pose({ head: 2, torso: -3, aFu: 10, aFf: -174, aBu: 2, aBf: 8 }) },
+      { t: 0.902, p: pose({ head: 2, torso: -3, aFu: 12, aFf: -176, aBu: 2, aBf: 8 }) },
+      { t: 0.941, p: pose({ head: 4, torso: 3, aFu: 44, aFf: 26, aBu: 2, aBf: 8 }) },
+      { t: 0.970, p: pose({ head: 6, torso: 1, aFu: 20, aFf: 16, aBu: 2, aBf: 8 }) },
+      { t: 1.000, p: pose({ head: 4 }) },
+    ],
+    events: [
+      { t: 0.255, ev: 'cig_grab' },
+      { t: 0.392, ev: 'cig_mouth' },
+      { t: 0.510, ev: 'lighter_grab' },
+      { t: 0.637, ev: 'lighter_flick' },
+      { t: 0.676, ev: 'flame_on' },
+      { t: 0.745, ev: 'hesitate' },
+      { t: 0.804, ev: 'flame_off' },
+      { t: 0.902, ev: 'cig_hand' },
+      { t: 0.941, ev: 'cig_toss' },
+      { t: 0.985, ev: 'sigh' },
+    ],
+  },
+
+  // Sair do carro. Uma subida so, sem contorcao: os angulos caem de forma
+  // monotona do agachado ate de pe. A versao anterior tinha o joelho a 104
+  // graus e o tronco a 26 ao mesmo tempo, e no meio da interpolacao ele
+  // passava por poses que corpo nenhum faz — dava aquele efeito de boneco
+  // se desenrolando.
+  getout: {
+    dur: 1.40, loop: false,
+    keys: [
+      { t: 0.00, p: pose({ hy: 15, torso: 20, head: -5, lFt: 58, lFs: -74, lFf: -6, lBt: 44, lBs: -70, lBf: -6, aFu: 24, aFf: -36, aBu: 14, aBf: -22 }) },
+      { t: 0.35, p: pose({ hy: 9, torso: 14, head: -2, lFt: 38, lFs: -50, lFf: -4, lBt: 28, lBs: -48, lBf: -4, aFu: 17, aFf: -27, aBu: 10, aBf: -14 }) },
+      { t: 0.70, p: pose({ hy: 2, torso: 6, head: 1, lFt: 16, lFs: -22, lFf: -2, lBt: 10, lBs: -20, lBf: -2, aFu: 7, aFf: -11, aBu: 5, aBf: -3 }) },
+      { t: 0.88, p: pose({ hy: -1, torso: -4, head: 3, lFt: 4, lFs: -7, lFf: 0, lBt: 2, lBs: -6, lBf: 0, aFu: -5, aFf: 7, aBu: 3, aBf: 7 }) },
+      { t: 1.00, p: pose({}) },
+    ],
+    events: [{ t: 0.62, ev: 'step' }],
+  },
+
+  // Agachado lendo. Ele fica de costas para a porta — de proposito.
+  read: {
+    dur: 3.4, loop: true,
+    keys: [
+      { t: 0.00, p: pose({ hy: 15, torso: 20, head: 16, lFt: 72, lFs: -104, lFf: -8, lBt: 22, lBs: -112, lBf: -18, aFu: 42, aFf: -64, aBu: 30, aBf: -52 }) },
+      { t: 0.50, p: pose({ hy: 15.9, torso: 21.5, head: 17, lFt: 72, lFs: -104, lFf: -8, lBt: 22, lBs: -112, lBf: -18, aFu: 43, aFf: -65, aBu: 31, aBf: -53 }) },
+      { t: 1.00, p: pose({ hy: 15, torso: 20, head: 16, lFt: 72, lFs: -104, lFf: -8, lBt: 22, lBs: -112, lBf: -18, aFu: 42, aFf: -64, aBu: 30, aBf: -52 }) },
+    ],
+  },
+
+  // Sentado no chao, pulsos algemados num cano acima da cabeca.
+  cuffed: {
+    dur: 4.6, loop: true,
+    keys: [
+      { t: 0.00, p: pose({ hy: 20, torso: -6, head: 10, lFt: 76, lFs: -26, lFf: 6, lBt: 67, lBs: -22, lBf: 6, aFu: -158, aFf: 12, aBu: -163, aBf: 10 }) },
+      { t: 0.50, p: pose({ hy: 20.8, torso: -7.5, head: 11, lFt: 76, lFs: -26, lFf: 6, lBt: 67, lBs: -22, lBf: 6, aFu: -157, aFf: 13, aBu: -162, aBf: 11 }) },
+      { t: 1.00, p: pose({ hy: 20, torso: -6, head: 10, lFt: 76, lFs: -26, lFf: 6, lBt: 67, lBs: -22, lBf: 6, aFu: -158, aFf: 12, aBu: -163, aBf: 10 }) },
+    ],
+  },
+
+  // De pe para sentado. Existe para o sentar NAO ser instantaneo: ele
+  // desce, apoia a mao no chao e se acomoda.
+  sitDown: {
+    dur: 1.05, loop: false,
+    keys: [
+      { t: 0.00, p: pose({}) },
+      { t: 0.30, p: pose({ hy: 5, torso: 16, head: 8, lFt: 30, lFs: -54, lFf: 8, lBt: 26, lBs: -50, lBf: 8, aFu: 22, aFf: -30, aBu: 18, aBf: -26 }) },
+      { t: 0.62, p: pose({ hy: 15, torso: 15, head: 7, lFt: 54, lFs: -86, lFf: 12, lBt: 48, lBs: -80, lBf: 10, aFu: 40, aFf: -54, aBu: 36, aBf: -50 }) },
+      { t: 0.85, p: pose({ hy: 21, torso: 11, head: 5, lFt: 63, lFs: -98, lFf: 13, lBt: 55, lBs: -90, lBf: 11, aFu: 47, aFf: -63, aBu: 41, aBf: -57 }) },
+      { t: 1.00, p: pose({ hy: 20, torso: 9, head: 4, lFt: 62, lFs: -96, lFf: 12, lBt: 54, lBs: -88, lBf: 10, aFu: 46, aFf: -62, aBu: 40, aBf: -56 }) },
+    ],
+    events: [{ t: 0.66, ev: 'sit' }],
+  },
+
+  // e de volta
+  standUp: {
+    dur: 0.85, loop: false,
+    keys: [
+      { t: 0.00, p: pose({ hy: 20, torso: 9, head: 4, lFt: 62, lFs: -96, lFf: 12, lBt: 54, lBs: -88, lBf: 10, aFu: 46, aFf: -62, aBu: 40, aBf: -56 }) },
+      { t: 0.28, p: pose({ hy: 16, torso: 18, head: 2, lFt: 56, lFs: -88, lFf: 12, lBt: 50, lBs: -82, lBf: 10, aFu: 42, aFf: -56, aBu: 38, aBf: -52 }) },
+      { t: 0.62, p: pose({ hy: 6, torso: 17, head: 3, lFt: 32, lFs: -56, lFf: 8, lBt: 28, lBs: -52, lBf: 8, aFu: 24, aFf: -32, aBu: 20, aBf: -28 }) },
+      { t: 1.00, p: pose({}) },
+    ],
+    events: [{ t: 0.30, ev: 'step' }],
+  },
+
+  // Sentado no chao, impaciente: joelhos dobrados, bracos apoiados neles,
+  // e a perna batendo. Sem cigarro para ocupar a mao, so resta o pe.
+  sitImpatient: {
+    dur: 2.6, loop: true,
+    keys: [
+      { t: 0.00, p: pose({ hy: 20, torso: 9, head: 4, lFt: 62, lFs: -96, lFf: 12, lBt: 54, lBs: -88, lBf: 10, aFu: 46, aFf: -62, aBu: 40, aBf: -56 }) },
+      { t: 0.18, p: pose({ hy: 20, torso: 9, head: 4, lFt: 62, lFs: -104, lFf: 20, lBt: 54, lBs: -88, lBf: 10, aFu: 46, aFf: -62, aBu: 40, aBf: -56 }) },
+      { t: 0.34, p: pose({ hy: 20, torso: 9, head: 4, lFt: 62, lFs: -96, lFf: 12, lBt: 54, lBs: -88, lBf: 10, aFu: 46, aFf: -62, aBu: 40, aBf: -56 }) },
+      { t: 0.52, p: pose({ hy: 20, torso: 9, head: 4, lFt: 62, lFs: -104, lFf: 20, lBt: 54, lBs: -88, lBf: 10, aFu: 46, aFf: -62, aBu: 40, aBf: -56 }) },
+      { t: 0.66, p: pose({ hy: 19.4, torso: 7, head: -9, lFt: 62, lFs: -96, lFf: 12, lBt: 54, lBs: -88, lBf: 10, aFu: 44, aFf: -60, aBu: 39, aBf: -55 }) },
+      { t: 0.86, p: pose({ hy: 19.4, torso: 8, head: 9, lFt: 62, lFs: -96, lFf: 12, lBt: 54, lBs: -88, lBf: 10, aFu: 45, aFf: -61, aBu: 39, aBf: -55 }) },
+      { t: 1.00, p: pose({ hy: 20, torso: 9, head: 4, lFt: 62, lFs: -96, lFf: 12, lBt: 54, lBs: -88, lBf: 10, aFu: 46, aFf: -62, aBu: 40, aBf: -56 }) },
+    ],
+  },
+
+  // puxando as algemas contra o cano — o QTE de escapar
+  strainCuffs: {
+    dur: 0.44, loop: true, ease: 'linear',
+    keys: [
+      { t: 0.00, p: pose({ hy: 20, torso: -6, head: 10, lFt: 76, lFs: -26, lFf: 6, lBt: 67, lBs: -22, lBf: 6, aFu: -158, aFf: 12, aBu: -163, aBf: 10 }) },
+      { t: 0.45, p: pose({ hy: 17, torso: -16, head: -2, lFt: 66, lFs: -44, lFf: 6, lBt: 58, lBs: -40, lBf: 6, aFu: -150, aFf: 6, aBu: -155, aBf: 5 }) },
+      { t: 1.00, p: pose({ hy: 20, torso: -6, head: 10, lFt: 76, lFs: -26, lFf: 6, lBt: 67, lBs: -22, lBf: 6, aFu: -158, aFf: 12, aBu: -163, aBf: 10 }) },
+    ],
+  },
+
+  // parado olhando para tras — reservado para os sustos
+  lookback: {
+    dur: 1.60, loop: false,
+    keys: [
+      { t: 0.00, p: pose({}) },
+      { t: 0.35, p: pose({ head: -26, torso: -6 }) },
+      { t: 0.70, p: pose({ head: -30, torso: -8 }) },
+      { t: 1.00, p: pose({}) },
+    ],
+  },
+
+  // -----------------------------------------------------------------------
+  // CAPITULO 2
+  // -----------------------------------------------------------------------
+
+  // Golpe de porrete. Nao e soco: e PESADO. O braco sobe por cima do ombro
+  // (aFu negativo grande leva a mao para tras e para o alto), o corpo inteiro
+  // vai junto, e depois do impacto ha um quadro parado — sem ele a ripa volta
+  // deslizando e o golpe nao pesa nada. O tempo de recolhimento e longo de
+  // proposito: e o que impede o jogador de martelar o botao.
+  swing1: {
+    dur: 0.62, loop: false, ease: 'linear',
+    keys: [
+      { t: 0.00, p: pose({ aFu: -18, aFf: 26 }) },
+      { t: 0.26, p: pose({ torso: 10, head: -4, hx: -2.5, aFu: -128, aFf: -26, aBu: -20, aBf: 4, lFt: -8, lBt: 8 }) },
+      { t: 0.34, p: pose({ torso: 12, head: -5, hx: -3, aFu: -134, aFf: -28, aBu: -22, aBf: 4, lFt: -9, lBt: 9 }) },
+      { t: 0.54, p: pose({ torso: -16, head: 9, hx: 4, aFu: 58, aFf: 12, aBu: -14, aBf: -30, lFt: 12, lBt: -12 }) },
+      { t: 0.68, p: pose({ torso: -15, head: 9, hx: 3.6, aFu: 56, aFf: 13, aBu: -13, aBf: -28, lFt: 11, lBt: -11 }) },
+      { t: 1.00, p: pose({ aFu: -18, aFf: 26 }) },
+    ],
+    events: [{ t: 0.36, ev: 'whoosh' }, { t: 0.54, ev: 'clubhit' }],
+  },
+
+  // Segundo golpe: volta de baixo para cima, do outro lado. Mais curto,
+  // porque ele ja esta com o braco em movimento.
+  swing2: {
+    dur: 0.70, loop: false, ease: 'linear',
+    keys: [
+      { t: 0.00, p: pose({ aFu: -18, aFf: 26 }) },
+      { t: 0.22, p: pose({ torso: -12, head: 6, hx: 3, aFu: 92, aFf: 46, aBu: 16, aBf: -10, lFt: 10, lBt: -8 }) },
+      { t: 0.48, p: pose({ torso: 12, head: -6, hx: -3, aFu: -74, aFf: -40, aBu: -18, aBf: 6, lFt: -10, lBt: 10 }) },
+      { t: 0.60, p: pose({ torso: 11, head: -5, hx: -2.6, aFu: -70, aFf: -38, aBu: -17, aBf: 6, lFt: -9, lBt: 9 }) },
+      { t: 1.00, p: pose({ aFu: -18, aFf: 26 }) },
+    ],
+    events: [{ t: 0.28, ev: 'whoosh' }, { t: 0.48, ev: 'clubhit' }],
+  },
+
+  // Chute frontal do Credor. O tronco recua para contrapeso e a perna da
+  // frente estala para fora antes de voltar ao chao.
+  kick: {
+    dur: 0.62, loop: false, ease: 'linear',
+    keys: [
+      { t: 0.00, p: pose({ torso: 5, head: -4, lFt: -12, lFs: -22, lBt: 8, lBs: -16, aFu: 18, aFf: -26, aBu: -18, aBf: 24 }) },
+      { t: 0.24, p: pose({ torso: 16, head: -9, hx: -2, hy: -2, lFt: 54, lFs: -42, lFf: 8, lBt: -18, lBs: -28, lBf: -18, aFu: -34, aFf: 38, aBu: 30, aBf: -34 }) },
+      { t: 0.48, p: pose({ torso: 12, head: -6, hx: -1, hy: -1, lFt: 88, lFs: -6, lFf: 5, lBt: -24, lBs: -34, lBf: -20, aFu: -42, aFf: 44, aBu: 38, aBf: -38 }) },
+      { t: 0.72, p: pose({ torso: 7, head: -3, lFt: 30, lFs: -32, lBt: -10, lBs: -22, aFu: -20, aFf: 28, aBu: 18, aBf: -24 }) },
+      { t: 1.00, p: pose({}) },
+    ],
+  },
+
+  // Levar uma pancada: o corpo recua, a cabeca vai junto, e ele volta.
+  hurt: {
+    dur: 0.44, loop: false, ease: 'linear',
+    keys: [
+      { t: 0.00, p: pose({}) },
+      { t: 0.22, p: pose({ torso: 18, head: -12, hx: -3.5, hy: -1, aFu: -30, aFf: 30, aBu: -26, aBf: 26, lFt: -14, lBt: 12 }) },
+      { t: 0.46, p: pose({ torso: 12, head: -6, hx: -2, aFu: -18, aFf: 22, aBu: -14, aBf: 20 }) },
+      { t: 1.00, p: pose({}) },
+    ],
+  },
+
+  // O Credor prende David pelo casaco com os dois bracos. A pose pulsa
+  // pouco: o movimento vem da luta entre os corpos, nao de uma caminhada.
+  grab: {
+    dur: 0.72, loop: true, ease: 'linear',
+    keys: [
+      { t: 0.00, p: pose({ torso: -13, head: 9, hx: 4, aFu: 74, aFf: -86, aBu: 68, aBf: -82, lFt: 14, lBt: -12 }) },
+      { t: 0.48, p: pose({ torso: -17, head: 12, hx: 6, hy: -1, aFu: 80, aFf: -92, aBu: 74, aBf: -88, lFt: 17, lBt: -15 }) },
+      { t: 1.00, p: pose({ torso: -13, head: 9, hx: 4, aFu: 74, aFf: -86, aBu: 68, aBf: -82, lFt: 14, lBt: -12 }) },
+    ],
+  },
+
+  // David suspenso pelo colarinho, tentando afastar a serra. Ferido ou
+  // inteiro usa a mesma base; o jogo reduz a altura quando a vida esta baixa.
+  struggle: {
+    dur: 0.58, loop: true, ease: 'linear',
+    keys: [
+      { t: 0.00, p: pose({ hy: -5, torso: 18, head: -14, hx: -2, aFu: -68, aFf: 78, aBu: -74, aBf: 84, lFt: 30, lFs: -44, lBt: -24, lBs: -34 }) },
+      { t: 0.50, p: pose({ hy: -8, torso: 24, head: -19, hx: -4, aFu: -76, aFf: 86, aBu: -82, aBf: 90, lFt: 38, lFs: -50, lBt: -31, lBs: -42 }) },
+      { t: 1.00, p: pose({ hy: -5, torso: 18, head: -14, hx: -2, aFu: -68, aFf: 78, aBu: -74, aBf: 84, lFt: 30, lFs: -44, lBt: -24, lBs: -34 }) },
+    ],
+  },
+
+  // Falha do agarrão: o Credor inclina o peso e traz a motosserra para o
+  // centro. O enquadramento e o sangue completam o gesto sem mostrar gore
+  // anatômico impossível de ler na escala lateral.
+  chainsawFinish: {
+    dur: 1.15, loop: false, ease: 'linear',
+    keys: [
+      { t: 0.00, p: pose({ torso: -12, head: 9, aFu: 72, aFf: -84, aBu: 68, aBf: -80 }) },
+      { t: 0.38, p: pose({ torso: 8, head: -9, hx: -3, aFu: 24, aFf: -42, aBu: 20, aBf: -38 }) },
+      { t: 0.72, p: pose({ torso: 24, head: -18, hx: -7, aFu: -24, aFf: 24, aBu: -30, aBf: 28, lFt: 18, lBt: -16 }) },
+      { t: 1.00, p: pose({ torso: 28, head: -20, hx: -8, aFu: -30, aFf: 28, aBu: -34, aBf: 30, lFt: 20, lBt: -18 }) },
+    ],
+  },
+
+  // Cair. Usado pelos inimigos quando terminam; o corpo dobra para a frente
+  // e desce, e depois o desenho desaparece.
+  collapse: {
+    dur: 1.05, loop: false,
+    keys: [
+      { t: 0.00, p: pose({}) },
+      { t: 0.30, p: pose({ hy: 10, torso: -22, head: 12, lFt: 40, lFs: -76, lFf: 6, lBt: 34, lBs: -70, lBf: 6, aFu: -24, aFf: 30, aBu: -20, aBf: 26 }) },
+      { t: 0.70, p: pose({ hy: 22, torso: -52, head: 14, lFt: 62, lFs: -104, lFf: 8, lBt: 56, lBs: -98, lBf: 8, aFu: 40, aFf: -20, aBu: 34, aBf: -18 }) },
+      { t: 1.00, p: pose({ hy: 26, torso: -68, head: 14, lFt: 68, lFs: -112, lFf: 8, lBt: 62, lBs: -106, lBf: 8, aFu: 62, aFf: -8, aBu: 56, aBf: -8 }) },
+    ],
+  },
+
+  // OS EMPILHADOS: corpo dobrado sobre si mesmo, andando de quatro. E o
+  // mesmo esqueleto — o tronco quase deitado e os bracos viram as patas da
+  // frente. Nada aqui e uma peca nova: e um homem usado errado, que e
+  // exatamente o que a coisa e.
+  crawl: {
+    dur: 0.94, loop: true, ease: 'linear',
+    keys: [
+      { t: 0.00, p: pose({ hy: 16, torso: -64, head: 14, aFu: 76, aFf: -14, aBu: 26, aBf: -12, lFt: 46, lFs: -86, lFf: -8, lBt: 6, lBs: -62, lBf: -8 }) },
+      { t: 0.25, p: pose({ hy: 13, torso: -66, head: 14, aFu: 52, aFf: -13, aBu: 52, aBf: -13, lFt: 26, lFs: -74, lFf: -8, lBt: 26, lBs: -74, lBf: -8 }) },
+      { t: 0.50, p: pose({ hy: 16, torso: -64, head: 14, aFu: 26, aFf: -12, aBu: 76, aBf: -14, lFt: 6, lFs: -62, lFf: -8, lBt: 46, lBs: -86, lBf: -8 }) },
+      { t: 0.75, p: pose({ hy: 13, torso: -66, head: 14, aFu: 52, aFf: -13, aBu: 52, aBf: -13, lFt: 26, lFs: -74, lFf: -8, lBt: 26, lBs: -74, lBf: -8 }) },
+      { t: 1.00, p: pose({ hy: 16, torso: -64, head: 14, aFu: 76, aFf: -14, aBu: 26, aBf: -12, lFt: 46, lFs: -86, lFf: -8, lBt: 6, lBs: -62, lBf: -8 }) },
+    ],
+    events: [{ t: 0.04, ev: 'crawlstep' }, { t: 0.54, ev: 'crawlstep' }],
+  },
+
+  // OS SEM-ROSTO: andam. So isso. Passada curta, braco pendurado, sem
+  // nenhuma pressa — e a falta de pressa que assusta.
+  shamble: {
+    dur: 1.30, loop: true, ease: 'linear',
+    keys: [
+      { t: 0.00, p: pose({ torso: -2, head: -4, lFt: 13, lFs: -6, lFf: 4, lBt: -12, lBs: -16, lBf: -12, aFu: -8, aFf: 5, aBu: 8, aBf: 6 }) },
+      { t: 0.25, p: pose({ torso: -2, head: -4, hy: -0.8, lFt: 4, lFs: -4, lFf: 0, lBt: 2, lBs: -30, lBf: -8, aFu: -3, aFf: 5, aBu: 3, aBf: 6 }) },
+      { t: 0.50, p: pose({ torso: -2, head: -4, lFt: -12, lFs: -16, lFf: -12, lBt: 13, lBs: -6, lBf: 4, aFu: 8, aFf: 6, aBu: -8, aBf: 5 }) },
+      { t: 0.75, p: pose({ torso: -2, head: -4, hy: -0.8, lFt: 2, lFs: -30, lFf: -8, lBt: 4, lBs: -4, lBf: 0, aFu: 3, aFf: 6, aBu: -3, aBf: 5 }) },
+      { t: 1.00, p: pose({ torso: -2, head: -4, lFt: 13, lFs: -6, lFf: 4, lBt: -12, lBs: -16, lBf: -12, aFu: -8, aFf: 5, aBu: 8, aBf: 6 }) },
+    ],
+    events: [{ t: 0.03, ev: 'softstep' }, { t: 0.53, ev: 'softstep' }],
+  },
+
+  // O CREDOR: passada longa e lenta, e o braco da frente esticado para
+  // baixo, arrastando o cano. O cano nunca sai do chao — e o som dele que
+  // chega antes.
+  dragWalk: {
+    dur: 1.12, loop: true, ease: 'linear',
+    keys: [
+      { t: 0.00, p: pose({ torso: -6, head: 4, lFt: 28, lFs: -8, lFf: 8, lBt: -24, lBs: -26, lBf: -22, aFu: -4, aFf: 3, aBu: 14, aBf: 10 }) },
+      { t: 0.25, p: pose({ torso: -6, head: 4, hy: -1.4, lFt: 8, lFs: -5, lFf: 0, lBt: 4, lBs: -50, lBf: -12, aFu: -3, aFf: 3, aBu: 5, aBf: 11 }) },
+      { t: 0.50, p: pose({ torso: -6, head: 4, lFt: -24, lFs: -26, lFf: -22, lBt: 28, lBs: -8, lBf: 8, aFu: -2, aFf: 3, aBu: -14, aBf: 10 }) },
+      { t: 0.75, p: pose({ torso: -6, head: 4, hy: -1.4, lFt: 4, lFs: -50, lFf: -12, lBt: 8, lBs: -5, lBf: 0, aFu: -3, aFf: 3, aBu: -5, aBf: 11 }) },
+      { t: 1.00, p: pose({ torso: -6, head: 4, lFt: 28, lFs: -8, lFf: 8, lBt: -24, lBs: -26, lBf: -22, aFu: -4, aFf: 3, aBu: 14, aBf: 10 }) },
+    ],
+    events: [{ t: 0.02, ev: 'heavystep' }, { t: 0.52, ev: 'heavystep' }],
+  },
+
+  // Ferimentos nao sao apenas numeros. Uma perna atingida encurta a passada,
+  // um corpo quase morto tenta compensar com o ombro e a agressividade aparece
+  // no movimento antes de aparecer na velocidade.
+  limp: {
+    dur: 0.92, loop: true, ease: 'linear',
+    keys: [
+      { t: 0.00, p: pose({ torso: -10, head: 7, hy: 2, lFt: 24, lFs: -18, lFf: 5, lBt: -8, lBs: -34, lBf: -18, aFu: -18, aFf: 22, aBu: 12, aBf: 18 }) },
+      { t: 0.28, p: pose({ torso: -15, head: 9, hy: 5, lFt: 8, lFs: -12, lFf: 0, lBt: 4, lBs: -66, lBf: -14, aFu: -8, aFf: 18, aBu: 5, aBf: 20 }) },
+      { t: 0.55, p: pose({ torso: -7, head: 5, hy: 1, lFt: -10, lFs: -22, lFf: -10, lBt: 17, lBs: -12, lBf: 4, aFu: 14, aFf: 20, aBu: -12, aBf: 18 }) },
+      { t: 0.78, p: pose({ torso: -14, head: 8, hy: 6, lFt: 2, lFs: -58, lFf: -12, lBt: 7, lBs: -9, lBf: 0, aFu: 5, aFf: 18, aBu: -6, aBf: 20 }) },
+      { t: 1.00, p: pose({ torso: -10, head: 7, hy: 2, lFt: 24, lFs: -18, lFf: 5, lBt: -8, lBs: -34, lBf: -18, aFu: -18, aFf: 22, aBu: 12, aBf: 18 }) },
+    ],
+    events: [{ t: 0.03, ev: 'softstep' }, { t: 0.58, ev: 'dragstep' }],
+  },
+
+  woundedCrawl: {
+    dur: 0.68, loop: true, ease: 'linear',
+    keys: [
+      { t: 0.00, p: pose({ hy: 18, torso: -70, head: 14, aFu: 84, aFf: -22, aBu: 18, aBf: -8, lFt: 52, lFs: -92, lBt: -2, lBs: -48 }) },
+      { t: 0.45, p: pose({ hy: 12, torso: -74, head: 14, aFu: 34, aFf: -8, aBu: 70, aBf: -20, lFt: 8, lFs: -58, lBt: 42, lBs: -86 }) },
+      { t: 1.00, p: pose({ hy: 18, torso: -70, head: 14, aFu: 84, aFf: -22, aBu: 18, aBf: -8, lFt: 52, lFs: -92, lBt: -2, lBs: -48 }) },
+    ],
+    events: [{ t: 0.05, ev: 'crawlstep' }, { t: 0.52, ev: 'crawlstep' }],
+  },
+
+  frenzyRun: {
+    dur: 0.36, loop: true, ease: 'linear',
+    keys: [
+      { t: 0.00, p: pose({ torso: -25, head: 14, hx: 4, hy: -1, lFt: 52, lFs: -30, lBt: -46, lBs: -62, aFu: 62, aFf: -52, aBu: 54, aBf: -48 }) },
+      { t: 0.50, p: pose({ torso: -28, head: 14, hx: 6, hy: -4, lFt: -45, lFs: -60, lBt: 50, lBs: -28, aFu: 72, aFf: -60, aBu: 66, aBf: -56 }) },
+      { t: 1.00, p: pose({ torso: -25, head: 14, hx: 4, hy: -1, lFt: 52, lFs: -30, lBt: -46, lBs: -62, aFu: 62, aFf: -52, aBu: 54, aBf: -48 }) },
+    ],
+    events: [{ t: 0.03, ev: 'heavystep' }, { t: 0.53, ev: 'heavystep' }],
+  },
+
+  frenzyGrab: {
+    dur: 0.46, loop: true, ease: 'linear',
+    keys: [
+      { t: 0.00, p: pose({ torso: -22, head: 14, hx: 6, aFu: 84, aFf: -92, aBu: 78, aBf: -88, lFt: 20, lBt: -18 }) },
+      { t: 0.50, p: pose({ torso: -29, head: 14, hx: 9, hy: -2, aFu: 92, aFf: -102, aBu: 86, aBf: -98, lFt: 25, lBt: -22 }) },
+      { t: 1.00, p: pose({ torso: -22, head: 14, hx: 6, aFu: 84, aFf: -92, aBu: 78, aBf: -88, lFt: 20, lBt: -18 }) },
+    ],
+  },
+
+  woundedIdle: {
+    dur: 2.1, loop: true,
+    keys: [
+      { t: 0.00, p: pose({ hy: 3, torso: -14, head: 9, aFu: 34, aFf: -54, aBu: -6, aBf: 18, lFt: 8, lBt: -5 }) },
+      { t: 0.50, p: pose({ hy: 5, torso: -18, head: 11, aFu: 38, aFf: -58, aBu: -8, aBf: 21, lFt: 10, lBt: -6 }) },
+      { t: 1.00, p: pose({ hy: 3, torso: -14, head: 9, aFu: 34, aFf: -54, aBu: -6, aBf: 18, lFt: 8, lBt: -5 }) },
+    ],
+  },
+
+  gateSlide: {
+    dur: 1.15, loop: false, ease: 'linear',
+    keys: [
+      { t: 0.00, p: pose({ torso: -18, head: 10, lFt: 28, lBt: -22, aFu: 22, aFf: -42 }) },
+      { t: 0.28, p: pose({ hy: 13, torso: -54, head: 14, lFt: 70, lFs: -106, lBt: 58, lBs: -96, aFu: 74, aFf: -50, aBu: 62, aBf: -42 }) },
+      { t: 0.72, p: pose({ hy: 21, torso: -76, head: 14, hx: 7, lFt: 82, lFs: -118, lBt: 76, lBs: -112, aFu: 92, aFf: -72, aBu: 84, aBf: -66 }) },
+      { t: 1.00, p: pose({ hy: 16, torso: -58, head: 14, hx: 12, lFt: 62, lFs: -96, lBt: 54, lBs: -90, aFu: 78, aFf: -58, aBu: 70, aBf: -54 }) },
+    ],
+  },
+
+  sawGate: {
+    dur: 0.58, loop: true, ease: 'linear',
+    keys: [
+      { t: 0.00, p: pose({ torso: -22, head: 12, hx: 4, aFu: 62, aFf: -82, aBu: 54, aBf: -74, lFt: 16, lBt: -14 }) },
+      { t: 0.50, p: pose({ torso: -30, head: 14, hx: 8, hy: -2, aFu: 78, aFf: -96, aBu: 70, aBf: -88, lFt: 22, lBt: -20 }) },
+      { t: 1.00, p: pose({ torso: -22, head: 12, hx: 4, aFu: 62, aFf: -82, aBu: 54, aBf: -74, lFt: 16, lBt: -14 }) },
+    ],
+  },
+
+  sawBarrier: {
+    dur: 0.82, loop: false, ease: 'linear',
+    keys: [
+      { t: 0.00, p: pose({ torso: -20, head: 11, aFu: 58, aFf: -76, aBu: 50, aBf: -70 }) },
+      { t: 0.38, p: pose({ torso: 18, head: -12, hx: -6, aFu: -34, aFf: 44, aBu: -28, aBf: 38, lFt: -18, lBt: 16 }) },
+      { t: 0.58, p: pose({ torso: -34, head: 14, hx: 10, aFu: 92, aFf: -104, aBu: 82, aBf: -96, lFt: 28, lBt: -24 }) },
+      { t: 1.00, p: pose({ torso: -12, head: 8 }) },
+    ],
+  },
+
+  coatGrab: {
+    dur: 0.52, loop: true, ease: 'linear',
+    keys: [
+      { t: 0.00, p: pose({ torso: -18, head: 12, hx: 5, aFu: 80, aFf: -96, aBu: 72, aBf: -90, lFt: 16, lBt: -14 }) },
+      { t: 0.50, p: pose({ torso: -26, head: 14, hx: 9, aFu: 90, aFf: -106, aBu: 82, aBf: -100, lFt: 22, lBt: -19 }) },
+      { t: 1.00, p: pose({ torso: -18, head: 12, hx: 5, aFu: 80, aFf: -96, aBu: 72, aBf: -90, lFt: 16, lBt: -14 }) },
+    ],
+  },
+
+  coatStruggle: {
+    dur: 0.48, loop: true, ease: 'linear',
+    keys: [
+      { t: 0.00, p: pose({ torso: 24, head: -14, hx: -5, aFu: -68, aFf: 72, aBu: -60, aBf: 66, lFt: 34, lFs: -54, lBt: -26, lBs: -40 }) },
+      { t: 0.50, p: pose({ torso: 32, head: -20, hx: -9, hy: -3, aFu: -80, aFf: 84, aBu: -74, aBf: 78, lFt: 42, lFs: -60, lBt: -34, lBs: -48 }) },
+      { t: 1.00, p: pose({ torso: 24, head: -14, hx: -5, aFu: -68, aFf: 72, aBu: -60, aBf: 66, lFt: 34, lFs: -54, lBt: -26, lBs: -40 }) },
+    ],
+  },
+
+  chainCaught: {
+    dur: 0.42, loop: true, ease: 'linear',
+    keys: [
+      { t: 0.00, p: pose({ torso: 20, head: -12, hx: -5, aFu: -48, aFf: 64, aBu: -42, aBf: 58, lFt: -18, lBt: 16 }) },
+      { t: 0.50, p: pose({ torso: 29, head: -18, hx: -9, hy: -2, aFu: -60, aFf: 76, aBu: -54, aBf: 70, lFt: -24, lBt: 22 }) },
+      { t: 1.00, p: pose({ torso: 20, head: -12, hx: -5, aFu: -48, aFf: 64, aBu: -42, aBf: 58, lFt: -18, lBt: 16 }) },
+    ],
+  },
+
+  chainRipFree: {
+    dur: 1.05, loop: false, ease: 'linear',
+    keys: [
+      { t: 0.00, p: pose({ torso: 24, head: -14, hx: -6, aFu: -52, aFf: 66, aBu: -46, aBf: 62 }) },
+      { t: 0.34, p: pose({ torso: 36, head: -21, hx: -12, aFu: -72, aFf: 86, aBu: -66, aBf: 80, lFt: -28, lBt: 25 }) },
+      { t: 0.62, p: pose({ torso: -38, head: 14, hx: 12, aFu: 104, aFf: -112, aBu: 92, aBf: -104, lFt: 34, lBt: -30 }) },
+      { t: 1.00, p: pose({ torso: -10, head: 7 }) },
+    ],
+  },
+
+  // David arranca o palete do carrinho e o firma contra o golpe. Sao poses
+  // largas, feitas para que a acao continue legivel mesmo na chuva e entre
+  // as faiscas da serra.
+  palletGrab: {
+    dur: 0.68, loop: false, ease: 'linear',
+    keys: [
+      { t: 0.00, p: pose({ torso: -8, head: 6, aFu: 24, aFf: -38, aBu: 18, aBf: -32 }) },
+      { t: 0.46, p: pose({ hy: 10, torso: -55, head: 15, hx: 10, aFu: 88, aFf: -104, aBu: 78, aBf: -96, lFt: 52, lFs: -82, lBt: 38, lBs: -68 }) },
+      { t: 1.00, p: pose({ hy: 7, torso: -36, head: 13, hx: 8, aFu: 72, aFf: -92, aBu: 66, aBf: -86, lFt: 38, lFs: -64, lBt: -24, lBs: -46 }) },
+    ],
+  },
+
+  palletBrace: {
+    dur: 0.40, loop: true, ease: 'linear',
+    keys: [
+      { t: 0.00, p: pose({ hy: 6, torso: -34, head: 12, hx: 7, aFu: 76, aFf: -96, aBu: 68, aBf: -90, lFt: 42, lFs: -70, lBt: -28, lBs: -48 }) },
+      { t: 0.50, p: pose({ hy: 9, torso: -45, head: 15, hx: 11, aFu: 88, aFf: -106, aBu: 80, aBf: -100, lFt: 50, lFs: -78, lBt: -35, lBs: -55 }) },
+      { t: 1.00, p: pose({ hy: 6, torso: -34, head: 12, hx: 7, aFu: 76, aFf: -96, aBu: 68, aBf: -90, lFt: 42, lFs: -70, lBt: -28, lBs: -48 }) },
+    ],
+  },
+
+  gateDuck: {
+    dur: 0.90, loop: false, ease: 'linear',
+    keys: [
+      { t: 0.00, p: pose({ torso: -12, head: 8, lFt: 18, lBt: -14 }) },
+      { t: 0.34, p: pose({ hy: 17, torso: -70, head: 14, hx: 12, lFt: 78, lFs: -118, lBt: 66, lBs: -108, aFu: 62, aFf: -88, aBu: 54, aBf: -82 }) },
+      { t: 0.70, p: pose({ hy: 24, torso: -88, head: 14, hx: 18, lFt: 94, lFs: -132, lBt: 82, lBs: -124, aFu: 88, aFf: -112, aBu: 80, aBf: -106 }) },
+      { t: 1.00, p: pose({ hy: 12, torso: -38, head: 13, lFt: 48, lFs: -78, lBt: 36, lBs: -68 }) },
+    ],
+  },
+
+  sawPallet: {
+    dur: 0.34, loop: true, ease: 'linear',
+    keys: [
+      { t: 0.00, p: pose({ torso: -28, head: 13, hx: 7, aFu: 78, aFf: -98, aBu: 70, aBf: -92, lFt: 28, lBt: -24 }) },
+      { t: 0.50, p: pose({ torso: -42, head: 15, hx: 12, hy: -3, aFu: 96, aFf: -114, aBu: 88, aBf: -108, lFt: 38, lBt: -32 }) },
+      { t: 1.00, p: pose({ torso: -28, head: 13, hx: 7, aFu: 78, aFf: -98, aBu: 70, aBf: -92, lFt: 28, lBt: -24 }) },
+    ],
+  },
+
+  gateLift: {
+    dur: 0.66, loop: true, ease: 'linear',
+    keys: [
+      { t: 0.00, p: pose({ hy: 12, torso: -58, head: 14, hx: 10, aFu: 116, aFf: -130, aBu: 108, aBf: -124, lFt: 54, lFs: -88, lBt: 44, lBs: -78 }) },
+      { t: 0.50, p: pose({ hy: 8, torso: -42, head: 13, hx: 8, aFu: 126, aFf: -138, aBu: 118, aBf: -132, lFt: 44, lFs: -72, lBt: 34, lBs: -64 }) },
+      { t: 1.00, p: pose({ hy: 12, torso: -58, head: 14, hx: 10, aFu: 116, aFf: -130, aBu: 108, aBf: -124, lFt: 54, lFs: -88, lBt: 44, lBs: -78 }) },
+    ],
+  },
+
+  finisherStruggle: {
+    dur: 0.46, loop: true, ease: 'linear',
+    keys: [
+      { t: 0.00, p: pose({ torso: 17, head: -12, aFu: -62, aFf: 76, aBu: -56, aBf: 70, lFt: 22, lBt: -18 }) },
+      { t: 0.50, p: pose({ torso: 25, head: -17, hx: -4, aFu: -72, aFf: 86, aBu: -66, aBf: 80, lFt: 28, lBt: -24 }) },
+      { t: 1.00, p: pose({ torso: 17, head: -12, aFu: -62, aFf: 76, aBu: -56, aBf: 70, lFt: 22, lBt: -18 }) },
+    ],
+  },
+
+  finisherWall: { dur: 0.92, loop: false, ease: 'linear', keys: [
+    { t: 0, p: pose({ torso: 18, head: -10, aFu: -54, aFf: 66 }) },
+    { t: .34, p: pose({ torso: -28, head: 14, hx: 9, aFu: 92, aFf: -82, aBu: 68, aBf: -72 }) },
+    { t: .62, p: pose({ torso: 24, head: -16, hx: -7, aFu: -42, aFf: 56, lFt: -20, lBt: 18 }) },
+    { t: 1, p: pose({ torso: -8, head: 5 }) },
+  ] },
+  finisherRack: { dur: 0.92, loop: false, ease: 'linear', keys: [
+    { t: 0, p: pose({ torso: -18, head: 10, aFu: 68, aFf: -74, aBu: 54, aBf: -64 }) },
+    { t: .38, p: pose({ torso: 28, head: -18, hx: -8, aFu: -74, aFf: 82, aBu: -66, aBf: 76 }) },
+    { t: .64, p: pose({ torso: -34, head: 14, hx: 11, aFu: 104, aFf: -98, aBu: 90, aBf: -90, lFt: 28, lBt: -24 }) },
+    { t: 1, p: pose({ torso: -9, head: 6 }) },
+  ] },
+  finisherPipe: { dur: 0.92, loop: false, ease: 'linear', keys: [
+    { t: 0, p: pose({ torso: 14, head: -8, aFu: -46, aFf: 62, aBu: -40, aBf: 58 }) },
+    { t: .34, p: pose({ torso: -30, head: 14, hx: 10, aFu: 96, aFf: -104, aBu: 84, aBf: -96 }) },
+    { t: .58, p: pose({ torso: 34, head: -20, hx: -11, aFu: -88, aFf: 96, aBu: -76, aBf: 88 }) },
+    { t: 1, p: pose({ torso: -8, head: 5 }) },
+  ] },
+  finisherValve: { dur: 0.92, loop: false, ease: 'linear', keys: [
+    { t: 0, p: pose({ torso: -12, head: 8, aFu: 50, aFf: -66, aBu: 42, aBf: -60 }) },
+    { t: .40, p: pose({ torso: 30, head: -18, hx: -9, aFu: -82, aFf: 90, aBu: -74, aBf: 84 }) },
+    { t: .66, p: pose({ torso: -26, head: 14, hx: 8, aFu: 88, aFf: -92, aBu: 78, aBf: -86 }) },
+    { t: 1, p: pose({ torso: -8, head: 5 }) },
+  ] },
+  finisherFail: { dur: 0.92, loop: false, ease: 'linear', keys: [
+    { t: 0, p: pose({ torso: 18, head: -12, aFu: -58, aFf: 70, aBu: -52, aBf: 66 }) },
+    { t: .34, p: pose({ torso: 42, head: -24, hx: -12, hy: 5, aFu: -92, aFf: 102, aBu: -84, aBf: 96 }) },
+    { t: .72, p: pose({ hy: 18, torso: -58, head: 14, lFt: 64, lFs: -102, lBt: 56, lBs: -96 }) },
+    { t: 1, p: pose({ hy: 20, torso: -62, head: 14 }) },
+  ] },
+  finisherVictimWall: { dur: 0.92, loop: false, ease: 'linear', keys: [
+    { t: 0, p: pose({ torso: -18, head: 12, aFu: 72, aFf: -86, aBu: 66, aBf: -80 }) },
+    { t: .46, p: pose({ torso: 48, head: -28, hx: -15, aFu: -94, aFf: 104, aBu: -86, aBf: 98, lFt: -32, lBt: 28 }) },
+    { t: 1, p: pose({ hy: 24, torso: -72, head: 14, lFt: 72, lFs: -112, lBt: 64, lBs: -106 }) },
+  ] },
+  finisherVictimRack: { dur: 0.92, loop: false, ease: 'linear', keys: [
+    { t: 0, p: pose({ torso: -20, head: 12, aFu: 74, aFf: -88, aBu: 66, aBf: -82 }) },
+    { t: .48, p: pose({ torso: -54, head: 14, hx: 16, hy: 8, aFu: 108, aFf: -116, aBu: 98, aBf: -110 }) },
+    { t: 1, p: pose({ hy: 25, torso: -78, head: 14, lFt: 74, lFs: -118, lBt: 68, lBs: -112 }) },
+  ] },
+  finisherVictimPipe: { dur: 0.92, loop: false, ease: 'linear', keys: [
+    { t: 0, p: pose({ torso: -18, head: 11, aFu: 70, aFf: -84, aBu: 64, aBf: -78 }) },
+    { t: .44, p: pose({ torso: 38, head: -26, hx: -12, hy: -5, aFu: -88, aFf: 98, aBu: -80, aBf: 92 }) },
+    { t: 1, p: pose({ hy: 26, torso: -76, head: 14, lFt: 70, lFs: -114, lBt: 64, lBs: -108 }) },
+  ] },
+  finisherVictimValve: { dur: 0.92, loop: false, ease: 'linear', keys: [
+    { t: 0, p: pose({ torso: -16, head: 10, aFu: 68, aFf: -82, aBu: 62, aBf: -76 }) },
+    { t: .46, p: pose({ torso: 44, head: -28, hx: -14, aFu: -94, aFf: 104, aBu: -86, aBf: 98 }) },
+    { t: 1, p: pose({ hy: 24, torso: -74, head: 14, lFt: 72, lFs: -116, lBt: 65, lBs: -108 }) },
+  ] },
+
+  // Escondido: agachado o mais baixo que o corpo permite, cabeca enfiada
+  // entre os ombros, bracos em volta dos joelhos. A respiracao e visivel —
+  // e ela que denuncia, se ele nao prender.
+  hide: {
+    dur: 3.4, loop: true,
+    keys: [
+      { t: 0.00, p: pose({ hy: 22, torso: -26, head: 14, lFt: 74, lFs: -122, lFf: -6, lBt: 66, lBs: -116, lBf: -6, aFu: 54, aFf: -84, aBu: 48, aBf: -80 }) },
+      { t: 0.50, p: pose({ hy: 21.2, torso: -29, head: 14, lFt: 74, lFs: -122, lFf: -6, lBt: 66, lBs: -116, lBf: -6, aFu: 55, aFf: -85, aBu: 49, aBf: -81 }) },
+      { t: 1.00, p: pose({ hy: 22, torso: -26, head: 14, lFt: 74, lFs: -122, lFf: -6, lBt: 66, lBs: -116, lBf: -6, aFu: 54, aFf: -84, aBu: 48, aBf: -80 }) },
+    ],
+  },
+
+  // Sentado numa cadeira, nao no chao: coxa na horizontal, canela na
+  // vertical. E a pose do Vigia, que continua no turno dele.
+  sitChair: {
+    dur: 5.2, loop: true,
+    keys: [
+      { t: 0.00, p: pose({ hy: 13, torso: -3, head: 3, lFt: 84, lFs: -86, lFf: 0, lBt: 78, lBs: -80, lBf: 0, aFu: 30, aFf: -58, aBu: 26, aBf: -54 }) },
+      { t: 0.50, p: pose({ hy: 12.2, torso: -5, head: 4, lFt: 84, lFs: -86, lFf: 0, lBt: 78, lBs: -80, lBf: 0, aFu: 31, aFf: -59, aBu: 27, aBf: -55 }) },
+      { t: 1.00, p: pose({ hy: 13, torso: -3, head: 3, lFt: 84, lFs: -86, lFf: 0, lBt: 78, lBs: -80, lBf: 0, aFu: 30, aFf: -58, aBu: 26, aBf: -54 }) },
+    ],
+  },
+
+  // A telefonista: sentada, trabalhando numa mesa telefonica. As maos
+  // plugam e desplugam cabos que nao estao ligados em lugar nenhum.
+  switchboard: {
+    dur: 4.6, loop: true,
+    keys: [
+      { t: 0.00, p: pose({ hy: 13, torso: -6, head: 4, lFt: 84, lFs: -86, lFf: 0, lBt: 78, lBs: -80, lBf: 0, aFu: 62, aFf: -46, aBu: 20, aBf: -96 }) },
+      { t: 0.22, p: pose({ hy: 13, torso: -8, head: 3, lFt: 84, lFs: -86, lFf: 0, lBt: 78, lBs: -80, lBf: 0, aFu: 40, aFf: -78, aBu: 20, aBf: -96 }) },
+      { t: 0.44, p: pose({ hy: 13, torso: -6, head: 5, lFt: 84, lFs: -86, lFf: 0, lBt: 78, lBs: -80, lBf: 0, aFu: 68, aFf: -34, aBu: 20, aBf: -96 }) },
+      { t: 0.70, p: pose({ hy: 13, torso: -7, head: 4, lFt: 84, lFs: -86, lFf: 0, lBt: 78, lBs: -80, lBf: 0, aFu: 46, aFf: -70, aBu: 20, aBf: -96 }) },
+      { t: 1.00, p: pose({ hy: 13, torso: -6, head: 4, lFt: 84, lFs: -86, lFf: 0, lBt: 78, lBs: -80, lBf: 0, aFu: 62, aFf: -46, aBu: 20, aBf: -96 }) },
+    ],
+  },
+};
+
+export const ANIM_NAMES = Object.keys(ANIM);
+
+// Interpolacao entre poses-chave.
+//
+// `ease: 'linear'` importa mais do que parece. Suavizar a entrada E a saida
+// de CADA pose faz o membro desacelerar em todo quadro-chave, e o resultado
+// e aquele balanco mole de boneco de pano. Andar, correr e socar usam
+// interpolacao reta: o movimento tem direcao e para onde o animador mandou,
+// nao onde a curva deixou. So parado e fumando usam curva suave.
+function sampleAnim(anim, tn, out) {
+  const keys = anim.keys;
+  let i = 0;
+  while (i < keys.length - 2 && keys[i + 1].t <= tn) i++;
+  const a = keys[i], b = keys[Math.min(i + 1, keys.length - 1)];
+  const span = Math.max(1e-6, b.t - a.t);
+  let k = clamp((tn - a.t) / span, 0, 1);
+  if (anim.ease !== 'linear') k = easeInOut(k);
+  for (const f of FIELDS) out[f] = lerp(a.p[f], b.p[f], k);
+  return out;
+}
+
+// ---------------------------------------------------------------------------
+// o boneco
+// ---------------------------------------------------------------------------
+
+const BW = 120, BH = 120, ORX = 60, ORY = 100;
+
+export class Detective {
+  constructor() {
+    if (!P.head) buildParts();
+    this.buf = makeBuffer(BW, BH);
+    this.rimBuf = makeBuffer(BW, BH);
+    // Buffer proprio para o tingimento. Sem ele, tingir e ter contorno de
+    // luz brigariam pelo mesmo buffer e um apagava o outro — e os inimigos
+    // ficavam sem a casquinha de luz que os separa do escuro.
+    this.tintBuf = null;
+    this.anim = 'idle';
+    this.time = 0;
+    this.speed = 1;
+    this.facing = 1;
+    this.flipT = 1;          // 1 = estavel; cai para 0 no meio da virada
+    this.pose = Object.assign({}, REST);
+    this.blendFrom = null;
+    this.blendT = 0;
+    this.blendDur = 0.14;
+    this.done = false;
+    this.onEvent = null;
+    // club/pipe ficam de fora do _clearProps: uma arma na mao nao pode
+    // sumir so porque a animacao mudou.
+    this.props = { cig: 'none', lighter: 'none', flame: 0, gun: 'holstered', club: 'none', pipe: 'none' };
+    // Mira: sobrescreve os angulos do braco da frente depois da animacao.
+    // Nao da para keyframar isto — o angulo vem do mouse do jogador.
+    this.aim = { on: false, angle: 0, recoil: 0 };
+    this.muzzleT = 0;
+    this._muzzleLocal = null;
+    this.rimColor = '#7fa5d8';
+    this.rimDX = -1; this.rimDY = -1;
+    // 0.55 deixava um contorno azul em volta do corpo inteiro e ele parecia
+    // vestido de neon. O contorno tem que sugerir a luz, nao desenhar o
+    // personagem.
+    this.rimAlpha = 0.30;
+    this.reflect = 0;
+    this.alpha = 1;
+    this.skirt = 0;      // inclinacao da aba do sobretudo (segue o corpo com atraso)
+    this._firedIdx = -1;
+    this._lightLocal = null;
+    this._cigWorld = null;
+    this.visible = true;
+    this.showSkeleton = false;
+    // Silhueta: se tiver cor, o corpo inteiro e pintado com ela e a luz de
+    // contorno some. E assim que a figura negra e feita — o mesmo boneco
+    // articulado, sem nenhuma informacao dentro.
+    this.silhouette = null;
+    // Troca de peças. Uma criatura só declara o que muda nela; tudo que
+    // faltar cai nas peças do detetive. Peça declarada como `null` não é
+    // desenhada — é assim que os inimigos ficam sem gola, sem aba de
+    // sobretudo e sem coldre.
+    this.parts = null;
+    // Recolorir o boneco inteiro: e assim que os NPCs e os Sem-Rosto usam o
+    // mesmo esqueleto sem virarem clones do detetive.
+    this.tint = null;
+    this.tintK = 0.72;
+    // Rosto alisado, sem tra o nenhum.
+    this.faceless = false;
+    this.scaleX = 1;
+    this.scaleY = 1;
+    // Manchas persistentes sobre o rig. No protagonista crescem com mortes
+    // proximas; nos inimigos aparecem a cada impacto.
+    this.blood = 0;
+    // Estado visual persistente de David. O rasgo acontece no mezanino da
+    // fuga e continua nos capitulos seguintes; injury vem diretamente da vida.
+    this.coatTorn = false;
+    this.injury = 0;
+  }
+
+  // Peça `n`, respeitando a troca da criatura.
+  _p(n) {
+    if (this.parts && Object.prototype.hasOwnProperty.call(this.parts, n)) return this.parts[n];
+    return P[n];
+  }
+
+  play(name, opts = {}) {
+    if (this.anim === name && !opts.restart) return;
+    if (!ANIM[name]) return;
+    this.blendFrom = Object.assign({}, this.pose);
+    this.blendT = 0;
+    this.blendDur = opts.blend === undefined ? 0.14 : opts.blend;
+    this.anim = name;
+    this.time = 0;
+    this.done = false;
+    this._firedIdx = -1;
+    if (name !== 'smoke') this._clearProps();
+  }
+
+  _clearProps() {
+    this.props.cig = 'none';
+    this.props.lighter = 'none';
+    this.props.flame = 0;
+  }
+
+  setFacing(f) {
+    if (f === this.facing || f === 0) return;
+    this.facing = f;
+    this.flipT = 0;   // dispara o achatamento horizontal da virada
+  }
+
+  update(dt) {
+    const a = ANIM[this.anim];
+    if (!a) return;
+    this.time += dt * this.speed;
+    let tn;
+    if (a.loop) {
+      tn = (this.time % a.dur) / a.dur;
+      // eventos ciclicos: detecta a volta do laco
+      if (a.events) {
+        const prev = ((this.time - dt * this.speed) % a.dur) / a.dur;
+        for (const e of a.events) {
+          const crossed = prev <= tn ? (e.t > prev && e.t <= tn)
+                                     : (e.t > prev || e.t <= tn);
+          if (crossed) this._fire(e.ev);
+        }
+      }
+    } else {
+      tn = clamp(this.time / a.dur, 0, 1);
+      if (a.events) {
+        for (let i = 0; i < a.events.length; i++) {
+          if (i > this._firedIdx && tn >= a.events[i].t) {
+            this._firedIdx = i;
+            this._fire(a.events[i].ev);
+          }
+        }
+      }
+      if (this.time >= a.dur) this.done = true;
+    }
+
+    sampleAnim(a, tn, this.pose);
+
+    // A mira entra DEPOIS da animacao e por cima dela: o corpo continua
+    // respirando e andando, so o braco da frente obedece ao mouse.
+    if (this.aim.on) {
+      const ang = this.aim.angle;
+      const kick = this.aim.recoil;
+      this.pose.aFu = 90 + ang - kick * 16;
+      this.pose.aFf = -7 - kick * 10;
+      this.pose.aBu = 20;
+      this.pose.aBf = -34;
+      this.pose.torso = -4 - kick * 5;
+      this.pose.head = clamp(ang * 0.32, -12, 14);
+      this.pose.hx = -kick * 2;
+    }
+    if (this.aim.recoil > 0) this.aim.recoil = Math.max(0, this.aim.recoil - dt * 6);
+    if (this.muzzleT > 0) this.muzzleT -= dt;
+
+    if (this.blendFrom && this.blendT < this.blendDur) {
+      this.blendT += dt;
+      const k = clamp(this.blendT / this.blendDur, 0, 1);
+      for (const f of FIELDS) this.pose[f] = lerp(this.blendFrom[f], this.pose[f], k);
+      if (k >= 1) this.blendFrom = null;
+    }
+
+    // A aba do sobretudo persegue a inclinacao do corpo com atraso, e
+    // balanca a cada passo. E o unico lugar do personagem onde "mole" e o
+    // efeito certo: pano nao acompanha osso.
+    const andando = this.anim === 'walk' || this.anim === 'run';
+    const alvo = -this.pose.torso * 0.45
+      + (andando ? Math.sin(this.time * (this.anim === 'run' ? 13 : 8)) * (this.anim === 'run' ? 6 : 3.4) : 0);
+    this.skirt = lerp(this.skirt, alvo, 1 - Math.exp(-9 * dt));
+
+    if (this.flipT < 1) this.flipT = Math.min(1, this.flipT + dt * 9);
+    if (this.props.flame > 0 && this.props.flame < 1) this.props.flame = Math.min(1, this.props.flame + dt * 5);
+  }
+
+  _fire(ev) {
+    // estado dos objetos na mao vive aqui; som e particula vao pro jogo
+    if (ev === 'cig_grab') this.props.cig = 'hand';
+    else if (ev === 'cig_mouth') this.props.cig = 'mouth';
+    else if (ev === 'lighter_grab') this.props.lighter = 'hand';
+    else if (ev === 'flame_on') this.props.flame = 0.01;
+    else if (ev === 'flame_off') { this.props.flame = 0; this.props.lighter = 'none'; }
+    else if (ev === 'cig_hand') this.props.cig = 'hand';
+    else if (ev === 'cig_toss') this.props.cig = 'none';
+    if (this.onEvent) this.onEvent(ev, this);
+  }
+
+  // Luzes que o personagem emite (isqueiro, cigarro aceso). Coordenadas
+  // ja em mundo, dado o pe em (x,y).
+  lights(x, y) {
+    const out = [];
+    if (this.muzzleT > 0 && this._muzzleLocal) {
+      const mx = x + (this._muzzleLocal.x - ORX) * this.facing;
+      const my = y + (this._muzzleLocal.y - ORY);
+      out.push({ x: mx, y: my, r: 104, color: '#ffd08a', i: 0.95 });
+      out.push({ x: mx, y: my, r: 26, color: '#fff4d8', i: 1.1 });
+    }
+    if (this.props.flame > 0 && this._lightLocal) {
+      const fx = x + (this._lightLocal.x - ORX) * this.facing;
+      const fy = y + (this._lightLocal.y - ORY);
+      const flick = 0.82 + Math.sin(performance.now() * 0.023) * 0.09 + Math.random() * 0.09;
+      out.push({ x: fx, y: fy, r: 34 * this.props.flame, color: PAL.flame, i: 0.95 * this.props.flame * flick });
+      out.push({ x: fx, y: fy, r: 10, color: '#fff0c0', i: 0.9 * this.props.flame });
+    }
+    return out;
+  }
+
+  // ---------------------------------------------------------------------
+  // desenho
+  // ---------------------------------------------------------------------
+
+  draw(ctx, x, y) {
+    if (!this.visible) return;
+    const b = this.buf;
+    b.x.setTransform(1, 0, 0, 1, 0, 0);
+    b.x.globalCompositeOperation = 'source-over';
+    b.x.globalAlpha = 1;
+    b.x.clearRect(0, 0, BW, BH);
+    this._lightLocal = null;
+    this._renderRig(b.x);
+
+    const px = Math.round(x), py = Math.round(y);
+    // A virada agora é uma compressão discreta de ombro, não uma folha de
+    // papel fechando até quase zero. A leitura de volume permanece estável.
+    const ft = clamp(this.flipT, 0, 1);
+    const sq = 0.86 + 0.14 * Math.sin(ft * Math.PI / 2);
+
+    let src = b.c;
+    if (this.silhouette) {
+      silhouettePass(b.c, this.rimBuf, this.silhouette);
+      src = this.rimBuf.c;
+    } else if (this.tint) {
+      if (!this.tintBuf) this.tintBuf = makeBuffer(BW, BH);
+      tintPass(b.c, this.tintBuf, this.tint, this.tintK);
+      src = this.tintBuf.c;
+    }
+
+    // reflexo no chao molhado
+    if (this.reflect > 0) {
+      ctx.save();
+      ctx.imageSmoothingEnabled = false;
+      ctx.globalAlpha = this.reflect * this.alpha;
+      ctx.translate(px, py + 1);
+      ctx.scale(this.facing * sq * this.scaleX, -0.82 * this.scaleY);
+      ctx.drawImage(src, -ORX, -ORY);
+      ctx.restore();
+    }
+
+    // luz de contorno (silhueta nao tem: ela nao reflete nada)
+    const comRim = this.rimAlpha > 0 && !this.silhouette;
+    if (comRim) rimPass(b.c, this.rimBuf, this.rimColor, this.rimDX * this.facing, this.rimDY);
+
+    ctx.save();
+    ctx.imageSmoothingEnabled = false;
+    ctx.globalAlpha = this.alpha;
+    ctx.translate(px, py);
+    ctx.scale(this.facing * sq * this.scaleX, this.scaleY);
+    ctx.drawImage(src, -ORX, -ORY);
+    if (comRim) {
+      ctx.globalCompositeOperation = 'lighter';
+      ctx.globalAlpha = this.alpha * this.rimAlpha;
+      ctx.drawImage(this.rimBuf.c, -ORX, -ORY);
+    }
+    ctx.restore();
+  }
+
+  _renderRig(g) {
+    const p = this.pose;
+    const R = a => -a * DEG;
+    const S = (ctx, peca) => { if (peca) stamp(ctx, peca); };
+
+    g.save();
+    g.translate(ORX + p.hx, ORY + p.hy);
+
+    // ---- perna de tras ----
+    g.save();
+    g.translate(-LEG_X, HIP_Y);
+    g.rotate(R(p.lBt)); S(g, this._p('dThigh'));
+    g.translate(0, THIGH_LEN);
+    g.rotate(R(p.lBs)); S(g, this._p('dShin'));
+    g.translate(0, SHIN_LEN);
+    g.rotate(R(p.lBf - p.lBt - p.lBs)); S(g, this._p('dFoot'));
+    g.restore();
+
+    const backArmFront = p.aBu > 42;   // soco de reverso passa para a frente
+
+    // ---- braco de tras (atras do tronco) ----
+    if (!backArmFront) this._arm(g, p, false, true);
+
+    // ---- perna da frente ----
+    g.save();
+    g.translate(LEG_X, HIP_Y);
+    g.rotate(R(p.lFt)); S(g, this._p('thigh'));
+    g.translate(0, THIGH_LEN);
+    g.rotate(R(p.lFs)); S(g, this._p('shin'));
+    g.translate(0, SHIN_LEN);
+    g.rotate(R(p.lFf - p.lFt - p.lFs)); S(g, this._p('foot'));
+    g.restore();
+
+    // ---- aba do sobretudo (por cima das pernas, por baixo do tronco) ----
+    const aba = this._p('coatSkirt');
+    if (aba) {
+      g.save();
+      g.translate(0, HIP_Y);
+      g.rotate(R(this.skirt));
+      stamp(g, aba);
+      g.restore();
+    }
+
+    // ---- coldre no quadril ----
+    const coldre = this._p('holster');
+    if (coldre) {
+      g.save();
+      g.translate(6, HIP_Y + 1);
+      stamp(g, coldre);
+      if (this.props.gun === 'holstered') { g.translate(1, 0); stamp(g, P.gunButt); }
+      g.restore();
+    }
+
+    // ---- tronco ----
+    g.save();
+    g.translate(0, HIP_Y);
+    g.rotate(R(p.torso));
+    S(g, this._p('torso'));
+    g.restore();
+
+    // ---- cabeca (com a gola atras dela) ----
+    g.save();
+    g.translate(0, HIP_Y);
+    g.rotate(R(p.torso));
+    g.translate(0, SHOULDER_OFF);
+    const pescoco = this._p('neck');
+    if (pescoco) { g.save(); g.translate(0, -1); stamp(g, pescoco); g.restore(); }
+    const gola = this._p('collar');
+    if (gola) {
+      g.save();
+      g.translate(0, 4);
+      stamp(g, gola);
+      g.restore();
+    }
+    // A cabeca so gira em passos de 7 graus e no maximo 14. Girar um sprite
+    // de 14px em angulo qualquer reamostra o rosto e deforma olho e nariz —
+    // era isso que "desmanchava a cara do nada".
+    g.rotate(R(Math.round(clamp(p.head, -14, 14) / 7) * 7));
+    g.translate(1, -1);
+    S(g, this.faceless ? this._p('headBlank') : this._p('head'));
+    if (this.props.cig === 'mouth') {
+      g.save();
+      g.translate(7, -5);
+      stamp(g, this.props.flame > 0 ? P.cigLit : P.cigOff);
+      g.restore();
+    }
+    g.restore();
+
+    // ---- braco da frente ----
+    this._arm(g, p, true, false);
+    if (backArmFront) this._arm(g, p, false, false);
+
+    // Sangue por cima das pecas, em pontos deterministas para nao piscar a
+    // cada quadro. A quantidade cresce por degraus e acompanha o corpo.
+    const sangue = clamp(this.blood || 0, 0, 1);
+    if (sangue > 0.04) {
+      g.save();
+      g.globalAlpha = 0.55 + sangue * 0.35;
+      g.fillStyle = '#5d1412';
+      g.fillRect(2, HIP_Y - 16, 3, 5);
+      g.fillRect(-5, HIP_Y - 9, 2, 3);
+      if (sangue > 0.24) { g.fillRect(5, HIP_Y - 5, 2, 8); g.fillRect(-7, HIP_Y + 4, 3, 3); }
+      if (sangue > 0.46) { g.fillRect(-2, HIP_Y - 33, 3, 3); g.fillRect(6, HIP_Y - 24, 2, 4); }
+      if (sangue > 0.68) { g.fillRect(-5, HIP_Y + 10, 2, 7); g.fillRect(3, HIP_Y + 17, 3, 3); }
+      if (sangue > 0.86) { g.fillStyle = '#7b1b16'; g.fillRect(-1, HIP_Y - 13, 5, 2); g.fillRect(-7, HIP_Y - 27, 2, 2); }
+      g.restore();
+    }
+
+    // O rasgo nao e uma textura trocada: e um buraco irregular no lado da
+    // aba, com forro claro aparecendo. Continua legivel mesmo coberto de sangue.
+    if (this.coatTorn) {
+      g.save();
+      g.fillStyle = '#09070a';
+      g.fillRect(-9, HIP_Y + 4, 4, 2);
+      g.fillRect(-10, HIP_Y + 7, 6, 3);
+      g.fillRect(-8, HIP_Y + 11, 4, 3);
+      g.fillStyle = '#9b7954';
+      g.fillRect(-5, HIP_Y + 7, 1, 6);
+      g.restore();
+    }
+
+    if (this.injury > 0.45) {
+      g.save(); g.globalAlpha = clamp((this.injury - 0.35) * 1.2, 0, 0.72);
+      g.fillStyle = '#37100f';
+      g.fillRect(4, HIP_Y - 4, 3, 10);
+      g.fillRect(-4, HIP_Y + 14, 2, 8);
+      g.restore();
+    }
+
+    g.restore();
+  }
+
+  _arm(g, p, front, dark) {
+    const up = front ? p.aFu : p.aBu;
+    const fo = front ? p.aFf : p.aBf;
+    const R = a => -a * DEG;
+    const sUp = this._p(dark ? 'dUpperArm' : 'upperArm');
+    const sFo = this._p(dark ? 'dForearm' : 'forearm');
+    const sHa = this._p(dark ? 'dHand' : 'hand');
+
+    g.save();
+    g.translate(0, HIP_Y);
+    g.rotate(R(p.torso));
+    g.translate(0, SHOULDER_OFF);
+    g.translate(front ? ARM_X : -ARM_X_BACK, 2);
+    g.rotate(R(up)); if (sUp) stamp(g, sUp);
+    g.translate(0, UPPER_LEN);
+    g.rotate(R(fo)); if (sFo) stamp(g, sFo);
+    g.translate(0, FORE_LEN);
+
+    // A arma vem ANTES da mao, para os dedos ficarem por cima do cabo. E
+    // girada 90 graus porque dentro da cadeia do braco o eixo "para frente"
+    // e o +y local — sem isso o cano aponta para o lado e a arma aparece
+    // deitada.
+    if (front && this.props.gun === 'hand') {
+      g.save();
+      g.translate(0, 1);
+      g.rotate(Math.PI / 2);
+      stamp(g, P.gun);
+      g.restore();
+    }
+
+    if (sHa) stamp(g, sHa);
+
+    // O que a criatura carrega e nunca solta: o fio do telefone, a
+    // motosserra, o esfregao. Sai da mao seguindo o antebraco.
+    const naMao = this.parts && this.parts.naMao;
+    if (front && naMao) { g.save(); g.translate(0, 2); stamp(g, naMao); g.restore(); }
+
+    // Ripa e cano saem da mao seguindo o antebraco: o eixo "para fora da
+    // mao" ja e o +y local aqui dentro, entao nao ha rotacao a fazer — foi
+    // justamente isso que fez a arma aparecer deitada uma vez (B-17).
+    if (front && this.props.club === 'hand') {
+      g.save(); g.translate(0, 2); stamp(g, P.club); g.restore();
+    }
+    if (front && this.props.pipe === 'hand') {
+      g.save(); g.translate(0, 2); stamp(g, P.pipe); g.restore();
+    }
+
+    // objetos presos a mao
+    if (front && this.props.cig === 'hand') {
+      g.save(); g.translate(1, 2); stamp(g, P.cigOff); g.restore();
+    }
+    if (front && this.props.gun === 'hand') {
+      g.save();
+      g.translate(0, 11);          // boca do cano, na direcao do braco
+      const m = g.getTransform ? g.getTransform() : null;
+      if (m) this._muzzleLocal = { x: m.e, y: m.f };
+      if (this.muzzleT > 0) { g.rotate(Math.PI / 2); stamp(g, P.muzzle); }
+      g.restore();
+    }
+    if (!front && this.props.lighter === 'hand') {
+      g.save();
+      g.translate(-1, 1);
+      stamp(g, P.lighter);
+      if (this.props.flame > 0) {
+        g.save();
+        g.translate(1, 0);
+        const m = g.getTransform ? g.getTransform() : null;
+        if (m) this._lightLocal = { x: m.e, y: m.f };
+        const s = 0.6 + 0.4 * this.props.flame;
+        g.scale(1, s);
+        stamp(g, P.flame);
+        g.restore();
+      }
+      g.restore();
+    }
+    g.restore();
+  }
+}
+
+export { P as PARTS };

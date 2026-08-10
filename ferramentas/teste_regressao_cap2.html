@@ -1,0 +1,395 @@
+<!doctype html>
+<html lang="pt-br">
+<meta charset="utf-8">
+<title>Regressão — capítulo 2</title>
+<style>
+  body { margin: 0; background: #111; color: #ddd; font: 15px Consolas, monospace; }
+  main { width: 980px; margin: 18px auto; }
+  h1 { font-size: 19px; font-weight: normal; color: #d3b75f; }
+  button { padding: 9px 14px; background: #302b24; color: #eee; border: 1px solid #76633a; cursor: pointer; }
+  iframe { width: 960px; height: 540px; border: 1px solid #444; background: #000; margin-top: 12px; }
+  pre { min-height: 180px; white-space: pre-wrap; color: #aaa; }
+  .ok { color: #8bd18b; } .erro { color: #e8796f; }
+</style>
+<main>
+  <h1>REGRESSÃO — SISTEMAS DO CAPÍTULO 2</h1>
+  <button id="run">RODAR TESTES</button>
+  <button id="inventory">MOSTRAR INVENTÁRIO</button>
+  <button id="inspect">INSPECIONAR ITEM</button>
+  <button id="relays">RELÉS NO CASACO</button>
+  <button id="journal">MOSTRAR CADERNO</button>
+  <button id="subtitle">MOSTRAR LEGENDA</button>
+  <button id="grab">MOSTRAR AGARRÃO</button>
+  <button id="gameover">MOSTRAR GAME OVER</button>
+  <button id="saves">MOSTRAR 10 SAVES</button>
+  <button id="rack">MOSTRAR ESTANTE</button>
+  <button id="pallet">MOSTRAR PALETE</button>
+  <button id="final">MOSTRAR FINAL EXTERNO</button>
+  <button id="offline">USAR JOGO_OFFLINE</button>
+  <iframe id="jogo" src="../index.html"></iframe>
+  <pre id="saida">Aguardando o jogo montar as fases...</pre>
+</main>
+<script>
+const frame = document.getElementById('jogo');
+const saida = document.getElementById('saida');
+function game() { return frame.contentWindow.game; }
+function assert(ok, msg) { if (!ok) throw new Error(msg); }
+function log(msg) { saida.textContent += msg + '\n'; }
+async function pronto() {
+  for (let i = 0; i < 120; i++) {
+    const g = game();
+    if (g && g.levels && g.levels.ch2_mezz && g.supplies && g.sanity && g.finishers && g.chaseSequence) return g;
+    await new Promise(r => setTimeout(r, 80));
+  }
+  throw new Error('O jogo não terminou o boot.');
+}
+function limpar(g) {
+  const doc = frame.contentDocument;
+  const boot = doc && doc.getElementById('boot'); if (boot) boot.classList.add('gone');
+  if (doc) doc.body.classList.add('playing');
+  g.flags = { cap2: true, caderno: true, visto: {}, barks: {}, examinado: {} };
+  g.resetChapter2(); g._aplicarMundo(null);
+  g.flags.supplies = g.supplies.newRun();
+  g.sanity.enabled = true; g.sanity.reset(100);
+  g.player.hasGun = false; g.player.ammo = 0; g.player.reserve = 0; g.player.hp = 70;
+  g.player.clearBarks(); g.dialogue.active = false; g.transition = null; g.scene = null;
+  g.state = 'play'; g.grab = null; g.menuSlots.open = false; g.chaseSetpieces.action = null;
+}
+
+document.getElementById('offline').onclick = () => {
+  frame.src = '../JOGO_OFFLINE.html';
+  saida.textContent = 'Carregando pacote offline...'; saida.className = '';
+};
+
+document.getElementById('run').onclick = async () => {
+  saida.textContent = ''; saida.className = '';
+  try {
+    const g = await pronto(); limpar(g);
+
+    g.menuOptions.s.difficulty = 'mind'; g.applySettings();
+    assert(g.diff.id === 'mind' && g.diff.maxEnemies === 2, 'Dificuldade MENTE não foi aplicada globalmente');
+    g.menuOptions.s.difficulty = 'hard'; g.applySettings();
+    assert(g.diff.recommended && g.director.difficulty.id === 'hard', 'DIFÍCIL não voltou como recomendada');
+    log('OK  dificuldade global: HISTÓRIA, NORMAL, DIFÍCIL recomendada e MENTE');
+
+    frame.contentWindow.__dev.ir('ch2_corridor', 100, 1);
+    assert(g.player.barkQueue.length > 0, 'Primeira entrada não falou');
+    g.player.clearBarks();
+    frame.contentWindow.__dev.ir('ch2_corridor', 100, 1);
+    assert(g.player.barkQueue.length === 0 && !g.player.floatText, 'Fala de entrada repetiu');
+    log('OK  falas de entrada não repetem');
+
+    const bark = g.level.barks[0]; bark.done = false; delete g.flags.barks['ch2_corridor:0'];
+    g.player.x = bark.x; g.checkBarks(g.level);
+    assert(g.flags.barks['ch2_corridor:0'], 'Bark não persistiu');
+    g.player.clearBarks(); frame.contentWindow.__dev.ir('ch2_corridor', bark.x, 1); g.checkBarks(g.level);
+    assert(g.player.barkQueue.length === 0, 'Bark de passagem repetiu');
+    log('OK  falas de passagem persistem no estado');
+
+    const look = g.level.interactables.find(i => i.lines === 'c2_forklift');
+    g.doInteract(look); assert(g.dialogue.active, 'Primeiro exame não abriu');
+    g.dialogue.active = false; g.doInteract(look);
+    assert(!g.dialogue.active, 'Exame repetido abriu diálogo');
+    log('OK  objetos examinados ficam silenciosos');
+
+    const data = g.supplies.newRun(); g.flags.supplies = data;
+    assert(data.records.some(r => r.type === 'club'), 'Sorteio sem porrete');
+    assert(data.records.some(r => r.type === 'ammo'), 'Sorteio sem munição');
+    assert(data.records.some(r => r.type === 'medkit') && data.records.some(r => r.type === 'sedative'), 'Sorteio sem curas');
+    assert(data.pallets.length >= 8, 'Poucas paletes sorteadas');
+    const ammoRec = data.records.find(r => r.type === 'ammo');
+    const ammoSpot = g.supplies.spots.find(s => s.id === ammoRec.id);
+    frame.contentWindow.__dev.ir(ammoSpot.levelKey, ammoSpot.x, 1);
+    const beforeAmmo = g.player.reserve; g.doInteractCh2(ammoSpot.it);
+    assert(g.player.reserve === beforeAmmo + ammoRec.amount, 'Munição do chão não acumulou');
+    log('OK  suprimentos, quantidades e paletes são sorteados; munição acumula');
+
+    g.player.reserve = 7; g.pegarPistola();
+    assert(g.player.reserve === 7, 'Pistola sobrescreveu a reserva recolhida');
+    log('OK  pegar pistola preserva a munição do chão');
+
+    g.inv.add('medkit'); g.player.hp = 40; g.usarItem('medkit');
+    assert(g.player.hp === 85 && !g.inv.has('medkit'), 'Kit médico não curou/consumiu');
+    g.inv.add('sedative'); g.sanity.value = 35; g.usarItem('sedative');
+    assert(g.sanity.value > 35 && !g.inv.has('sedative'), 'Ansiolítico não recuperou sanidade');
+    log('OK  curas de corpo e sanidade funcionam');
+
+    frame.contentWindow.__dev.ir('ch2_locker', 760, 1);
+    const radio = g.level.interactables.find(i => i.id === 'radio');
+    g.doInteractCh2(radio); g.doInteractCh2(radio);
+    const sanAntes = g.sanity.value; g.doInteractCh2(radio);
+    assert(g.flags.radio_off && g.flags.radio_touches === 3 && g.sanity.value < sanAntes, 'Terceiro toque do rádio não drenou sanidade');
+    log('OK  rádio: estática, desligamento e gritos no terceiro toque');
+
+    frame.contentWindow.__dev.ir('ch2_office', 460, 1);
+    const vigia = g.npcs.vigia; g.tiro(460, 1, 0);
+    assert(g.flags.npc_morto_vigia, 'Morte do zelador não persistiu');
+    const code = g.level.interactables.find(i => i.id === 'safe_code_note');
+    assert(code && !code.disabled, 'Zelador não deixou a senha');
+    g.doInteractCh2(code);
+    const safe = g.level.interactables.find(i => i.id === 'safe');
+    g.doInteractCh2(safe);
+    assert(g.flags.safe_open && g.journal.hasDocument('d_safe'), 'Cofre não abriu/entregou documento');
+    log('OK  NPC morre com um tiro lógico, deixa senha e libera o cofre');
+
+    frame.contentWindow.__dev.ir('ch2_mezz', 620, 1);
+    g.matarNpc(g.npcs.operadora, -1);
+    assert(g.flags.telefonista, 'Matar a telefonista bloqueou o gatilho da fuga');
+    const operatorDrop = g.level.interactables.find(i => i.id === 'operator_drop');
+    assert(operatorDrop && !operatorDrop.disabled, 'Telefonista não deixou a ficha perfurada');
+    const reserveOperator = g.player.reserve; g.doInteractCh2(operatorDrop);
+    assert(g.player.reserve === reserveOperator + 5 && g.journal.hasDocument('d_operator_drop'), 'Drop da telefonista não entregou munição/documento');
+    log('OK  rota violenta da telefonista não causa softlock e deixa recompensa');
+
+    g.journal.addDocument('d_turno'); g.journal.addDocument('d_caso');
+    assert(g.journal.docs.length >= 2, 'Documentos não entraram na aba');
+    log('OK  aba de documentos recebe a lore segmentada');
+
+    assert(g.menuSlots.thumbs.length === 10, 'Interface ainda não possui dez arquivos');
+    g.saveSlot(9);
+    assert(frame.contentWindow.localStorage.getItem('tmc.save.slot9'), 'Décimo arquivo não foi gravado');
+    frame.contentWindow.localStorage.removeItem('tmc.save.slot9');
+    log('OK  dez espaços de save disponíveis');
+
+    g.flags.relay_hand = g.flags.relay_eye = g.flags.relay_voice = true;
+    frame.contentWindow.__dev.ir('ch2_comms', 390, 1);
+    const watchedPhone = g.level.interactables.find(i => i.id === 'watch_phone');
+    assert(watchedPhone && !watchedPhone.disabled, 'Telefone premonitório não foi habilitado');
+    g.doInteractCh2(watchedPhone);
+    assert(g.flags.phantom_room && g.flags.phone_watched, 'Ligação não alterou o mapa');
+    frame.contentWindow.__dev.ir('ch2_evidence', 620, 1);
+    const changing = g.level.interactables.find(i => i.id === 'changing_document');
+    g.flags.puzzle_solved = false; changing.disabled = false; g.doInteractCh2(changing);
+    g.flags.puzzle_solved = true; changing.disabled = false; g.doInteractCh2(changing);
+    assert(g.flags.doc_changed && g.journal.hasDocument('d_shift_after') && !g.journal.hasDocument('d_shift_before'), 'Documento não mudou após o puzzle');
+    log('OK  telefone, sala fantasma e documento mutável funcionam');
+
+    frame.contentWindow.__dev.ir('ch2_corridor', 700, 1);
+    g.director.limpar(); const punchTarget = g.director.forcar('semrosto', 724, g.level.groundY);
+    const hpAntes = punchTarget.hp; g.golpeDeSoco();
+    assert(punchTarget.hp < hpAntes, 'Soco não causou dano');
+    log('OK  soco usa caixa de impacto e causa dano');
+
+    g.director.limpar(); g.player.x = 700; g.player.facing = 1;
+    const frente = g.director.forcar('semrosto', 738, g.level.groundY);
+    const tras = g.director.forcar('semrosto', 770, g.level.groundY);
+    const terceiro = g.director.forcar('semrosto', 802, g.level.groundY);
+    const hp1 = frente.hp, hp2 = tras.hp, hp3 = terceiro.hp;
+    g.tiro(g.player.x, 1, 0);
+    assert(frente.hp < hp1 && tras.hp < hp2, 'Bala não atravessou dois inimigos alinhados');
+    assert(terceiro.hp === hp3, 'Bala atravessou mais de dois corpos');
+    assert(frente.state !== 'dead', 'Pistola ainda mata um inimigo saudável com um único tiro');
+    log('OK  bala conserva energia para dois corpos, para no terceiro e não mata fácil');
+
+    frente.forceFrenzy = true; frente.frenzyChecked = false;
+    frente.hp = Math.max(1, frente.maxHp * 0.32);
+    frente.levarDano(0.2, g.player.x, 'legs');
+    assert(frente.state === 'frenzy', 'Inimigo gravemente ferido não entrou em Frenzy');
+    assert(g.finishers.start(g, frente), 'Agarrão defensivo não iniciou');
+    g.finishers.action.progress = 1.1;
+    g.finishers.update(1 / 60, g); g.finishers.update(1.3, g);
+    assert(frente.state === 'dead' && g.player.controllable, 'Finalização contextual não encerrou o Frenzy');
+    log('OK  ferimentos, Frenzy e finalização contextual funcionam');
+
+    frame.contentWindow.__dev.ir('ch2_cold', 500, 1);
+    g.chase.comecar(g.levels, 'ch2_cold', 520, { immediate: true });
+    g.chase.lastX = g.player.x;
+    for (let i = 0; i < 900 && g.chase.levelKey === 'ch2_cold'; i++) {
+      g.chase.update(1 / 60, { player: g.player, level: g.level, levelKey: g.level.key, escondido: true, prendendo: false });
+    }
+    assert(g.chase.levelKey !== 'ch2_cold', 'Credor não abandonou a sala após perder o rastro');
+    log('OK  esconder sozinho quebra o rastro; Shift nao e obrigatorio');
+
+    g.chase.parar(); frame.contentWindow.__dev.ir('ch2_corridor', 850, 1);
+    g.chase.comecar(g.levels, 'ch2_mezz', 900);
+    g.chase.avisoEntrada('ch2_corridor', 1); g.chase.jogadorLevel = 'ch2_mezz'; g.chase.ultimaDist = 38;
+    g.chase.update(0.01, { player: g.player, level: g.level, levelKey: g.level.key, escondido: false, prendendo: false });
+    assert(g.chase.chegada < 0.9, 'Credor colado demorou demais para cruzar a porta');
+    g.chase.chegada = 0.01;
+    g.chase.update(0.02, { player: g.player, level: g.level, levelKey: g.level.key, escondido: false, prendendo: false });
+    assert(g.chase.credor.x < g.level.minX, 'Credor apareceu na frente em vez de vir pela esquerda/atrás');
+    for (let i = 0; i < 10; i++) g.chase.levarTiro();
+    assert(g.chase.credor.stun >= 3.7 && g.chase.lentidao > 0.3, 'Dez tiros não atordoaram/retardaram o Credor');
+    const portaFuga = g.level.interactables.find(i => i.action === 'goto' && !i.precisa);
+    g.doInteract(portaFuga);
+    assert(g.transition && g.transition.outDur <= 0.12, 'Porta da fuga ainda usa abertura lenta');
+    g.transition = null;
+    log('OK  perseguição cruza rápido a porta, respeita o lado e aceita stun');
+
+    g.chase.parar(); g.flags.telefonista = true; g.flags.fuga = false; g.player.hasGun = true;
+    frame.contentWindow.__dev.ir('ch2_machines', 890, -1);
+    assert(g.fugaPendente && !g.scene, 'Fuga não deixou David caminhar antes da cutscene');
+    g.player.x = 800;
+    g.updateCh2(1 / 60, g.level, false);
+    assert(g.scene && g.scene.constructor.name === 'ChaseIntro', 'Cutscene inicial do Credor não começou');
+    for (let i = 0; i < 420; i++) g.scene && g.scene.update(1 / 60);
+    assert(g.chase.ativo && g.player.controllable, 'Cutscene não entregou o controle à perseguição');
+    log('OK  Credor sai do escuro, chuta David e inicia a fuga');
+
+    g.flags.puzzle_solved = true;
+    g.chaseSetpieces.enter(g, g.level);
+    const steam = g.level.interactables.find(i => i.id === 'escape_steam');
+    assert(steam && !steam.disabled, 'Válvula da fuga não foi habilitada');
+    g.doInteractCh2(steam);
+    assert(g.flags.used_escape_steam && g.chase.credor.stun >= 2.2, 'Vapor não atrasou o Credor');
+    const shortcut = g.level.interactables.find(i => i.id === 'escape_shortcut');
+    assert(shortcut && !shortcut.disabled, 'Atalho do puzzle não foi liberado');
+    g.flags.chase_route = 'shortcut'; g.chaseSetpieces.enter(g, g.level);
+    const normalRoute = g.level.interactables.find(i => i.action === 'goto' && i.to === 'ch2_locker');
+    assert(normalRoute.precisa === 'chase_normal_open', 'Variação de rota não bloqueou a porta normal');
+    log('OK  obstáculos compactos e atalho do puzzle entram na perseguição');
+
+    g.transition = null; g.scene = null;
+    frame.contentWindow.__dev.ir('ch2_corridor', 970, 1);
+    g.chase.levelKey = g.level.key; g.chase.jogadorLevel = g.level.key;
+    g.chase.credor.x = 900; g.chase.credor.y = g.level.groundY;
+    const dockGate = g.level.interactables.find(i => i.action === 'chase_gate');
+    assert(dockGate, 'Portão emperrado da segunda fase não existe');
+    g.chaseSequence.startGate(g);
+    for (let i = 0; i < 230; i++) g.chaseSequence.update(1 / 60, g);
+    assert(g.level.key === 'ch2_service' && !g.chaseSequence.action && g.player.controllable,
+      'Portão/slide não entregou a rota de serviço');
+    const rack = g.level.interactables.find(i => i.id === 'service_rack');
+    assert(rack && rack.prio >= 9 && rack.prompt === 'prompt_drop_now', 'Estante urgente continua pouco visivel');
+    g.chaseSequence.interact(g, rack);
+    assert(!g.chaseSequence.action && g.flags.escape_rack_choice === 'drop' && g.flags.escape_cache_blocked,
+      'Estante ainda abriu escolha modal ou nao bloqueou os suprimentos');
+    g.player.x = 500;
+    for (let i = 0; i < 90; i++) g.chaseSequence.update(1 / 60, g);
+    assert(g.flags.chase_door_broken && !g.flags.chase_door_cut, 'Credor nao concluiu o corte visivel da porta');
+
+    g.chase.levelKey = g.level.key; g.chase.jogadorLevel = g.level.key;
+    g.chase.estado = 'cacar'; g.chase.credor.stun = 0; g.chase.grabCooldown = 99;
+    g.player.x = 590; g.chase.credor.x = 500;
+    g.chase.update(1 / 60, { player: g.player, level: g.level, levelKey: g.level.key, escondido: false });
+    const pertoV = g.chase.currentSpeed;
+    g.player.x = 760; g.chase.credor.x = 120; g.chase.credor.stun = 0;
+    g.chase.update(1 / 60, { player: g.player, level: g.level, levelKey: g.level.key, escondido: false });
+    const longeV = g.chase.currentSpeed;
+    assert(pertoV < 112 && longeV > pertoV + 25, 'Curva de velocidade final nao separa pressao proxima e recuperacao distante');
+
+    g.chaseSequence.startCoatGrab(g); g.chaseSequence.action.progress = 1.1;
+    g.chaseSequence.update(1 / 60, g);
+    assert(g.flags.coat_torn && g.player.det.coatTorn, 'Quase queda não rasgou o casaco');
+    log('OK  segunda fase: estante imediata, corte visível, velocidade equilibrada e casaco rasgado');
+
+    frame.contentWindow.__dev.ir('ch2_escape_cold', 300, 1);
+    g.chaseSequence.cold.t = 3.18; g.chaseSequence.cold.wall = 0.5;
+    g.chase.levelKey = '__parede_da_camara__'; g.chase.chegada = 0.82;
+    const savedSeq = g.chaseSequence.save(), savedChase = g.chase.save();
+    g.chaseSequence.reset(g); g.chase.load(savedChase, g.levels, 'ch2_escape_cold');
+    g.chaseSequence.load(savedSeq); frame.contentWindow.__dev.ir('ch2_escape_cold', 300, 1);
+    assert(Math.abs(g.chaseSequence.cold.t - 3.18) < 0.01, 'Reload reiniciou o apagão da câmara');
+    assert(Math.abs(g.chase.chegada - 0.82) < 0.01, 'Reload alterou a chegada salva do Credor');
+    log('OK  reload preserva o instante exato do falso silêncio e da perseguição');
+
+    frame.contentWindow.__dev.ir('ch2_chainbay', 900, 1);
+    g.chaseSequence.startFinal(g);
+    for (let i = 0; i < 440; i++) g.chaseSequence.update(1 / 60, g);
+    assert(g.level.key === 'ch2_yard' && g.chaseSequence.action.rip
+      && g.chaseSequence.action.gateLift && g.credorParado.cinematic,
+      'Final não atravessou o portão para o pátio ou não mostrou o Credor se libertando');
+    g.chaseSequence.action = null; g.credorParado = null; g.player.frozen = false; g.player.controllable = true;
+    log('OK  final usa palete, cinta metálica, portão e pátio chuvoso sem teleporte');
+
+    frame.contentWindow.__dev.ir('ch2_machines', 520, 1);
+    g.chase.comecar(g.levels, 'ch2_machines', 500, { immediate: true });
+    g.transition = null; g.scene = null; g.player.hp = 70; g.player.frozen = false; g.player.controllable = true;
+    g.chase.credor.stun = 0; g.chase.credor.x = g.player.x - 18;
+    g.chase.t = 6; g.chase.grabCooldown = 0; g.chase.agarrões = 0; g.chase.contatos = 0; g.chase.dano = 0;
+    g.updateCh2(1 / 60, g.level, false);
+    assert(g.grab, 'Credor alcançou David, mas o agarrão não iniciou');
+    g.grab.progress = g.grab.need + 0.1; g.updateGrab(1 / 60);
+    assert(g.grab && g.grab.phase === 'escape', 'Resistência não libertou David');
+    g.updateGrab(1.2);
+    assert(!g.grab && g.player.controllable, 'Agarrão não devolveu o controle');
+    g.startGameOver('gameover_grab');
+    assert(g.state === 'gameover' && g.deathRetry, 'Game Over perdeu o checkpoint da perseguição');
+    g._aplicarSave(JSON.parse(JSON.stringify(g.deathRetry)));
+    assert(g.state === 'play' && g.chase.ativo && g.player.hp > 0, 'Recomeçar não restaurou a perseguição');
+    log('OK  agarrão, resistência e Game Over preservam o reinício');
+
+    g.toMenu(); g.transition = null;
+    g.fadeTo(() => g.startCombatLab(), 0.5, 0.5);
+    g.updateTransition(0.51);
+    assert(g.transition && g.transition.phase === 'in', 'Arena apagou a transição e deixou a tela preta');
+    g.updateTransition(0.51);
+    assert(g.flags.combat_lab && g.level.key === 'ch2_combatlab' && g.director.vivos === 3 && !g.transition,
+      'Arena de combate do menu não preparou os três alvos');
+    log('OK  arena de combate abre pelo menu, faz fade-in e prepara três alvos');
+
+    saida.className = 'ok'; log('\nTODOS OS TESTES PASSARAM');
+  } catch (e) {
+    saida.className = 'erro'; log('\nERRO  ' + e.message); console.error(e);
+  }
+};
+
+document.getElementById('inventory').onclick = async () => {
+  const g = await pronto(); limpar(g); frame.contentWindow.__dev.ir('ch2_office', 250, 1);
+  for (const key of ['map', 'gun', 'cigs', 'lighter', 'medkit', 'sedative']) g.inv.add(key);
+  g.inv.open = true; g.inv.fade = 1;
+};
+
+document.getElementById('inspect').onclick = async () => {
+  const g = await pronto(); limpar(g); frame.contentWindow.__dev.ir('ch2_office', 250, 1);
+  g.inv.add('gun'); g.inv.open = true; g.inv.fade = 1;
+  g.inv.inspect = { item: g.inv.items[0], rx: -0.42, ry: 0.64 };
+};
+
+document.getElementById('relays').onclick = async () => {
+  const g = await pronto(); limpar(g); frame.contentWindow.__dev.ir('ch2_office', 250, 1);
+  for (const key of ['relay_hand', 'relay_eye', 'relay_voice']) g.inv.add(key);
+  g.inv.open = true; g.inv.fade = 1;
+};
+
+document.getElementById('journal').onclick = async () => {
+  const g = await pronto(); limpar(g); frame.contentWindow.__dev.ir('ch2_office', 250, 1);
+  g.journal.add('j_vigia'); g.journal.open = true; g.journal.fade = 1; g.journal.write = 1;
+};
+
+document.getElementById('subtitle').onclick = async () => {
+  const g = await pronto(); limpar(g); frame.contentWindow.__dev.ir('ch2_corridor', 520, 1);
+  g.player.floatText = { key: 'b2_relay_voice_2', dur: 12, t: 1 };
+};
+
+document.getElementById('grab').onclick = async () => {
+  const g = await pronto(); limpar(g); frame.contentWindow.__dev.ir('ch2_machines', 520, 1);
+  g.player.hasGun = true; g.player.ammo = 3; g.player.gun = 'ready'; g.player.det.props.gun = 'hand';
+  g.chase.comecar(g.levels, 'ch2_machines', 500, { immediate: true });
+  g.chase.credor.x = 500; g.iniciarGrab(500); g.grab.progress = g.grab.need * 0.56;
+};
+
+document.getElementById('gameover').onclick = async () => {
+  const g = await pronto(); limpar(g); frame.contentWindow.__dev.ir('ch2_corridor', 700, 1);
+  g.deathRetry = JSON.parse(JSON.stringify(g._estadoSalvavel()));
+  g.startGameOver('gameover_grab'); g.gameOverT = 1.4;
+};
+
+document.getElementById('saves').onclick = async () => {
+  const g = await pronto(); limpar(g); frame.contentWindow.__dev.ir('ch2_office', 250, 1);
+  g.pause.active = true; g.pause.slots.show('save', () => {}, () => {});
+  g.pause.slots.anim = 1; g.pause.slots.sel = 9;
+};
+
+document.getElementById('rack').onclick = async () => {
+  const g = await pronto(); limpar(g); frame.contentWindow.__dev.ir('ch2_service', 565, 1);
+  g.chase.comecar(g.levels, 'ch2_service', 250, { immediate: true });
+  g.chase.levelKey = 'ch2_service'; g.chase.jogadorLevel = 'ch2_service';
+  g.chaseSequence.rackHint = 1;
+};
+
+document.getElementById('pallet').onclick = async () => {
+  const g = await pronto(); limpar(g); frame.contentWindow.__dev.ir('ch2_chainbay', 900, 1);
+  g.chase.comecar(g.levels, 'ch2_chainbay', 760, { immediate: true });
+  g.chaseSequence.startFinal(g);
+  for (let i = 0; i < 105; i++) g.chaseSequence.update(1 / 60, g);
+};
+
+document.getElementById('final').onclick = async () => {
+  const g = await pronto(); limpar(g); frame.contentWindow.__dev.ir('ch2_chainbay', 900, 1);
+  g.chase.comecar(g.levels, 'ch2_chainbay', 760, { immediate: true });
+  g.chaseSequence.startFinal(g);
+  for (let i = 0; i < 420; i++) g.chaseSequence.update(1 / 60, g);
+};
+</script>
+</html>

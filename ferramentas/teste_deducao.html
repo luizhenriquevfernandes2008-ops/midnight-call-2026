@@ -1,0 +1,224 @@
+<!doctype html>
+<html lang="pt-BR">
+<meta charset="utf-8">
+<title>Teste de regressao — deducao e memoria de conversa</title>
+<style>
+  body { background:#111; color:#ddd; font:16px Consolas,monospace; padding:24px }
+  iframe { width:480px; height:270px; border:1px solid #444; display:block; margin-bottom:16px }
+  button { font:inherit; padding:10px 18px }
+  #resultado { white-space:pre-wrap; margin-top:16px; line-height:1.5 }
+  .ok { color:#7ee787 } .erro { color:#ff7b72 }
+</style>
+<iframe id="jogo" src="../index.html"></iframe>
+<button id="rodar">RODAR TESTE</button>
+<div id="resultado">Aguardando...</div>
+<script type="module">
+const out = document.getElementById('resultado');
+const frame = document.getElementById('jogo');
+const espera = ms => new Promise(r => setTimeout(r, ms));
+
+let linhas = [];
+let falhas = 0;
+function checar(nome, cond, detalhe) {
+  if (cond) linhas.push('  ok    ' + nome);
+  else { falhas++; linhas.push('  FALHA ' + nome + (detalhe ? '  -> ' + detalhe : '')); }
+}
+
+async function pronto() {
+  for (let i = 0; i < 120; i++) {
+    const w = frame.contentWindow;
+    if (w.game && w.game.levels && w.game.levels.ch2_office && w.game.state === 'waitkey') return w;
+    await espera(100);
+  }
+  throw new Error('O jogo nao terminou o boot.');
+}
+
+document.getElementById('rodar').onclick = async () => {
+  try {
+    out.className = '';
+    out.textContent = 'Executando...';
+    linhas = []; falhas = 0;
+
+    const w = await pronto();
+    const g = w.game;
+    const i18n = await import('../js/i18n.js');
+    const dlg = await import('../js/systems/dialogue.js');
+    const { DEDUCTIONS, findDeduction, JOURNAL, TALKS } = i18n;
+    const { talkHasMore } = dlg;
+
+    // ---------------------------------------------------------------
+    linhas.push('TABELA DE DEDUCOES');
+    // ---------------------------------------------------------------
+    for (const id in DEDUCTIONS) {
+      const d = DEDUCTIONS[id];
+      checar(`${id}: as duas anotacoes de entrada existem`,
+        !!JOURNAL[d.a] && !!JOURNAL[d.b], `${d.a} / ${d.b}`);
+      checar(`${id}: a pagina de saida existe e e categoria deduc`,
+        !!JOURNAL[d.page] && JOURNAL[d.page].cat === 'deduc', d.page);
+      checar(`${id}: a pagina de saida tem PT e EN`,
+        !!(JOURNAL[d.page] && JOURNAL[d.page].pt && JOURNAL[d.page].en), d.page);
+    }
+    checar('findDeduction acha na ordem trocada',
+      !!findDeduction('j_clock', 'j_phone') && findDeduction('j_clock', 'j_phone').id === 'hora');
+    checar('findDeduction recusa par igual', findDeduction('j_phone', 'j_phone') === null);
+    checar('findDeduction recusa par sem relacao', findDeduction('j_phone', 'j_cigs') === null);
+
+    // ---------------------------------------------------------------
+    linhas.push('CADERNO: JUNTAR DUAS PAGINAS');
+    // ---------------------------------------------------------------
+    g.flags = { cap2: true, caderno: true };
+    g.resetChapter2();
+    g.flags.caderno = true;
+    const jr = g.journal;
+
+    jr.add('j_phone'); jr.add('j_clock'); jr.add('j_cigs');
+    jr.open = true; jr.tab = 'notes';
+
+    // marca a primeira
+    jr.idx = jr.pages.indexOf('j_phone');
+    jr._marcar();
+    checar('X marca a pagina', jr.marked === 'j_phone', String(jr.marked));
+
+    // par que nao fecha
+    jr.idx = jr.pages.indexOf('j_cigs');
+    jr._marcar();
+    checar('par errado nao cria pagina', !jr.has('c_hora'));
+    checar('par errado avisa "nao fecha"', jr.flash > 0 && jr.flashOk === false);
+    checar('par errado mantem a pagina na mao', jr.marked === 'j_phone', String(jr.marked));
+
+    // par que fecha
+    const antes = jr.pages.length;
+    jr.idx = jr.pages.indexOf('j_clock');
+    jr._marcar();
+    checar('par certo cria a conclusao', jr.has('c_hora'));
+    checar('par certo cresce o caderno em 1', jr.pages.length === antes + 1, `${antes} -> ${jr.pages.length}`);
+    checar('par certo solta a pagina da mao', jr.marked === null);
+    checar('par certo grava a flag no jogo', g.flags.ded_hora === true);
+    checar('par certo registra a deducao', jr.hasDeduced('hora'));
+    checar('caderno abre na conclusao nova', jr.pages[jr.idx] === 'c_hora');
+
+    // repetir nao rende de novo
+    const dep = jr.pages.length;
+    jr.idx = jr.pages.indexOf('j_phone'); jr._marcar();
+    jr.idx = jr.pages.indexOf('j_clock'); jr._marcar();
+    checar('deducao repetida nao cria pagina de novo', jr.pages.length === dep, `${dep} -> ${jr.pages.length}`);
+    checar('deducao repetida responde "nao fecha"', jr.flashOk === false);
+
+    // conclusao nao serve de insumo
+    jr.marked = null;
+    jr.idx = jr.pages.indexOf('c_hora'); jr._marcar();
+    checar('conclusao nao pode ser marcada', jr.marked === null, String(jr.marked));
+
+    // documento nao e raciocinio
+    jr.tab = 'docs'; jr.marked = null; jr._marcar();
+    checar('aba de documentos nao marca', jr.marked === null);
+    jr.tab = 'notes';
+
+    // ---------------------------------------------------------------
+    linhas.push('SAVE: A DEDUCAO SOBREVIVE');
+    // ---------------------------------------------------------------
+    const salvo = jr.save();
+    checar('save leva a lista de deducoes', Array.isArray(salvo.deduced) && salvo.deduced.includes('hora'));
+    jr.load(salvo);
+    checar('load devolve a conclusao', jr.has('c_hora'));
+    checar('load devolve a deducao registrada', jr.hasDeduced('hora'));
+    jr.load({ pages: ['j_phone'], docs: [] });
+    checar('save antigo (sem deduced) ainda carrega', jr.has('j_phone') && jr.deduced.length === 0);
+
+    // ---------------------------------------------------------------
+    linhas.push('CONVERSA: PERGUNTA TRAVADA POR DEDUCAO');
+    // ---------------------------------------------------------------
+    const vigia = TALKS.vigia;
+    const semFlag = () => false;
+    const comHora = f => f === 'ded_hora';
+
+    const d2 = new (w.game.dialogue.constructor)();
+    d2.startTalk(vigia, { has: semFlag });
+    let vis = d2._visiveis(vigia.nodes.a.choices).map(c => c.to);
+    checar('sem deducao, a pergunta do relogio nao aparece', !vis.includes('relogio'), vis.join(','));
+    checar('sem deducao, as tres perguntas base aparecem', vis.length === 3, vis.join(','));
+
+    d2.startTalk(vigia, { has: comHora });
+    vis = d2._visiveis(vigia.nodes.a.choices).map(c => c.to);
+    checar('com ded_hora, a pergunta do relogio aparece', vis.includes('relogio'), vis.join(','));
+
+    // ---------------------------------------------------------------
+    linhas.push('CONVERSA: INSISTIR');
+    // ---------------------------------------------------------------
+    const mem = new Set(), pre = new Set();
+    d2.startTalk(vigia, { memory: mem, pressed: pre, has: semFlag });
+    const cDia = vigia.nodes.a.choices.find(c => c.to === 'dia');
+    checar('assunto novo nao e insistivel', d2._pressivel(cDia) === false);
+    d2._pick(cDia);
+    checar('perguntar registra na memoria', mem.has('dia'));
+    checar('assunto respondido vira insistivel', d2._pressivel(cDia) === true);
+
+    let custo = 0;
+    d2.startTalk(vigia, { memory: mem, pressed: pre, has: semFlag, onPress: () => custo++ });
+    d2._pick(cDia);
+    checar('insistir cobra', custo === 1, String(custo));
+    checar('insistir vai para o no da segunda resposta', d2.nodeId === 'dia2');
+    checar('insistir so acontece uma vez', d2._pressivel(cDia) === false);
+
+    // ---------------------------------------------------------------
+    linhas.push('CONVERSA: REABRIR SO SE HOUVER ASSUNTO');
+    // ---------------------------------------------------------------
+    // "Esgotado" = perguntou tudo que estava DISPONIVEL. Pergunta travada
+    // por deducao nao conta, senao o teste nunca veria a reabertura.
+    const todos = new Set(), press = new Set();
+    for (const id in vigia.nodes) {
+      const n = vigia.nodes[id];
+      if (!n.choices) continue;
+      for (const c of n.choices) if (c.to && !c.req) { todos.add(c.to); press.add(c.to); }
+    }
+    checar('conversa esgotada nao reabre',
+      talkHasMore(vigia, todos, press, semFlag) === false);
+    checar('conversa esgotada REABRE quando uma deducao abre assunto',
+      talkHasMore(vigia, todos, press, comHora) === true);
+    checar('conversa nova tem assunto', talkHasMore(vigia, new Set(), new Set(), semFlag) === true);
+
+    // ---------------------------------------------------------------
+    linhas.push('MEMORIA DE CONVERSA NAS FLAGS');
+    // ---------------------------------------------------------------
+    g.flags.talkMem = undefined;
+    const m1 = g._talkMem('vigia');
+    m1.seen.add('dia'); m1.pressed.add('dia');
+    g._salvarTalkMem('vigia', m1);
+    checar('memoria vai para as flags',
+      !!g.flags.talkMem && g.flags.talkMem.vigia.seen.includes('dia'));
+    const m2 = g._talkMem('vigia');
+    checar('memoria volta das flags', m2.seen.has('dia') && m2.pressed.has('dia'));
+    const clone = JSON.parse(JSON.stringify(g.flags));
+    checar('memoria sobrevive a serializacao do save',
+      clone.talkMem.vigia.seen.includes('dia'));
+
+    // ---------------------------------------------------------------
+    linhas.push('TALKS: INTEGRIDADE DOS NOS');
+    // ---------------------------------------------------------------
+    for (const tk in TALKS) {
+      const t = TALKS[tk];
+      for (const id in t.nodes) {
+        const n = t.nodes[id];
+        if (n.back) checar(`${tk}.${id}.back aponta para no existente`, !!t.nodes[n.back], n.back);
+        if (n.press) checar(`${tk}.${id}.press aponta para no existente`, !!t.nodes[n.press], n.press);
+        for (const c of (n.choices || [])) {
+          checar(`${tk}.${id} -> ${c.to} existe`, !!t.nodes[c.to], c.to);
+          checar(`${tk}.${id} -> ${c.to} tem PT e EN`, !!(c.pt && c.en), c.to);
+        }
+        for (const l of (n.lines || [])) {
+          checar(`${tk}.${id} fala tem PT e EN`, !!(l.pt && l.en), id);
+        }
+      }
+    }
+
+    const total = linhas.filter(l => l.startsWith('  ')).length;
+    out.className = falhas ? 'erro' : 'ok';
+    out.textContent = linhas.join('\n') + `\n\n${total - falhas}/${total} passaram.`
+      + (falhas ? `\n${falhas} FALHA(S).` : '\nTUDO VERDE.');
+  } catch (e) {
+    out.className = 'erro';
+    out.textContent = 'ERRO: ' + (e && e.stack ? e.stack : e);
+  }
+};
+</script>
+</html>

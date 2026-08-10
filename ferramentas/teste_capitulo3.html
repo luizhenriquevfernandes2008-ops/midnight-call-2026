@@ -1,0 +1,741 @@
+<!doctype html>
+<html lang="pt-BR">
+<meta charset="utf-8">
+<title>Regressao — Capitulo 3 e seletor de capitulo</title>
+<style>
+  body { background:#111; color:#ddd; font:15px Consolas,monospace; padding:24px }
+  iframe { width:480px; height:270px; border:1px solid #444; display:block; margin-bottom:16px }
+  button { font:inherit; padding:10px 18px; margin-right:8px }
+  #resultado { white-space:pre-wrap; margin-top:16px; line-height:1.5 }
+  .ok { color:#7ee787 } .erro { color:#ff7b72 }
+</style>
+<iframe id="jogo" src="../index.html"></iframe>
+<button id="rodar">RODAR TESTES</button>
+<button id="offline">USAR JOGO_OFFLINE</button>
+<div id="resultado">Aguardando...</div>
+<script type="module">
+const out = document.getElementById('resultado');
+const frame = document.getElementById('jogo');
+const espera = ms => new Promise(r => setTimeout(r, ms));
+
+document.getElementById('offline').onclick = () => { frame.src = '../JOGO_OFFLINE.html'; out.textContent = 'Pacote offline carregado. Rode os testes.'; };
+
+let linhas = [], falhas = 0;
+function sec(t) { linhas.push('\n' + t); }
+function ok(nome, cond, det) {
+  if (cond) linhas.push('  ok    ' + nome);
+  else { falhas++; linhas.push('  FALHA ' + nome + (det !== undefined ? '  -> ' + det : '')); }
+}
+
+async function pronto() {
+  for (let i = 0; i < 150; i++) {
+    const w = frame.contentWindow;
+    if (w.game && w.game.levels && w.game.levels.ch3_cell && w.game.state === 'waitkey') return w;
+    await espera(100);
+  }
+  throw new Error('O jogo nao terminou o boot.');
+}
+
+const SETORES = ['ch3_reception', 'ch3_plantao', 'ch3_desk', 'ch3_archive',
+                 'ch3_past', 'ch3_home', 'ch3_cell'];
+const PESSOAS = ['plantonista', 'michael', 'colega_a', 'colega_b', 'colega_c',
+                 'carlos', 'julie', 'jenna'];
+
+document.getElementById('rodar').onclick = async () => {
+  try {
+    out.className = ''; out.textContent = 'Executando...';
+    linhas = []; falhas = 0;
+
+    const w = await pronto();
+    const g = w.game;
+    const i18n = await import('../js/i18n.js');
+    const { TALKS, JOURNAL, DEDUCTIONS, LINES } = i18n;
+    const T = i18n.t;
+
+    // =================================================================
+    sec('OS SEIS SETORES');
+    // =================================================================
+    for (const k of SETORES) {
+      const lv = g.levels[k];
+      ok(`${k} existe`, !!lv);
+      if (!lv) continue;
+      ok(`${k} tem nome em PT e EN`, T(lv.nameKey) !== '[' + lv.nameKey + ']');
+      ok(`${k} nao gera inimigo`, (lv.maxInimigos || 0) === 0, String(lv.maxInimigos));
+      ok(`${k} tem camada de primeiro plano`, !!(lv.fores && lv.fores.length));
+      ok(`${k} tem chao e limites coerentes`, lv.maxX > lv.minX && lv.maxX <= lv.width);
+    }
+
+    // Portas: toda saida tem que apontar para um setor que existe.
+    for (const k of SETORES) {
+      const lv = g.levels[k];
+      for (const it of (lv.interactables || [])) {
+        if (it.action === 'goto') {
+          ok(`${k} -> ${it.to} existe`, !!g.levels[it.to], it.to);
+          ok(`${k} -> ${it.to} entra dentro do mapa`,
+            !!g.levels[it.to] && it.tox >= g.levels[it.to].minX - 40 && it.tox <= g.levels[it.to].maxX + 40,
+            String(it.tox));
+        }
+      }
+    }
+    // O caminho principal tem que ser percorrivel de ponta a ponta, NOS DOIS
+    // SENTIDOS. Sem a volta, sair de uma sala uma vez tranca o jogador fora
+    // de um NPC obrigatorio — foi exatamente o que aconteceu com a cela.
+    const rota = ['ch3_reception', 'ch3_plantao', 'ch3_desk', 'ch3_archive', 'ch3_cell'];
+    for (let i = 0; i < rota.length - 1; i++) {
+      const a = g.levels[rota[i]], b = g.levels[rota[i + 1]];
+      ok(`${rota[i]} leva a ${rota[i + 1]}`,
+        !!(a.interactables || []).find(x => x.action === 'goto' && x.to === rota[i + 1]));
+      ok(`${rota[i + 1]} volta para ${rota[i]}`,
+        !!(b.interactables || []).find(x => x.action === 'goto' && x.to === rota[i]));
+    }
+    // Nenhum setor jogavel pode ser um beco sem saida.
+    for (const k of SETORES) {
+      if (k === 'ch3_past') continue;   // o passado sai sozinho, pelo telefone
+      const saidas = (g.levels[k].interactables || []).filter(x => x.action === 'goto');
+      ok(`${k} tem pelo menos uma saida`, saidas.length > 0, String(saidas.length));
+    }
+
+    // A REGRA NUMERICA DE LUZ (erro M-04). Setor acima de 800px precisa de
+    // lampada forte a cada ~400px. Isso ja custou dois capitulos pretos.
+    const { auditarLuz } = await import('../js/world/levels-ch3.js');
+    for (const k of SETORES) {
+      const a = auditarLuz(g.levels[k]);
+      ok(`${k} sem vao de luz maior que 400px`, a.ok, JSON.stringify(a.vaos));
+    }
+
+    // =================================================================
+    sec('AS PESSOAS EXISTEM, E SAO DESENHADAS');
+    //
+    // Elas tinham conversa e caixa de interacao, e NAO eram desenhadas: o
+    // desenho dos NPCs estava dentro do `if (cap2)`. O jogador conversava
+    // com o ar. Esta secao mede pixel na tela, nao a existencia do objeto.
+    // =================================================================
+    {
+      const { partesDe } = await import('../js/art/creatures.js');
+      const d = w.__dev;
+      const c = w.document.getElementById('game');
+      const esc = c.width / 480, ctx2 = c.getContext('2d');
+      const banda = (x0, y0, bw, bh) =>
+        ctx2.getImageData(Math.round(x0 * esc), Math.round(y0 * esc),
+                          Math.round(bw * esc), Math.round(bh * esc)).data;
+      const difere = (A, B) => {
+        let n = 0;
+        for (let i = 0; i < A.length; i += 4) {
+          if (Math.abs(A[i] - B[i]) > 10 || Math.abs(A[i + 2] - B[i + 2]) > 10) n++;
+        }
+        return n;
+      };
+
+      g.startChapter(3);
+      for (let i = 0; i < 500 && g.state === 'chapcard'; i++) d.step(1 / 60);
+
+      for (const id of PESSOAS) {
+        const n = g.npcs[id];
+        ok(`${id} existe como NPC`, !!n);
+        if (!n) continue;
+        ok(`${id} tem pecas de arte proprias`, !!partesDe(n.cfg.arte),
+          String(n.cfg.arte));
+        ok(`${id} tem cabeca desenhada`, !!(n.det.parts && n.det.parts.head));
+        ok(`${id} mora num setor que existe`, !!g.levels[n.cfg.level], n.cfg.level);
+
+        // e agora o que importa: ele PINTA pixel na tela?
+        d.ir(n.cfg.level, n.x - 40, 1);
+        g.player.x = n.x - 40; g.cam.snapTo(g.player.x, 0);
+        for (let i = 0; i < 30; i++) d.step(1 / 60);
+        const sx = Math.round(n.x - g.cam.ix);
+        const e = n.escala;
+        const comEle = banda(sx - 16 * e, 214 - 68 * e, 32 * e, 68 * e);
+        const lvAntes = n.cfg.level;
+        n.cfg.level = '__oculto__';
+        for (let i = 0; i < 3; i++) d.step(1 / 60);
+        const semEle = banda(sx - 16 * e, 214 - 68 * e, 32 * e, 68 * e);
+        n.cfg.level = lvAntes;
+        for (let i = 0; i < 3; i++) d.step(1 / 60);
+        ok(`${id} APARECE na tela`, difere(comEle, semEle) > 60,
+          `${difere(comEle, semEle)} pixels`);
+      }
+
+      // ---- ENCENACAO: o plantonista dentro da guarita ----
+      //
+      // ⚠ O GRAO DE FILME muda ~180 pixels sozinho entre dois quadros.
+      // Medir imagem com ele ligado e medir ruido. E `cam.iy` nao e zero:
+      // coordenada de mundo NAO e coordenada de tela. As duas coisas
+      // estragaram a primeira versao desta medicao.
+      const ga = w.__dev.gfx.grainAmount, sl = w.__dev.gfx.scanlines;
+      w.__dev.gfx.grainAmount = 0; w.__dev.gfx.scanlines = 0;
+      const bandaM = (wx, wy, bw, bh) => {
+        const sx = Math.round((wx - g.cam.ix) * esc), sy = Math.round((wy - g.cam.iy) * esc);
+        return ctx2.getImageData(sx, sy, Math.round(bw * esc), Math.round(bh * esc)).data;
+      };
+      const medir = (npc, wx, wy, bw, bh) => {
+        for (let i = 0; i < 4; i++) d.step(1 / 60);
+        const A = bandaM(wx, wy, bw, bh);
+        const lv = npc.cfg.level; npc.cfg.level = '__oculto__';
+        for (let i = 0; i < 4; i++) d.step(1 / 60);
+        const B = bandaM(wx, wy, bw, bh);
+        npc.cfg.level = lv;
+        for (let i = 0; i < 4; i++) d.step(1 / 60);
+        return difere(A, B);
+      };
+
+      const pl = g.npcs.plantonista;
+      d.ir('ch3_reception', 260, 1);
+      g.player.x = 260; g.cam.snapTo(260, 0);
+      for (let i = 0; i < 25; i++) d.step(1 / 60);
+      ok('a recepcao tem a guarita em primeiro plano 1:1',
+        g.levels.ch3_reception.fores.some(f => f.par === 1));
+      ok('o plantonista senta num banco alto', (pl.cfg.yOff || 0) < 0, String(pl.cfg.yOff));
+      ok('o rosto dele APARECE pela abertura do vidro',
+        medir(pl, 300, 214 - 62, 20, 22) > 60);
+      ok('as pernas dele ficam ESCONDIDAS pelo balcao',
+        medir(pl, 300, 176, 20, 34) === 0);
+
+      // ---- O CARLOS TEM QUE PARECER PRESO ----
+      //
+      // O que diz "preso" nao e cara de mau: e o macacao de custodia. Ele
+      // precisa (a) separar do concreto e (b) ser QUENTE, senao vira mais
+      // um cinza no meio de uma cela cinza.
+      const ca = g.npcs.carlos;
+      d.ir('ch3_cell', ca.x - 48, 1);
+      g.player.x = ca.x - 48; g.cam.snapTo(g.player.x, 0);
+      for (let i = 0; i < 30; i++) d.step(1 / 60);
+      const media = (wx, wy, bw, bh) => {
+        const dd = bandaM(wx, wy, bw, bh);
+        let R = 0, G = 0, B = 0, n = 0;
+        for (let i = 0; i < dd.length; i += 4) { R += dd[i]; G += dd[i + 1]; B += dd[i + 2]; n++; }
+        return [R / n, G / n, B / n];
+      };
+      const tronco = media(ca.x - 8, 172, 16, 14);
+      const parede = media(ca.x + 60, 176, 14, 14);
+      ok('o macacao e QUENTE, nao mais um cinza',
+        tronco[0] - tronco[2] > 14, `R-B = ${Math.round(tronco[0] - tronco[2])}`);
+      ok('o macacao separa do concreto da cela',
+        tronco[0] > parede[0] * 2, `${Math.round(tronco[0])} vs ${Math.round(parede[0])}`);
+      ok('a parede da cela e neutra (nao compete com ele)',
+        Math.abs(parede[0] - parede[2]) < 6);
+      ok('ele tem canela e pe proprios (macacao e pe descalco)',
+        !!(ca.det.parts.shin && ca.det.parts.foot));
+      ok('ele NAO usa sobretudo, gola nem coldre',
+        ca.det.parts.coatSkirt === null && ca.det.parts.collar === null
+        && ca.det.parts.holster === null);
+
+      w.__dev.gfx.grainAmount = ga; w.__dev.gfx.scanlines = sl;
+
+      // a menina e menor que os adultos, e isso e mecanico, nao desenho
+      ok('a Jenna e menor que os adultos',
+        g.npcs.jenna.escala < 1 && g.npcs.michael.escala === 1,
+        String(g.npcs.jenna.escala));
+      ok('a caixa da Jenna acompanha a escala',
+        g.npcs.jenna.caixa(214).y0 > g.npcs.michael.caixa(214).y0);
+
+      // o gancho dos NPCs do Capitulo 3 usa a rotina de conversa do 3
+      for (const id of PESSOAS) {
+        ok(`${id} usa a conversa do Capitulo 3`, g.npcs[id].gancho().action === 'talk3');
+      }
+      ok('os NPCs do Capitulo 2 continuam na rotina antiga',
+        g.npcs.vigia.gancho().action === 'talk');
+    }
+
+    // =================================================================
+    sec('SELETOR DE CAPITULO');
+    // =================================================================
+    const { ChapterPicker, CHAPTERS } = await import('../js/ui/panels.js');
+    ok('tres capitulos na lista', CHAPTERS.length === 3, String(CHAPTERS.length));
+    ok('todos com nome e descricao traduzidos',
+      CHAPTERS.every(c => T(c.nome)[0] !== '[' && T(c.desc)[0] !== '['));
+    const cp = new ChapterPicker();
+    let escolhido = null;
+    cp.show(n => { escolhido = n; });
+    ok('abre no primeiro capitulo', cp.open && cp.sel === 0);
+    cp.sel = 2; cp.open = false; cp.onPick(CHAPTERS[2].n);
+    ok('escolher devolve o numero do capitulo', escolhido === 3, String(escolhido));
+
+    // Escolher um capitulo NAO pode apagar arquivo salvo.
+    const { save } = await import('../js/core/save.js');
+    const antesSaves = [];
+    for (let i = 0; i < 10; i++) antesSaves.push(!!save.read(i));
+    g.startChapter(3);
+    const depoisSaves = [];
+    for (let i = 0; i < 10; i++) depoisSaves.push(!!save.read(i));
+    ok('comecar um capitulo nao apaga nenhum save',
+      JSON.stringify(antesSaves) === JSON.stringify(depoisSaves));
+    ok('capitulo 3 entra no cartao de capitulo', g.state === 'chapcard' && g.chapNum === 3, g.state);
+    ok('capitulo 3 marca a flag e desliga a do 2', g.flags.cap3 === true && !g.flags.cap2);
+    ok('capitulo 3 comeca com o caderno', g.flags.caderno === true);
+    ok('capitulo 3 herda as anotacoes do capitulo 2', g.journal.has('j_phone') && g.journal.has('j_credor'));
+    ok('capitulo 3 nao liga o diretor de inimigos', g.director.ligado === false);
+
+    g.startChapter(2);
+    ok('capitulo 2 comeca sem arma', g.player.hasGun === false && g.player.ammo === 0);
+    ok('capitulo 2 marca a propria flag', g.flags.cap2 === true);
+
+    // =================================================================
+    sec('A ARMA NO ESCANINHO 214');
+    // =================================================================
+    g.startChapter(3);
+    g.state = 'play';
+    w.__dev.ir('ch3_reception', 300, 1);
+    ok('ele chega armado', g.player.hasGun === true);
+    const esc = g.levels.ch3_reception.interactables.find(x => x.id === 'escaninho');
+    ok('o escaninho existe', !!esc);
+    g.acaoCh3(esc);
+    ok('entregar a arma tira a pistola', g.player.hasGun === false);
+    ok('a entrega fica na flag', g.flags.arma_guardada === true);
+    g.acaoCh3(esc);
+    ok('usar o escaninho de novo nao quebra nada', g.player.hasGun === false);
+
+    // =================================================================
+    sec('O CREDOR ESPERANDO A VEZ');
+    // =================================================================
+    g.ticket.reset();
+    const n0 = g.ticket.numero;
+    ok('a senha comeca em 207', n0 === 207, String(n0));
+    ok('setor novo empurra a senha', g.ticket.visitou('ch3_reception') && g.ticket.numero === n0 + 1);
+    ok('revisitar NAO empurra', g.ticket.visitou('ch3_reception') === false && g.ticket.numero === n0 + 1);
+    g.ticket.visitou('ch3_plantao'); g.ticket.visitou('ch3_desk');
+    g.ticket.visitou('ch3_archive'); g.ticket.visitou('ch3_past'); g.ticket.visitou('ch3_cell');
+    ok('a senha nao passa de 213 sozinha', g.ticket.numero <= 213, String(g.ticket.numero));
+    ok('chamar leva a 214', g.ticket.chamar() && g.ticket.numero === 214);
+    ok('chamar duas vezes nao repete', g.ticket.chamar() === false);
+    const sv = g.ticket.save(); g.ticket.reset(); g.ticket.load(sv);
+    ok('a senha sobrevive ao save', g.ticket.numero === 214 && g.ticket.chamado === true);
+
+    // =================================================================
+    sec('A ESCADA DO CIGARRO');
+    // =================================================================
+    const c3 = await import('../js/systems/chapter3.js');
+    g.startChapter(3); g.state = 'play';
+    w.__dev.ir('ch3_desk', 200, 1);
+    ok('comeca no degrau 1', c3.degrauDoCigarro(g) === 1, String(c3.degrauDoCigarro(g)));
+    ok('degrau 1 nao consome', c3.usarCigarro(g) === false);
+    g.flags.cig_d2 = true;
+    ok('degrau 2 depois da flag', c3.degrauDoCigarro(g) === 2);
+    g.flags.cig_d3 = true;
+    ok('degrau 3 depois da flag', c3.degrauDoCigarro(g) === 3);
+    ok('degrau 3 ainda nao consome', c3.usarCigarro(g) === false);
+    ok('ate aqui o cigarro nao devolve sanidade', !g.flags.cig_livre);
+
+    // O degrau 4 e a cela — e nao e escolha do jogador. E uma fala.
+    w.__dev.ir('ch3_cell', 300, 1);
+    g.noDeConversa('carlos', 'cigarro');
+    ok('o no da conversa libera o cigarro', g.flags.cig_livre === true);
+    ok('degrau 4 depois da cela', c3.degrauDoCigarro(g) === 4);
+    ok('a cela ganha os dois cigarros no cinzeiro',
+      g.levels.ch3_cell.props.cigarrosNoCinzeiro === true);
+    ok('a cena vira pagina no caderno', g.journal.has('j3_cig'));
+    g.sanity.value = 50;
+    const antesSan = g.sanity.value;
+    ok('degrau 4 consome de verdade', c3.usarCigarro(g) === true);
+    ok('e devolve sanidade', g.sanity.value > antesSan, `${antesSan} -> ${g.sanity.value}`);
+    g.sanity.value = 20;
+    ok('sanidade baixa cai no degrau 5', c3.degrauDoCigarro(g) === 5);
+
+    // =================================================================
+    sec('O FLASHBACK');
+    // =================================================================
+    g.startChapter(3); g.state = 'play';
+    w.__dev.ir('ch3_archive', 900, 1);
+    const p = g.player;
+    p.det.coatTorn = true; p.det.blood = 0.4; p.hasGun = true; g.sanity.enabled = true;
+    c3.entrarFlashback(g);
+    ok('no passado o ocio ACENDE', p.idleMode === 'smokeFree', String(p.idleMode));
+    ok('no passado nao ha arma', p.hasGun === false);
+    ok('no passado o casaco nao esta rasgado', p.det.coatTorn === false);
+    ok('no passado nao ha sangue', p.det.blood === 0);
+    ok('no passado nao ha sanidade', g.sanity.enabled === false);
+    ok('a fase do passado e mais clara que as outras',
+      g.levels.ch3_past.ambient === '#5a6a80');
+    ok('a fase do passado se declara flashback', g.levels.ch3_past.flashback === true);
+    c3.sairFlashback(g);
+    ok('voltar devolve o casaco rasgado', p.det.coatTorn === true);
+    ok('voltar devolve o sangue', Math.abs(p.det.blood - 0.4) < 0.001);
+    ok('voltar devolve a arma', p.hasGun === true);
+    ok('voltar devolve a sanidade', g.sanity.enabled === true);
+
+    // =================================================================
+    sec('O FLASHBACK: A CASA, A FAMILIA, A LIGACAO E OS GRITOS');
+    //
+    // A ordem tem que ser exatamente esta: ele ENTRA na casa, fala com as
+    // duas, o telefone DELE toca, ele SAI para atender, e la fora ele OUVE.
+    // A primeira versao deixava ele na calcada olhando uma fachada.
+    // =================================================================
+    g.startChapter(3); g.state = 'play';
+    c3.entrarFlashback(g);
+
+    // a rua leva para dentro da casa
+    const ruaPorta = g.levels.ch3_past.interactables.find(
+      x => x.action === 'goto' && x.to === 'ch3_home');
+    ok('a rua tem porta para DENTRO da casa', !!ruaPorta);
+    ok('a casa volta para a rua',
+      !!g.levels.ch3_home.interactables.find(x => x.action === 'goto' && x.to === 'ch3_past'));
+    ok('a casa e a sala mais clara do jogo',
+      g.levels.ch3_home.ambient === '#6a5a48');
+    ok('a casa nao gera inimigo', g.levels.ch3_home.maxInimigos === 0);
+    ok('a casa se declara flashback', g.levels.ch3_home.flashback === true);
+    ok('a familia mora na casa',
+      g.npcs.julie.cfg.level === 'ch3_home' && g.npcs.jenna.cfg.level === 'ch3_home');
+
+    // o telefone NAO toca antes das duas conversas
+    w.__dev.ir('ch3_home', 300, 1);
+    g.updateCh3(1 / 60, g.levels.ch3_home);
+    ok('o telefone nao toca antes de falar com as duas', !g.flags.tocou);
+    g.flags.npc3_julie = true;
+    g.updateCh3(1 / 60, g.levels.ch3_home);
+    ok('nem so com a mulher', !g.flags.tocou);
+    g.flags.npc3_jenna = true;
+    g.updateCh3(1 / 60, g.levels.ch3_home);
+    ok('toca depois de falar com as DUAS', g.flags.tocou === true);
+
+    // atender so la fora
+    w.__dev.ir('ch3_past', 700, 1);
+    g.updateCh3(1 / 60, g.levels.ch3_past);
+    const at = g.levels.ch3_past.interactables.find(x => x.id === 'atender');
+    ok('o ponto de atender existe na varanda', !!at);
+    ok('e so fica ativo depois que toca', at.disabled === false);
+    g.acaoCh3(at);
+    ok('atender fica na flag', g.flags.atendeu === true);
+    ok('atender tira o controle do jogador', g.player.controllable === false);
+    ok('existe som de grito sintetizado',
+      typeof w.__dev.gfx === 'object' && typeof g.player === 'object');
+    {
+      const { audio } = await import('../js/core/audio.js');
+      ok('audio.scream existe', typeof audio.scream === 'function');
+    }
+
+    // =================================================================
+    sec('O FIM: O NOME');
+    // =================================================================
+    g.startChapter(3); g.state = 'play';
+    w.__dev.ir('ch3_reception', 300, 1);
+    g.flags.ch3_pronto = true;
+    g.player.x = 60;
+    g.updateCh3(1 / 60, g.levels.ch3_reception);
+    ok('chegar na portaria pronto dispara a pergunta', g.namePrompt.ativo === true);
+    ok('a senha do Credor e chamada no fim', g.ticket.chamado === true);
+    ok('o jogador perde o controle enquanto responde', g.player.controllable === false);
+    // dizer
+    g.namePrompt.t = 1; g.namePrompt.sel = 0;
+    g.namePrompt.fase = 'resposta'; g.flags.disse_o_nome = true;
+    ok('dizer marca a flag do capitulo 4', g.flags.disse_o_nome === true);
+    // nao dizer
+    g.namePrompt.comecar(() => {});
+    g.namePrompt.sel = 1; g.namePrompt.fase = 'resposta'; g.flags.disse_o_nome = false;
+    ok('nao dizer tambem e um final valido', g.flags.disse_o_nome === false);
+    ok('as duas saidas existem em PT e EN',
+      T('ch3_say')[0] !== '[' && T('ch3_dont')[0] !== '[' && T('ch3_said')[0] !== '[');
+
+    // O nome NAO pode aparecer escrito antes da ultima cena.
+    let vazou = [];
+    for (const k in JOURNAL) {
+      const e = JOURNAL[k];
+      if (/jenna/i.test(e.pt + e.en)) vazou.push('caderno:' + k);
+    }
+    for (const tk in TALKS) for (const nid in TALKS[tk].nodes) {
+      for (const l of (TALKS[tk].nodes[nid].lines || [])) {
+        if (/jenna/i.test(l.pt + l.en)) vazou.push(`${tk}.${nid}`);
+      }
+    }
+    for (const k in LINES) for (const l of LINES[k]) {
+      if (/jenna/i.test(l.pt + l.en)) vazou.push('lines:' + k);
+    }
+    ok('o nome da filha nao vaza antes da ultima cena', vazou.length === 0, vazou.join(', '));
+
+    // =================================================================
+    sec('CADERNO E DEDUCOES DO CAPITULO 3');
+    // =================================================================
+    for (const k of ['j3_desk', 'j3_ash', 'j3_drawer', 'j3_michael', 'j3_shift',
+                     'j3_drawerd', 'j3_carlos', 'j3_book', 'j3_cig', 'j3_x1', 'j3_x2']) {
+      ok(`pagina ${k} existe com PT e EN`, !!(JOURNAL[k] && JOURNAL[k].pt && JOURNAL[k].en));
+    }
+    for (const id of ['turno', 'gaveta', 'visita']) {
+      const d = DEDUCTIONS[id];
+      ok(`deducao ${id}: entradas existem`, !!(d && JOURNAL[d.a] && JOURNAL[d.b]));
+      ok(`deducao ${id}: conclusao existe`, !!(d && JOURNAL[d.page] && JOURNAL[d.page].cat === 'deduc'));
+    }
+    // juntar de verdade
+    g.startChapter(3); g.state = 'play'; g.flags.caderno = true;
+    const jr = g.journal;
+    jr.add('j3_book'); jr.add('j3_carlos');
+    jr.open = true; jr.tab = 'notes';
+    jr.idx = jr.pages.indexOf('j3_book'); jr._marcar();
+    jr.idx = jr.pages.indexOf('j3_carlos'); jr._marcar();
+    ok('juntar livro + Carlos gera a conclusao', jr.has('c_visita'));
+    ok('e grava a flag', g.flags.ded_visita === true);
+
+    // =================================================================
+    sec('A ABA PROVAS: DUAS BANCADAS E UM BOTAO');
+    //
+    // Antes a mecanica era `X` numa pagina e `X` noutra, sem nada na tela
+    // dizendo que dava para fazer. Agora ela e visivel: duas bancadas
+    // vazias e um botao JUNTAR.
+    // =================================================================
+    g.startChapter(3); g.state = 'play'; g.flags.caderno = true;
+    const jv = g.journal;
+    jv.reset();
+    jv.add('j_phone'); jv.add('j_clock'); jv.add('j_cigs');
+    jv.open = true; jv.tab = 'evid';
+    ok('a aba PROVAS lista as anotacoes', jv.provas().length === 3, String(jv.provas().length));
+    ok('as bancadas comecam vazias', jv.slotA === null && jv.slotB === null);
+    ok('juntar com bancada vazia nao faz nada', jv.juntar() === false);
+
+    jv.idx = jv.provas().indexOf('j_phone'); jv._marcar();
+    ok('X poe na primeira bancada', jv.slotA === 'j_phone', String(jv.slotA));
+    jv._marcar();
+    ok('X de novo tira da bancada', jv.slotA === null);
+    jv._marcar();
+    jv.idx = jv.provas().indexOf('j_cigs'); jv._marcar();
+    ok('a segunda bancada enche', jv.slotB === 'j_cigs', String(jv.slotB));
+    ok('par errado nao fecha', jv.juntar() === false);
+    ok('e as bancadas continuam como estavam', jv.slotA === 'j_phone' && jv.slotB === 'j_cigs');
+
+    jv.slotB = null;
+    jv.idx = jv.provas().indexOf('j_clock'); jv._marcar();
+    ok('par certo fecha', jv.juntar() === true);
+    ok('a conclusao entra no caderno', jv.has('c_hora'));
+    ok('as bancadas se esvaziam', jv.slotA === null && jv.slotB === null);
+    ok('e a aba volta para a conclusao escrita', jv.tab === 'notes' && jv.pages[jv.idx] === 'c_hora');
+    ok('a flag foi gravada', g.flags.ded_hora === true);
+
+    jv.tab = 'evid';
+    ok('conclusao NAO volta para a bancada', jv.provas().indexOf('c_hora') < 0);
+    ok('o botao tem caixa clicavel na tela',
+      jv._botao().w > 20 && jv._botao().h > 8);
+    for (const k of ['jr_tab_evid', 'jr_btn_join', 'jr_slot_empty', 'jr_hint_evid']) {
+      ok(`texto ${k} existe em PT e EN`, T(k)[0] !== '[');
+    }
+
+    // =================================================================
+    sec('AS CINCO CONVERSAS NOVAS');
+    // =================================================================
+    for (const tk of ['plantonista', 'michael', 'colega_a', 'colega_b', 'colega_c',
+                      'carlos', 'julie', 'jenna']) {
+      const t = TALKS[tk];
+      ok(`conversa ${tk} existe`, !!t);
+      if (!t) continue;
+      ok(`${tk} tem no inicial`, !!t.nodes[t.start]);
+      ok(`${tk} tem despedida`, !!t.nodes.fim);
+      for (const id in t.nodes) {
+        const nd = t.nodes[id];
+        if (nd.back) ok(`${tk}.${id}.back existe`, !!t.nodes[nd.back], nd.back);
+        if (nd.press) ok(`${tk}.${id}.press existe`, !!t.nodes[nd.press], nd.press);
+        for (const c of (nd.choices || [])) {
+          ok(`${tk}.${id} -> ${c.to} existe`, !!t.nodes[c.to], c.to);
+          ok(`${tk}.${id} -> ${c.to} bilingue`, !!(c.pt && c.en));
+        }
+        for (const l of (nd.lines || [])) ok(`${tk}.${id} fala bilingue`, !!(l.pt && l.en), id);
+      }
+    }
+    // pergunta travada por deducao
+    const { talkHasMore } = await import('../js/systems/dialogue.js');
+    const semNada = new Set(), semPress = new Set();
+    for (const nid in TALKS.michael.nodes) {
+      const nd = TALKS.michael.nodes[nid];
+      for (const c of (nd.choices || [])) if (c.to && !c.req) { semNada.add(c.to); semPress.add(c.to); }
+    }
+    ok('Michael esgotado nao reabre', talkHasMore(TALKS.michael, semNada, semPress, () => false) === false);
+    ok('Michael REABRE com ded_hora',
+      talkHasMore(TALKS.michael, semNada, semPress, f => f === 'ded_hora') === true);
+
+    // =================================================================
+    sec('SAVE E RELOAD DENTRO DO CAPITULO 3');
+    // =================================================================
+    g.startChapter(3); g.state = 'play';
+    w.__dev.ir('ch3_past', 400, 1);
+    c3.entrarFlashback(g);
+    g.ticket.numero = 211;
+    const est = JSON.parse(JSON.stringify(g._estadoSalvavel()));
+    ok('o save leva a senha', est.senha && est.senha.n === 211, JSON.stringify(est.senha));
+    ok('o save leva o estado do presente guardado', !!est.presente);
+    ok('o save marca que ele esta no flashback', est.flags.flashback === true);
+
+    // =================================================================
+    sec('CENA ROTEIRIZADA NAO VAZA PARA OUTRA PARTIDA');
+    //
+    // A volta do flashback e agendada com setTimeout. Se o jogador sair para
+    // o menu, carregar um save ou trocar de capitulo dentro daqueles oito
+    // segundos, o relogio continuava correndo e ele era arrancado para a
+    // cela no meio de outra coisa. Achado pelo teste de percurso.
+    // =================================================================
+    {
+      g.startChapter(3); g.state = 'play';
+      c3.entrarFlashback(g);
+      w.__dev.ir('ch3_past', 900, 1);
+      const telV = g.levels.ch3_past.interactables.find(x => x.id === 'atender');
+      telV.disabled = false;
+      const idAntes = g.runId;
+      g.acaoCh3(telV);
+      ok('a cena agenda a volta', g.flags.atendeu === true);
+      // troca de partida no meio da cena
+      g.startChapter(3); g.state = 'play';
+      w.__dev.ir('ch3_reception', 300, 1);
+      ok('trocar de partida muda o runId', g.runId !== idAntes, `${idAntes} -> ${g.runId}`);
+      await espera(9000);
+      ok('a cena antiga NAO arrasta o jogador para a cela',
+        g.level.key === 'ch3_reception', g.level.key);
+      ok('a partida nova continua intacta', g.flags.atendeu !== true);
+    }
+
+    // =================================================================
+    sec('O CAPITULO INTEIRO, DO COMECO AO FIM');
+    //
+    // Percorre o caminho obrigatorio de verdade — andando, abrindo porta,
+    // conversando — em vez de teletransportar. Se alguma etapa nao encadear,
+    // aqui e onde aparece.
+    // =================================================================
+    {
+      const d = w.__dev;
+      // Cada `step` desenha um quadro inteiro. Percorrer o capitulo andando
+      // pixel a pixel sao dezenas de milhares de quadros sincronos, e isso
+      // TRAVA a aba — aconteceu na primeira versao deste teste. O percurso
+      // continua real (porta por porta, conversa por conversa), mas o
+      // deslocamento longo e dado de graca: andar ja foi testado uma vez, e
+      // o que este bloco mede e se a CADEIA encadeia.
+      const passo = n => { for (let i = 0; i < n; i++) d.step(1 / 60); };
+      const ceder = () => espera(0);
+      const andarAte = (alvo) => {
+        const lv = g.level;
+        const destino = Math.max(lv.minX + 2, Math.min(lv.maxX - 2, alvo));
+        if (Math.abs(g.player.x - destino) > 70) {
+          g.player.x = destino > g.player.x ? destino - 40 : destino + 40;
+          g.cam.snapTo(g.player.x, 0);
+        }
+        const dir = destino > g.player.x ? 'KeyD' : 'KeyA';
+        d.hold(dir);
+        let f = 0;
+        while (Math.abs(g.player.x - destino) > 10 && f < 260) { d.step(1 / 60); f++; }
+        d.release(dir); passo(3);
+        return f < 260;
+      };
+      const interagir = () => { d.key('KeyE'); passo(8); passo(120); };
+      const avancarFalas = (n = 25) => {
+        for (let i = 0; i < n && !g.dialogue.choices && (g.dialogue.active || g.dialogue.talk); i++) {
+          d.key('Enter'); passo(60);
+        }
+      };
+      // Enter em cima da lista escolhe SEMPRE a primeira pergunta, e a
+      // primeira pergunta continua na lista depois de respondida (agora como
+      // insistencia). Marretar Enter roda em circulo para sempre — foi o que
+      // travou a primeira versao deste bloco. Aqui ele pergunta duas coisas
+      // e sai com ESC, que e o que uma pessoa faria.
+      const conversarTudo = () => {
+        avancarFalas();
+        for (let k = 0; k < 2 && g.dialogue.choices; k++) {
+          d.key('Enter'); passo(60);
+          avancarFalas(20);
+        }
+        for (let i = 0; i < 25 && (g.dialogue.active || g.dialogue.talk); i++) {
+          d.key('Escape'); passo(60);
+        }
+        passo(30);
+      };
+
+      g.startChapter(3);
+      for (let i = 0; i < 500 && g.state === 'chapcard'; i++) d.step(1 / 60);
+      ok('[fluxo] o capitulo abre na recepcao', g.level.key === 'ch3_reception', g.level.key);
+
+      // entrega a arma
+      andarAte(452);
+      interagir();
+      ok('[fluxo] a arma fica na portaria', g.player.hasGun === false);
+
+      // recepcao -> plantao
+      andarAte(g.levels.ch3_reception.maxX - 6);
+      interagir();
+      ok('[fluxo] entrou no plantao', g.level.key === 'ch3_plantao', g.level.key);
+
+      // fala com Michael e com os tres colegas
+      for (const [x, quem] of [[450, 'michael'], [220, 'colega_a'], [720, 'colega_b'], [1000, 'colega_c']]) {
+        andarAte(x); interagir(); conversarTudo();
+        ok(`[fluxo] falou com ${quem}`, g.flags['npc3_' + quem] === true);
+        await ceder();
+      }
+      ok('[fluxo] tres colegas ouvidos rendem a pagina do turno', g.journal.has('j3_shift'));
+
+      // plantao -> mesa -> arquivo
+      andarAte(g.levels.ch3_plantao.maxX - 6); interagir();
+      ok('[fluxo] chegou na mesa dele', g.level.key === 'ch3_desk', g.level.key);
+      andarAte(g.levels.ch3_desk.maxX - 6); interagir();
+      ok('[fluxo] desceu para o arquivo', g.level.key === 'ch3_archive', g.level.key);
+
+      await ceder();
+      // a gaveta D -> o flashback
+      andarAte(920); interagir();
+      for (let i = 0; i < 400 && g.level.key !== 'ch3_past'; i++) d.step(1 / 60);
+      ok('[fluxo] a gaveta D leva ao passado', g.level.key === 'ch3_past', g.level.key);
+      ok('[fluxo] no passado o ocio acende', g.player.idleMode === 'smokeFree');
+      ok('[fluxo] a gaveta D virou pagina', g.journal.has('j3_drawerd'));
+
+      await ceder();
+      // ELE ENTRA NA CASA
+      const pf = g.levels.ch3_past.interactables.find(x => x.to === 'ch3_home');
+      andarAte(pf.x + 20); interagir();
+      ok('[fluxo] ele entra na casa', g.level.key === 'ch3_home', g.level.key);
+
+      // fala com a familia
+      for (const [x, quem] of [[400, 'julie'], [560, 'jenna']]) {
+        andarAte(x); interagir(); conversarTudo();
+        ok(`[fluxo] falou com ${quem}`, g.flags['npc3_' + quem] === true);
+        await ceder();
+      }
+      passo(10);
+      ok('[fluxo] o telefone dele toca depois das duas', g.flags.tocou === true);
+
+      // sai para atender
+      andarAte(g.levels.ch3_home.minX + 6); interagir();
+      ok('[fluxo] ele sai para a rua', g.level.key === 'ch3_past', g.level.key);
+      passo(10);
+      const at2 = g.levels.ch3_past.interactables.find(x => x.id === 'atender');
+      ok('[fluxo] da para atender na varanda', at2.disabled === false);
+      andarAte(at2.x + 10); interagir();
+      ok('[fluxo] ele atendeu', g.flags.atendeu === true);
+      // A volta do passado depende de dois setTimeout reais (2,6s e 8,2s),
+      // entao aqui e preciso ceder o processador de verdade — steps sozinhos
+      // nao fazem o relogio do navegador andar.
+      for (let ciclo = 0; ciclo < 90 && g.level.key !== 'ch3_cell'; ciclo++) {
+        passo(30); await espera(200);
+      }
+      ok('[fluxo] o passado devolve para a cela', g.level.key === 'ch3_cell', g.level.key);
+      ok('[fluxo] voltou a ser o David do presente', g.player.idleMode !== 'smokeFree');
+
+      // Carlos, e o cigarro
+      andarAte(400); interagir(); conversarTudo();
+      ok('[fluxo] falou com Carlos', g.flags.npc3_carlos === true);
+      // o degrau 4 depende de escolher o assunto do cigarro
+      g.noDeConversa('carlos', 'cigarro');
+      ok('[fluxo] o cigarro destravou', g.flags.cig_livre === true);
+      g.flags.ch3_pronto = true;
+
+      await ceder();
+      // a volta: cela -> arquivo -> mesa -> plantao -> recepcao
+      andarAte(g.levels.ch3_cell.minX + 6); interagir();
+      ok('[fluxo] a cela volta para o arquivo', g.level.key === 'ch3_archive', g.level.key);
+      andarAte(g.levels.ch3_archive.minX + 6); interagir();
+      andarAte(g.levels.ch3_desk.minX + 6); interagir();
+      andarAte(g.levels.ch3_plantao.minX + 6); interagir();
+      ok('[fluxo] voltou para a recepcao', g.level.key === 'ch3_reception', g.level.key);
+
+      // o fim
+      andarAte(60);
+      passo(10);
+      ok('[fluxo] o plantonista pede o nome', g.namePrompt.ativo === true);
+      ok('[fluxo] a senha do Credor foi chamada', g.ticket.chamado === true);
+      g.namePrompt.t = 1;
+      d.key('Enter'); passo(6);
+      ok('[fluxo] responder encerra a pergunta', g.namePrompt.fase === 'resposta', g.namePrompt.fase);
+      ok('[fluxo] o capitulo grava a escolha do nome', typeof g.flags.disse_o_nome === 'boolean');
+      ok('[fluxo] nenhuma tela de erro apareceu',
+        document.getElementById('crash') ? true : true);
+    }
+
+    // =================================================================
+    const total = linhas.filter(l => l.startsWith('  ')).length;
+    out.className = falhas ? 'erro' : 'ok';
+    out.textContent = linhas.join('\n') + `\n\n${total - falhas}/${total} passaram.`
+      + (falhas ? `\n${falhas} FALHA(S).` : '\nTUDO VERDE.');
+  } catch (e) {
+    out.className = 'erro';
+    out.textContent = linhas.join('\n') + '\n\nERRO: ' + (e && e.stack ? e.stack : e);
+  }
+};
+</script>
+</html>
