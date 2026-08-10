@@ -37,7 +37,7 @@ async function pronto() {
 }
 
 const SETORES = ['ch3_reception', 'ch3_plantao', 'ch3_desk', 'ch3_archive',
-                 'ch3_past', 'ch3_home', 'ch3_cell'];
+                 'ch3_past', 'ch3_home', 'ch3_room', 'ch3_cell'];
 const PESSOAS = ['plantonista', 'michael', 'colega_a', 'colega_b', 'colega_c',
                  'carlos', 'julie', 'jenna'];
 
@@ -53,7 +53,7 @@ document.getElementById('rodar').onclick = async () => {
     const T = i18n.t;
 
     // =================================================================
-    sec('OS SEIS SETORES');
+    sec('OS SETORES DO CAPITULO');
     // =================================================================
     for (const k of SETORES) {
       const lv = g.levels[k];
@@ -343,6 +343,16 @@ document.getElementById('rodar').onclick = async () => {
     ok('no passado o casaco nao esta rasgado', p.det.coatTorn === false);
     ok('no passado nao ha sangue', p.det.blood === 0);
     ok('no passado nao ha sanidade', g.sanity.enabled === false);
+    // A ROUPA. Ele nao pode estar com o mesmo sobretudo que veste ha sete
+    // anos: e a distancia entre este homem e o outro.
+    ok('no passado ele troca de roupa', !!(p.det.parts && p.det.parts.torso),
+      String(!!p.det.parts));
+    ok('no passado nao ha aba de sobretudo',
+      !!p.det.parts && p.det.parts.coatSkirt === null);
+    ok('no passado nao ha coldre no quadril',
+      !!p.det.parts && p.det.parts.holster === null);
+    ok('a roupa do passado NAO e a mesma peca do sobretudo',
+      !!p.det.parts && p.det.parts.torso !== null);
     ok('a fase do passado e mais clara que as outras',
       g.levels.ch3_past.ambient === '#5a6a80');
     ok('a fase do passado se declara flashback', g.levels.ch3_past.flashback === true);
@@ -351,6 +361,7 @@ document.getElementById('rodar').onclick = async () => {
     ok('voltar devolve o sangue', Math.abs(p.det.blood - 0.4) < 0.001);
     ok('voltar devolve a arma', p.hasGun === true);
     ok('voltar devolve a sanidade', g.sanity.enabled === true);
+    ok('voltar devolve o sobretudo', p.det.parts === null, String(p.det.parts));
 
     // =================================================================
     sec('O FLASHBACK: A CASA, A FAMILIA, A LIGACAO E OS GRITOS');
@@ -372,8 +383,30 @@ document.getElementById('rodar').onclick = async () => {
       g.levels.ch3_home.ambient === '#6a5a48');
     ok('a casa nao gera inimigo', g.levels.ch3_home.maxInimigos === 0);
     ok('a casa se declara flashback', g.levels.ch3_home.flashback === true);
-    ok('a familia mora na casa',
-      g.npcs.julie.cfg.level === 'ch3_home' && g.npcs.jenna.cfg.level === 'ch3_home');
+    // A mae fica na sala; a MENINA fica no quarto dela. Duas conversas em
+    // dois comodos, com a casa entre elas.
+    ok('a mulher fica na sala', g.npcs.julie.cfg.level === 'ch3_home');
+    ok('a menina fica no QUARTO dela', g.npcs.jenna.cfg.level === 'ch3_room',
+      g.npcs.jenna.cfg.level);
+    ok('a sala leva ao quarto',
+      !!g.levels.ch3_home.interactables.find(x => x.action === 'goto' && x.to === 'ch3_room'));
+    ok('o quarto volta para a sala',
+      !!g.levels.ch3_room.interactables.find(x => x.action === 'goto' && x.to === 'ch3_home'));
+    ok('o quarto se declara flashback', g.levels.ch3_room.flashback === true);
+    ok('o quarto nao gera inimigo', g.levels.ch3_room.maxInimigos === 0);
+    ok('o quarto e um setor de respiro', g.levels.ch3_room.safe === true);
+    // Regra da casa: NENHUMA migalha dentro dela. Se houver um detalhe
+    // errado aqui, o jogador passa o flashback procurando o truque.
+    for (const k of ['ch3_home', 'ch3_room']) {
+      for (const it of (g.levels[k].interactables || [])) {
+        if (!it.lines) continue;
+        ok(`${k}: ${it.lines} tem texto de verdade`,
+          Array.isArray(LINES[it.lines]) && LINES[it.lines].length > 0, it.lines);
+        for (const l of (LINES[it.lines] || [])) {
+          ok(`${k}: ${it.lines} em PT e EN`, !!l.pt && !!l.en);
+        }
+      }
+    }
 
     // o telefone NAO toca antes das duas conversas
     w.__dev.ir('ch3_home', 300, 1);
@@ -386,20 +419,102 @@ document.getElementById('rodar').onclick = async () => {
     g.updateCh3(1 / 60, g.levels.ch3_home);
     ok('toca depois de falar com as DUAS', g.flags.tocou === true);
 
-    // atender so la fora
+    // ---- ATENDER DE QUALQUER LUGAR ----
+    //
+    // O telefone e DELE e esta no bolso DELE. Assim que ele poe o pe fora
+    // de casa, o botao de usar tem que estar na tela em qualquer ponto da
+    // rua — nao numa marca no chao da varanda.
     w.__dev.ir('ch3_past', 700, 1);
     g.updateCh3(1 / 60, g.levels.ch3_past);
     const at = g.levels.ch3_past.interactables.find(x => x.id === 'atender');
-    ok('o ponto de atender existe na varanda', !!at);
+    ok('o ponto de atender existe', !!at);
     ok('e so fica ativo depois que toca', at.disabled === false);
+    {
+      let seguiu = 0;
+      for (const px of [120, 340, 620, 880]) {
+        g.player.x = px;
+        g.updateCh3(1 / 60, g.levels.ch3_past);
+        const perto = g.levels.ch3_past.nearest(px);
+        if (perto && perto.id === 'atender') seguiu++;
+      }
+      ok('da para atender de qualquer ponto da rua', seguiu === 4, `${seguiu}/4`);
+    }
     g.acaoCh3(at);
     ok('atender fica na flag', g.flags.atendeu === true);
     ok('atender tira o controle do jogador', g.player.controllable === false);
-    ok('existe som de grito sintetizado',
-      typeof w.__dev.gfx === 'object' && typeof g.player === 'object');
     {
       const { audio } = await import('../js/core/audio.js');
       ok('audio.scream existe', typeof audio.scream === 'function');
+      ok('existe som de vidro estourando', typeof audio.glassBreak === 'function');
+      ok('existe estalo de madeira no fogo', typeof audio.fireCrack === 'function');
+      ok('existe o baque do fogo', typeof audio.fireBurst === 'function');
+    }
+
+    // =================================================================
+    sec('O FOGO');
+    //
+    // Depois dos gritos a casa queima. E o que responde as duas coisas que
+    // o jogo nunca explicou: por que ele nao acende um cigarro, e por que
+    // ele continua imprimindo cartaz depois de sete anos.
+    //
+    // ⚠ REGRA MANTIDA: nada de DENTRO da casa e mostrado. O fogo sai pelas
+    // janelas, pela porta e pelo telhado, e a camera fica na varanda.
+    // =================================================================
+    {
+      g.startChapter(3); g.state = 'play';
+      c3.entrarFlashback(g);
+      w.__dev.ir('ch3_past', 700, 1);
+      const F = g.levels.ch3_past.props.fogo;
+      ok('a fase declara onde a casa queima', !!F);
+      ok('o fogo sai pelas duas janelas', !!F && F.janelas.length === 2);
+      ok('o fogo sai pela porta', !!F && !!F.porta);
+      ok('o fogo sai pelo telhado', !!F && !!F.telhado);
+
+      ok('o fogo comeca desligado', g.fogo.ativo === false);
+      g.fogo.comecar(g);
+      ok('o fogo acende', g.fogo.ativo === true);
+      // A cena inteira dura ~14,5s. O loop precisa passar disso, senao o
+      // teste reprova a cena por ter medido pouco tempo.
+      let cresceu = 0, viu = {};
+      let acabou = false;
+      for (let i = 0; i < 900; i++) {
+        g.fogo.update(1 / 30, g);
+        viu[g.fogo.fase] = true;
+        if (g.fogo.k > cresceu) cresceu = g.fogo.k;
+        if (!g.fogo.ativo) { acabou = true; break; }
+      }
+      ok('o fogo cresce ate o maximo', Math.abs(cresceu - 1) < 0.001, String(cresceu));
+      ok('o fogo passa por todas as fases',
+        viu.brasa && viu.estouro && viu.porta && viu.baque && viu.levanta && viu.fim,
+        Object.keys(viu).join(','));
+      // 🐛 A primeira versao reentrava na ultima fase para sempre e a cena
+      // nunca terminava: o jogador ficava preso no passado com a casa
+      // queimando em loop. Esta checagem existe por causa disso.
+      ok('o fogo TERMINA sozinho', acabou === true, g.fogo.fase);
+
+      // A cena e ENCENADA: o jogador nao tem controle enquanto a casa queima.
+      g.fogo.reset();
+      g.fogo.comecar(g);
+      g.player.controllable = false;
+      for (let i = 0; i < 60; i++) g.fogo.update(1 / 60, g);
+      ok('o jogador nao controla nada durante o fogo', g.player.controllable === false);
+
+      // Trocar de partida no meio do incendio nao pode deixar uma casa
+      // queimando em outro jogo. (o mesmo defeito do B-56)
+      g.fogo.reset(); g.fogo.comecar(g);
+      g.runId++;
+      g.fogo.update(1 / 60, g);
+      ok('o fogo nao vaza para outra partida', g.fogo.ativo === false);
+
+      // e o incendio vira pagina do caderno, que vira deducao
+      g.fogo.reset();
+      ok('o caderno tem a pagina do incendio', !!JOURNAL.j3_fogo);
+      ok('a pagina do incendio esta em PT e EN', !!JOURNAL.j3_fogo.pt && !!JOURNAL.j3_fogo.en);
+      ok('o incendio nao diz o nome dela',
+        !/jenna/i.test(JOURNAL.j3_fogo.pt + JOURNAL.j3_fogo.en));
+      // esta secao entrou no passado na mao; sai dele antes de seguir
+      c3.sairFlashback(g);
+      ok('sair do passado devolve a roupa de hoje', g.player.det.parts === null);
     }
 
     // =================================================================
@@ -671,31 +786,48 @@ document.getElementById('rodar').onclick = async () => {
       andarAte(pf.x + 20); interagir();
       ok('[fluxo] ele entra na casa', g.level.key === 'ch3_home', g.level.key);
 
-      // fala com a familia
-      for (const [x, quem] of [[400, 'julie'], [560, 'jenna']]) {
-        andarAte(x); interagir(); conversarTudo();
-        ok(`[fluxo] falou com ${quem}`, g.flags['npc3_' + quem] === true);
-        await ceder();
-      }
+      // fala com a mulher, na sala
+      andarAte(400); interagir(); conversarTudo();
+      ok('[fluxo] falou com julie', g.flags.npc3_julie === true);
+      await ceder();
+
+      // e ATRAVESSA a casa ate o quarto da menina
+      const pq = g.levels.ch3_home.interactables.find(x => x.to === 'ch3_room');
+      ok('[fluxo] a sala tem porta para o quarto', !!pq);
+      andarAte(g.levels.ch3_home.maxX - 6); interagir();
+      ok('[fluxo] ele entra no quarto', g.level.key === 'ch3_room', g.level.key);
+      andarAte(g.npcs.jenna.x - 24); interagir(); conversarTudo();
+      ok('[fluxo] falou com a menina', g.flags.npc3_jenna === true);
+      await ceder();
       passo(10);
       ok('[fluxo] o telefone dele toca depois das duas', g.flags.tocou === true);
 
-      // sai para atender
+      // volta para a sala e sai de casa
+      andarAte(g.levels.ch3_room.minX + 6); interagir();
+      ok('[fluxo] ele volta para a sala', g.level.key === 'ch3_home', g.level.key);
       andarAte(g.levels.ch3_home.minX + 6); interagir();
       ok('[fluxo] ele sai para a rua', g.level.key === 'ch3_past', g.level.key);
       passo(10);
       const at2 = g.levels.ch3_past.interactables.find(x => x.id === 'atender');
-      ok('[fluxo] da para atender na varanda', at2.disabled === false);
-      andarAte(at2.x + 10); interagir();
-      ok('[fluxo] ele atendeu', g.flags.atendeu === true);
+      ok('[fluxo] da para atender assim que ele sai', at2.disabled === false);
+      // sem andar ate marca nenhuma: o telefone e dele e esta no bolso dele
+      interagir();
+      ok('[fluxo] ele atendeu de onde estava', g.flags.atendeu === true);
       // A volta do passado depende de dois setTimeout reais (2,6s e 8,2s),
       // entao aqui e preciso ceder o processador de verdade — steps sozinhos
       // nao fazem o relogio do navegador andar.
-      for (let ciclo = 0; ciclo < 90 && g.level.key !== 'ch3_cell'; ciclo++) {
+      // A volta do passado depende de relogio de verdade: 10,6s ate o fogo
+      // pegar, mais os ~14,5s da cena do incendio, mais o fade. Com 90
+      // ciclos de 200ms isto estourava o tempo e o teste dizia que o
+      // passado nao devolvia ninguem.
+      for (let ciclo = 0; ciclo < 220 && g.level.key !== 'ch3_cell'; ciclo++) {
         passo(30); await espera(200);
       }
       ok('[fluxo] o passado devolve para a cela', g.level.key === 'ch3_cell', g.level.key);
       ok('[fluxo] voltou a ser o David do presente', g.player.idleMode !== 'smokeFree');
+      ok('[fluxo] voltou vestindo o sobretudo', g.player.det.parts === null);
+      ok('[fluxo] a casa parou de queimar', g.fogo.ativo === false);
+      ok('[fluxo] o incendio virou pagina', g.journal.has('j3_fogo'));
 
       // Carlos, e o cigarro
       andarAte(400); interagir(); conversarTudo();

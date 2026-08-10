@@ -80,9 +80,13 @@ export const NPCS = {
     anim: 'idle', arte: 'julie',
     talk: 'julie', prompt: 'prompt_talk',
   },
+  // Ela nao esta na sala com a mae: esta no quarto dela, sentada no chao,
+  // desenhando, com o abajur aceso e a cama intacta. Sao duas conversas em
+  // dois comodos — o jogador ATRAVESSA a casa entre uma e outra, e e isso
+  // que faz a casa virar uma casa em vez de um cenario com duas pessoas.
   jenna: {
-    level: 'ch3_home', x: 560, facing: -1,
-    anim: 'idle', arte: 'jenna',
+    level: 'ch3_room', x: 168, facing: 1,
+    anim: 'read', arte: 'jenna',
     talk: 'jenna', prompt: 'prompt_talk',
     // Ela e crianca. O rig e o mesmo; quem encolhe e isto. A cabeca fica
     // proporcionalmente maior porque o sprite dela ja e desenhado assim —

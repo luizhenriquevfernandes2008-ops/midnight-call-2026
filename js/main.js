@@ -14,6 +14,7 @@ import { save, formatPlaytime } from './core/save.js';
 import { text, wrap, measure, clearTextCache } from './core/text.js';
 import { PAL } from './art/palette.js';
 import { ANIM_NAMES } from './art/detective.js';
+import { partesDe } from './art/creatures.js';
 import { Camera } from './world/camera.js';
 import { Rain, Fog, Particles, DustMotes } from './world/fx.js';
 import { buildAlley, buildBar, buildBackroom, buildWarehouse, buildRoad, buildCar } from './world/levels.js';
@@ -22,7 +23,7 @@ import { buildChapter3 } from './world/levels-ch3.js';
 import { buildChaseExtension } from './world/levels-chase.js';
 import {
   degrauDoCigarro, usarCigarro, liberarCigarro, TicketBoard,
-  entrarFlashback, sairFlashback, NamePrompt, esticarCorredor,
+  entrarFlashback, sairFlashback, NamePrompt, esticarCorredor, Fogo,
 } from './systems/chapter3.js';
 import { NoteScene } from './systems/scene-nota.js';
 import { MirrorScene } from './systems/scene-espelho.js';
@@ -135,6 +136,7 @@ class Game {
       ch2_mezz: 'metal', ch2_dock: 'metal', warehouse: 'concrete',
       ch3_reception: 'tile', ch3_plantao: 'wood', ch3_desk: 'wood',
       ch3_archive: 'concrete', ch3_past: 'concrete', ch3_cell: 'concrete',
+      ch3_home: 'wood', ch3_room: 'wood',
     };
     for (const [key, mat] of Object.entries(materiais)) if (this.levels[key]) this.levels[key].material = mat;
 
@@ -199,6 +201,7 @@ class Game {
     // ---- Capitulo 3 ----
     this.ticket = new TicketBoard();
     this.namePrompt = new NamePrompt();
+    this.fogo = new Fogo();
     // Identidade da partida em curso. Cenas roteirizadas que dependem de
     // `setTimeout` congelam este numero e conferem depois: sem isso, sair
     // para o menu, carregar um save ou trocar de capitulo no meio de uma
@@ -356,6 +359,7 @@ class Game {
 
   toMenu() {
     this.runId++;   // invalida qualquer cena roteirizada ainda no relogio
+    this.fogo.parar(); this.fogo.reset();
     this.state = 'menu';
     this.scene = null;
     if (this.menuSlots) this.menuSlots.open = false;
@@ -468,6 +472,7 @@ class Game {
     this.flags = {};
     // jogo novo: ele tem cigarro no bolso de novo, e arma no coldre
     this.player.idleMode = null;
+    this.player.det.parts = null;   // e o sobretudo de sempre
     this.player.hasGun = true;
     this.player.ammo = 6;
     this.player.reserve = 18;
@@ -705,6 +710,10 @@ class Game {
     gfx.begin('#05060a');
     lv.drawBack(gfx.s, cam);
     if (lv.drawProps) lv.drawProps(gfx.s, cam);
+    // A casa queimando fica ATRAS do personagem: ele esta na varanda, de
+    // costas para ela. O fogo e uma parede de luz entre o jogador e o que
+    // aconteceu la dentro — e continua sem mostrar nada de dentro.
+    if (this.fogo.ativo) this.fogo.draw(gfx.s, cam, this, lv);
     if (cap2) this.drawBloodDecals(gfx.s, cam, lv.key);
     if (cap2) this.chaseSetpieces.draw(gfx.s, cam, this, lv);
     if (cap2) this.chaseSequence.draw(gfx.s, cam, this, lv);
@@ -757,6 +766,7 @@ class Game {
         PAL.flame, 0.55 * lv.casaco * (this.isqueiroT > 0 ? 1 : 0.3));
     }
     if (this.scene) this.scene.addLights(cam);
+    if (this.fogo.ativo) this.fogo.addLights(gfx, cam, lv);
     gfx.endLights(lv.bloom);
 
     // ---- interface ----
@@ -1810,10 +1820,15 @@ class Game {
     this.chase.parar();
     this.ticket.reset();
     this.namePrompt.ativo = false;
+    this.fogo.parar(); this.fogo.reset();
     this.cigTentativas = 0;
     // Ele chega do Patio de Carga com o que sobrou do Capitulo 2.
     const p = this.player;
     p.idleMode = null;
+    // Comecar um capitulo tem que devolver o David do presente inteiro,
+    // inclusive a roupa. Sem isto, sair do flashback pelo menu e entrar de
+    // novo pelo seletor deixava ele de colete no meio da delegacia.
+    p.det.parts = null;
     p.hasGun = true;
     p.ammo = 6; p.reserve = 12;
     p.det.props.gun = 'holstered';
@@ -1889,18 +1904,34 @@ class Game {
       p.det.setFacing(-1);
       p.det.play('lookback', { restart: true, blend: 0.12 });
     }, 9200);
+
+    // ---- E ENTAO A CASA COMECA A QUEIMAR ----
+    //
+    // O fogo responde as duas perguntas que o jogo carregava sem resposta:
+    // por que ele nao consegue acender um cigarro, e por que ele continua
+    // imprimindo cartaz de desaparecida depois de sete anos. Ele estava com
+    // um cigarro na mao, de costas, e nunca houve corpo para enterrar.
+    //
+    // Continua sem mostrar nada de dentro. A camera fica na varanda.
     setTimeout(() => {
       if (this.state !== 'play' || this.runId !== agora) return;
-      // A tela apaga com ele ainda na varanda, com o cigarro na mao. A mesma
-      // composicao da cena da nota — de costas para o que importa, sete anos
-      // antes. Quem reparar monta o jogo sozinho.
-      audio.tinnitus(0.85);
-      this.fadeTo(() => this.voltarDoFlashback(), 3.4, 1.8);
-    }, 11400);
+      this.anotar('j3_fogo');
+      this.fogo.comecar(this, () => {
+        if (this.state !== 'play' || this.runId !== agora) return;
+        // A tela apaga com ele de pe na varanda, olhando a casa, com o
+        // cigarro ainda entre os dedos. A mesma composicao da cena da nota:
+        // de costas para o que importa, sete anos antes.
+        audio.tinnitus(0.85);
+        this.fadeTo(() => this.voltarDoFlashback(), 3.4, 1.8);
+      });
+    }, 10600);
   }
 
   voltarDoFlashback() {
     sairFlashback(this);
+    this.fogo.parar();
+    this.fogo.reset();
+    this.fx.clear();
     this.rain.on = false;
     this.anotar('j3_shift');
     this.enterLevel('ch3_cell', null, 1, true);
@@ -2504,18 +2535,38 @@ class Game {
         this.player.say('b3_past_tel2', 3.0);
       }
       // Ele toca de tempos em tempos ate ser atendido, e o som vem do bolso
-      // dele: dentro de casa da para ouvir igual.
+      // dele: dentro de casa e no quarto da menina da para ouvir igual.
       if (this.flags.tocou) {
         this.ringT = (this.ringT || 0) - dt;
         if (this.ringT <= 0) { this.ringT = 4.5; audio.phoneRing(lv.key === 'ch3_past' ? 0.7 : 0.45); }
       }
-      // Atender so e possivel LA FORA. Se ele tentar dentro de casa, ele
-      // mesmo diz que vai sair — e sair e o gesto que importa.
+      // ---- O TELEFONE E DELE, E ESTA NO BOLSO DELE ----
+      //
+      // Antes o "atender" era um ponto fixo da varanda, e o jogador tinha
+      // que procurar o lugar certo para usar o proprio telefone. Isso e
+      // errado duas vezes: e um objeto que ele esta carregando, e o gesto
+      // que a cena precisa e SAIR, nao caminhar ate uma marca no chao.
+      //
+      // Agora, no instante em que ele poe o pe fora de casa, o interagivel
+      // gruda no jogador: o botao de usar aparece em qualquer ponto da rua
+      // e continua na tela ate ele atender. A varanda continua sendo onde a
+      // cena acontece — porque e para la que ele anda sozinho —, mas quem
+      // decide onde atender e o jogador.
       if (lv.key === 'ch3_past') {
         const at = lv.interactables.find(it => it.id === 'atender');
-        if (at) at.disabled = !this.flags.tocou;
+        if (at) {
+          at.disabled = !this.flags.tocou;
+          if (this.flags.tocou) {
+            at.x = Math.round(this.player.x - at.w / 2);
+            at.y = lv.groundY - 60;
+          }
+        }
       }
     }
+
+    // O fogo tem relogio proprio: ele comeca com os gritos e nao depende de
+    // mais nada do jogo para continuar queimando.
+    if (this.fogo.ativo) this.fogo.update(dt, this);
 
     // A saida: com Carlos ouvido e o cigarro aceso, voltar a recepcao e o
     // fim do capitulo. O plantonista pede o nome, e o jogo para.
@@ -3255,6 +3306,9 @@ class Game {
     // ---- Capitulo 3 ----
     this.ticket.load(s.senha);
     this.namePrompt.ativo = false;
+    // A casa so queima dentro da cena. Carregar um save nunca devolve o
+    // jogador para o meio de um incendio.
+    this.fogo.parar(); this.fogo.reset();
     this._presente = s.presente || null;
     if (this.flags.flashback) {
       // Carregar dentro do passado tem que devolver o David do passado: sem
@@ -3265,6 +3319,11 @@ class Game {
       p.det.coatTorn = false;
       p.det.blood = 0;
       this.sanity.enabled = false;
+      // E com a roupa dele daquela noite. Sem isto, carregar um save dentro
+      // do passado devolvia o homem certo vestido de sobretudo.
+      p.det.parts = partesDe('david_passado');
+    } else {
+      p.det.parts = null;
     }
     if (this.flags.cap3) this.director.ligado = false;
 

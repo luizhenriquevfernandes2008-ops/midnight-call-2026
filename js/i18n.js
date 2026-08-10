@@ -193,6 +193,9 @@ const STR = {
   loc_dead_archive:{ pt: 'ARQUIVO MORTO  -1',   en: 'DEAD FILES  -1' },
   loc_seven_years:{ pt: 'SETE ANOS ATRAS',      en: 'SEVEN YEARS AGO' },
   loc_home:       { pt: 'CASA',                 en: 'HOME' },
+  // ⚠ O cartao do lugar nao pode dizer o nome dela. "O QUARTO" e o que o
+  // jogo tem direito de escrever aqui.
+  loc_room:       { pt: 'O QUARTO',             en: 'HER ROOM' },
   loc_cell:       { pt: 'CUSTODIA',             en: 'HOLDING' },
 
   loc_corridor:   { pt: 'CORREDOR DE CARGA',    en: 'LOADING CORRIDOR' },
@@ -747,6 +750,30 @@ const STR = {
   b3_past_grito2:{ pt: 'JULIE—',
                 en: 'JULIE—' },
 
+  // ---------- falas soltas: o quarto dela ----------
+  // ⚠ NENHUMA delas pode dizer o nome. Ele fala "ela", e nada mais.
+  b3_room_1:  { pt: 'A luz do abajur ainda esta acesa.',
+                en: 'The little lamp is still on.' },
+  b3_room_2:  { pt: 'Devia estar dormindo ha duas horas.',
+                en: 'Should have been asleep two hours ago.' },
+  // ---------- o fogo ----------
+  // Ele esta na varanda, de costas, com o telefone numa mao e um cigarro
+  // na outra. NADA de dentro da casa e mostrado — nem aqui, nem nunca.
+  //
+  // ⚠ Ele grita o nome da mulher e NAO grita o nome da filha. Nao e
+  // esquecimento: e o capitulo inteiro. O nome dela nao sai da boca dele
+  // ate o plantonista pedir, e nem o fogo tira.
+  b3_fogo_1:  { pt: 'Nao—',
+                en: 'No—' },
+  b3_fogo_2:  { pt: 'JULIE!',
+                en: 'JULIE!' },
+  b3_fogo_3:  { pt: '—',
+                en: '—' },
+  b3_fogo_4:  { pt: 'Abre. Abre. ABRE—',
+                en: 'Open. Open. OPEN—' },
+  b3_fogo_5:  { pt: '...',
+                en: '...' },
+
   // ---------- falas soltas: a cela ----------
   b3_cell_1:  { pt: 'Custodia.',
                 en: 'Holding.' },
@@ -1241,6 +1268,69 @@ export const LINES = {
     { pt: 'Ela sempre deixa destrancada quando eu estou pra chegar.',
       en: 'She always leaves it unlocked when I am on my way.' },
   ],
+
+  // ---------- dentro de casa ----------
+  // 🐛 Estas três chaves eram citadas pelos objetos da sala desde a sessão
+  // 20 e nunca existiram aqui: examinar a televisão, a mesa ou os
+  // porta-retratos abria uma caixa de diálogo VAZIA. Nenhum teste pegava,
+  // porque todos conferiam que o interagível existe — nunca que ele fala.
+  c3_home_tv: [
+    { pt: 'A televisão ligada, sem ninguém olhando.',
+      en: 'The television on, with nobody watching it.' },
+    { pt: 'Ela deixa ligada pra casa não ficar quieta enquanto eu não chego.',
+      en: 'She leaves it on so the house is not quiet until I get home.' },
+  ],
+  c3_home_table: [
+    { pt: 'A mesa posta. Três lugares.',
+      en: 'The table is set. Three places.' },
+    { pt: 'O meu com o prato virado pra baixo, pra não esfriar.',
+      en: 'Mine with the plate turned upside down, to keep the cold off.' },
+  ],
+  c3_home_photos: [
+    { pt: 'Três porta-retratos. Nós três em todos.',
+      en: 'Three frames. The three of us in all of them.' },
+    { pt: 'Em nenhum eu estou de terno. Ela escolheu assim.',
+      en: 'In none of them am I in a suit. She chose them that way.' },
+  ],
+
+  // ---------- o quarto dela ----------
+  // ⚠ NENHUMA destas linhas pode dizer o nome dela. Ele fala "ela".
+  c3_room_bed: [
+    { pt: 'A cama está feita.',
+      en: 'The bed is made.' },
+    { pt: 'Ela nem deitou.',
+      en: 'She never even lay down.' },
+  ],
+  c3_room_lamp: [
+    { pt: 'O abajur que a mãe dela pintou num domingo.',
+      en: 'The little lamp her mother painted one Sunday.' },
+    { pt: 'Ela não dorme sem essa luz. Diz que não é medo, é gosto.',
+      en: 'She will not sleep without that light. Says it is not fear, it is taste.' },
+  ],
+  c3_room_draw: [
+    { pt: 'Papel espalhado pelo chão. Lápis de cor pra todo lado.',
+      en: 'Paper all over the floor. Coloured pencils everywhere.' },
+    { pt: 'Nenhum desenho terminado. Ela começa outro antes de acabar o de antes.',
+      en: 'Not one finished. She starts the next one before the last is done.' },
+  ],
+  c3_room_window: [
+    { pt: 'A janela dela dá pra rua.',
+      en: 'Her window looks out on the street.' },
+    { pt: 'É daqui que ela vê o carro chegar. Sempre soube antes da mãe.',
+      en: 'This is where she sees the car pull in. She always knew before her mother did.' },
+  ],
+  c3_room_bear: [
+    { pt: 'O urso caiu da cama e ficou onde caiu.',
+      en: 'The bear fell off the bed and stayed where it fell.' },
+    { pt: 'Ela já tem idade pra achar isso ridículo. Ainda não acha.',
+      en: 'She is old enough to think that is silly. She does not yet.' },
+  ],
+  c3_room_shelf: [
+    { pt: 'A prateleira das coisas que ela não deixa ninguém arrumar.',
+      en: 'The shelf of things she lets nobody tidy.' },
+    { pt: 'Tem uma ordem aí. Eu nunca entendi qual é, e nunca mexi.',
+      en: 'There is an order to it. I never worked out which, and I never touched it.' },
+  ],
 };
 
 // ---------------------------------------------------------------------------
@@ -1442,7 +1532,56 @@ export const TALKS = {
           { pt: 'Preciso de um arquivo do subsolo.', en: 'I need a file from the basement.', to: 'arquivo' },
           { pt: 'Quem é o homem sentado ali?',
             en: 'Who is the man sitting over there?', to: 'credor' },
+          { pt: 'Esse quadro de homenagens é de quando?',
+            en: 'How old is that board of commendations?', to: 'quadro' },
+          { pt: 'Eu preciso assinar alguma coisa?',
+            en: 'Do I need to sign anything?', to: 'assinar' },
+          { pt: 'Eu venho aqui todo dia, não venho?',
+            en: 'I come here every night, do I not?', to: 'todo_dia', req: 'ded_visita' },
         ],
+      },
+      quadro: {
+        lines: [
+          { pt: '(ele não vira para olhar)', en: '(he does not turn to look)' },
+          { pt: 'Vai atualizando, senhor. Tiram uns, põem outros.',
+            en: 'It gets updated, sir. Some come off, some go on.' },
+          { pt: 'ME|E os que saem?', en: 'ME|And the ones that come off?' },
+          { pt: 'Ficam na gaveta. Ninguém joga fora foto de gente.',
+            en: 'They go in the drawer. Nobody throws away a photograph of a person.' },
+        ],
+        back: 'a',
+      },
+      assinar: {
+        lines: [
+          { pt: 'Na saída, senhor. Sempre na saída.',
+            en: 'On your way out, sir. Always on your way out.' },
+        ],
+        press: 'assinar2',
+        back: 'a',
+      },
+      assinar2: {
+        lines: [
+          { pt: 'ME|Eu não assinei na entrada.', en: 'ME|I did not sign on the way in.' },
+          { pt: 'O senhor nunca assina na entrada.',
+            en: 'You never sign on the way in.' },
+          { pt: '(ele empurra o livro dois dedos para o lado, e volta ao papel)',
+            en: '(he nudges the book two fingers to the side, and goes back to his paperwork)' },
+        ],
+        back: 'a',
+      },
+      todo_dia: {
+        lines: [
+          { pt: '(ele levanta os olhos pela primeira vez)',
+            en: '(he looks up for the first time)' },
+          { pt: 'O senhor vem.', en: 'You do.' },
+          { pt: 'ME|E ninguém me impede.', en: 'ME|And nobody stops me.' },
+          { pt: 'Por que impediriam? O senhor é de casa.',
+            en: 'Why would they? You are one of ours.' },
+          { pt: 'ME|Eu não sou mais daqui.', en: 'ME|I do not work here anymore.' },
+          { pt: 'A arma no escaninho, por favor.',
+            en: 'Weapon in the locker, please.' },
+        ],
+        back: 'a',
       },
       naosou: {
         lines: [
@@ -1533,9 +1672,19 @@ export const TALKS = {
           { pt: 'Por que tiraram meu distintivo?', en: 'Why did they take my badge?', to: 'distintivo' },
           { pt: 'Por que nunca acharam ela?', en: 'Why did they never find her?', to: 'menina' },
           { pt: 'Você ainda trabalha aqui?', en: 'Do you still work here?', to: 'aqui' },
+          { pt: 'Quem assinou o relatório daquela noite?',
+            en: 'Who signed the report on that night?', to: 'relatorio' },
+          { pt: 'O que sobrou da casa?', en: 'What was left of the house?', to: 'casa' },
           { pt: 'O relógio dessa parede está parado em duas e quatorze.',
             en: 'The clock on that wall is stopped at two fourteen.',
             to: 'relogio', req: 'ded_hora' },
+          // So depois do flashback. Ele volta aqui em cima com uma coisa
+          // que nao tinha quando desceu.
+          { pt: 'Michael. A casa pegou fogo.',
+            en: 'Michael. The house burned.', to: 'fogo', req: 'ded_fogo' },
+          { pt: 'A plaquinha da tua mesa tem o meu nome.',
+            en: 'The nameplate on your desk has my name on it.',
+            to: 'placa', req: 'ded_turno' },
         ],
       },
       noite: {
@@ -1547,11 +1696,18 @@ export const TALKS = {
             en: 'Then the phone here rang at two fourteen, and it was you.' },
           { pt: 'Você não conseguia falar. Só respirava.',
             en: 'You could not talk. You were just breathing.' },
-          { pt: 'Eu peguei o carro. Quando eu cheguei a porta estava aberta.',
-            en: 'I took the car. When I got there the door was open.' },
+          // ⚠ Michael conta o incendio ANTES de o jogador ver o incendio. E
+          // proposital: o jogador desce para o arquivo sabendo que a casa
+          // queimou, e ai joga a noite inteira dentro dela. Cada minuto do
+          // flashback fica com uma data de validade que so o jogador
+          // conhece — e o David daquela noite nao.
+          { pt: 'Eu peguei o carro. Quando eu virei a esquina eu já vi a luz.',
+            en: 'I took the car. When I turned the corner I could already see the light.' },
+          { pt: 'ME|Que luz?', en: 'ME|What light?' },
+          { pt: 'A tua casa, David.', en: 'Your house, David.' },
           { pt: 'ME|E eu?', en: 'ME|And me?' },
-          { pt: 'Você estava sentado na varanda. Com o telefone ainda na mão.',
-            en: 'You were sitting on the porch. Still holding the phone.' },
+          { pt: 'Sentado no meio-fio. Com o telefone ainda na mão.',
+            en: 'Sitting on the kerb. Still holding the phone.' },
         ],
         press: 'noite2',
         back: 'a',
@@ -1661,6 +1817,94 @@ export const TALKS = {
         ],
         back: 'a',
       },
+      relatorio: {
+        lines: [
+          { pt: 'Eu.', en: 'I did.' },
+          { pt: 'ME|Sozinho?', en: 'ME|On your own?' },
+          { pt: 'Sozinho. Precisava de duas assinaturas e eu consegui uma.',
+            en: 'On my own. It needed two signatures and I got one.' },
+          { pt: 'ME|Por quê?', en: 'ME|Why?' },
+          { pt: 'Pergunta pra Elaine. Ela anotou a chamada.',
+            en: 'Ask Elaine. She logged the call.' },
+        ],
+        back: 'a',
+      },
+      casa: {
+        lines: [
+          { pt: '(ele demora a responder)', en: '(he takes his time)' },
+          { pt: 'Nada, David. Não sobrou nada.',
+            en: 'Nothing, David. Nothing was left.' },
+          { pt: 'O corpo de estrutura cedeu antes de o carro-pipa virar a esquina.',
+            en: 'The frame gave out before the truck made the corner.' },
+          { pt: 'ME|E dentro?', en: 'ME|And inside?' },
+          { pt: 'Tiraram a Julie. Isso eu vi com esses olhos.',
+            en: 'They brought Julie out. That I saw with my own eyes.' },
+        ],
+        press: 'casa2',
+        back: 'a',
+      },
+      casa2: {
+        lines: [
+          { pt: 'ME|E ela?', en: 'ME|And her?' },
+          { pt: '(ele balança a cabeça devagar)', en: '(he shakes his head slowly)' },
+          { pt: 'A gente peneirou aquilo por onze dias. Onze.',
+            en: 'We sifted that place for eleven days. Eleven.' },
+          { pt: 'Não apareceu nada dela. Nem dela, nem de coisa dela.',
+            en: 'Nothing of hers turned up. Not her, not anything that was hers.' },
+          { pt: 'ME|Isso é possível?', en: 'ME|Is that even possible?' },
+          { pt: 'O legista disse que sim, e eu nunca acreditei nele.',
+            en: 'The examiner said it was, and I never believed him.' },
+        ],
+        back: 'a',
+      },
+      // ---- so depois do flashback ----
+      fogo: {
+        lines: [
+          { pt: 'Pegou.', en: 'It did.' },
+          { pt: 'ME|Não tem uma linha sobre isso em lugar nenhum.',
+            en: 'ME|There is not one line about that anywhere.' },
+          { pt: 'Tem sim. Está no inquérito do corpo de bombeiros, que não é nosso.',
+            en: 'There is. It is in the fire service inquiry, which is not ours.' },
+          { pt: 'ME|E o que diz?', en: 'ME|And what does it say?' },
+          { pt: 'Origem indeterminada. Foi o que deu pra escrever.',
+            en: 'Undetermined origin. That is what they could write.' },
+          { pt: '(ele olha pra ele) Você quer que eu diga que não foi você.',
+            en: '(he looks at him) You want me to say it was not you.' },
+          { pt: 'ME|Eu estava na varanda.', en: 'ME|I was out on the porch.' },
+          { pt: 'Eu sei. E não foi você. Nunca foi.',
+            en: 'I know. And it was not you. It never was.' },
+        ],
+        press: 'fogo2',
+        back: 'a',
+      },
+      fogo2: {
+        lines: [
+          { pt: 'ME|Michael. Eu estava com um cigarro aceso na mão.',
+            en: 'ME|Michael. I had a lit cigarette in my hand.' },
+          { pt: 'Na varanda. Do lado de fora. Com a porta fechada.',
+            en: 'On the porch. Outside. With the door shut.' },
+          { pt: 'ME|Mesmo assim.', en: 'ME|Even so.' },
+          { pt: '(ele encosta na mesa)', en: '(he leans back against the desk)' },
+          { pt: 'Sete anos você largou o cigarro por causa disso e nunca me disse.',
+            en: 'Seven years you quit smoking over that and never told me.' },
+          { pt: 'ME|Eu não larguei. Eu só não acendo.',
+            en: 'ME|I did not quit. I just do not light them.' },
+        ],
+        back: 'a',
+      },
+      placa: {
+        lines: [
+          { pt: '(ele nem olha para a plaquinha)',
+            en: '(he does not even look at the nameplate)' },
+          { pt: 'Tem.', en: 'It does.' },
+          { pt: 'ME|Por quê?', en: 'ME|Why?' },
+          { pt: 'Porque essa mesa é sua, David. Sempre foi.',
+            en: 'Because this desk is yours, David. It always was.' },
+          { pt: 'Eu sento aqui porque alguém tem que atender o telefone.',
+            en: 'I sit here because somebody has to answer the phone.' },
+        ],
+        back: 'a',
+      },
       fim: {
         lines: [
           { pt: 'Vai lá embaixo, David. Depois volta aqui.',
@@ -1686,12 +1930,38 @@ export const TALKS = {
         choices: [
           { pt: 'Você estava aqui naquela noite?', en: 'Were you here that night?', to: 'noite' },
           { pt: 'A que horas eu saí?', en: 'What time did I leave?', to: 'hora' },
+          { pt: 'Quem chamou os bombeiros?', en: 'Who called the fire service?', to: 'bombeiros' },
+          { pt: 'Você me viu voltar de manhã?', en: 'Did you see me come back in the morning?', to: 'manha' },
         ],
       },
       noite: {
         lines: [
           { pt: 'Estava. Turno da noite, igual hoje.',
             en: 'I was. Night shift, same as tonight.' },
+        ],
+        back: 'a',
+      },
+      // MIGALHA, familia 5. Ele nao comenta. O jogador que repare.
+      bombeiros: {
+        lines: [
+          { pt: 'Ninguém precisou chamar. Eles já estavam na rua.',
+            en: 'Nobody had to call. They were already rolling.' },
+          { pt: 'ME|Já estavam por quê?', en: 'ME|Rolling for what?' },
+          { pt: 'Chamado anterior, na mesma quadra. Deu em nada e eles estavam voltando.',
+            en: 'Earlier callout, same block. Turned out to be nothing and they were on the way back.' },
+          { pt: '(ele dá de ombros) Sorte, no que dá pra chamar de sorte.',
+            en: '(he shrugs) Luck, for whatever that is worth.' },
+        ],
+        back: 'a',
+      },
+      manha: {
+        lines: [
+          { pt: 'Vi. O Michael te trouxe.', en: 'I did. Michael brought you in.' },
+          { pt: 'ME|Como é que eu estava?', en: 'ME|How was I?' },
+          { pt: 'Sem sobrancelha de um lado. E calmo.',
+            en: 'Missing an eyebrow on one side. And calm.' },
+          { pt: 'Foi isso que ficou na minha cabeça. O calmo.',
+            en: 'That is the part that stayed with me. The calm.' },
         ],
         back: 'a',
       },
@@ -1728,7 +1998,39 @@ export const TALKS = {
         choices: [
           { pt: 'A que horas eu saí naquela noite?', en: 'What time did I leave that night?', to: 'hora' },
           { pt: 'Eu liguei pra cá depois?', en: 'Did I call in later?', to: 'ligacao' },
+          { pt: 'Você chegou a falar comigo naquela noite?',
+            en: 'Did you actually speak to me that night?', to: 'falar' },
+          { pt: 'Por que ninguém quis assinar o relatório?',
+            en: 'Why would nobody sign that report?', to: 'assinar' },
         ],
+      },
+      falar: {
+        lines: [
+          { pt: 'Falei. Duas vezes.', en: 'I did. Twice.' },
+          { pt: 'ME|Duas?', en: 'ME|Twice?' },
+          { pt: '(ela conta nos dedos, sem parar de olhar o papel)',
+            en: '(she counts on her fingers, without looking up from the page)' },
+          { pt: 'Duas e quatorze, o senhor sem falar nada. E três e vinte, o senhor pedindo desculpa.',
+            en: 'Two fourteen, you saying nothing. And three twenty, you apologising.' },
+          { pt: 'ME|Desculpa de quê?', en: 'ME|Apologising for what?' },
+          { pt: 'Do incômodo. Foi a palavra que o senhor usou.',
+            en: 'For the trouble. That was the word you used.' },
+        ],
+        back: 'a',
+      },
+      assinar: {
+        lines: [
+          { pt: 'Porque assinar é dizer que aquilo é possível.',
+            en: 'Because signing means saying that thing is possible.' },
+          { pt: 'ME|E não é?', en: 'ME|And it is not?' },
+          { pt: 'Uma chamada entrar de um ramal desta sala para a casa do senhor,',
+            en: 'A call going out from an extension in this room to your house,' },
+          { pt: 'na mesma hora em que o senhor estava dentro da sua casa.',
+            en: 'at the exact hour you were inside your own house.' },
+          { pt: '(ela volta a datilografar)', en: '(she goes back to typing)' },
+          { pt: 'O Michael assinou. Sozinho.', en: 'Michael signed it. On his own.' },
+        ],
+        back: 'a',
       },
       hora: {
         lines: [
@@ -1779,7 +2081,32 @@ export const TALKS = {
         choices: [
           { pt: 'Você me viu sair naquela noite?', en: 'Did you see me leave that night?', to: 'saida' },
           { pt: 'Eu voltei depois?', en: 'Did I come back later?', to: 'volta' },
+          { pt: 'Esse café é de quando?', en: 'How old is that coffee?', to: 'cafe' },
+          { pt: 'Você tem filho?', en: 'Do you have kids?', to: 'filho' },
         ],
+      },
+      cafe: {
+        lines: [
+          { pt: 'Da troca de turno.', en: 'From the shift change.' },
+          { pt: 'ME|Que troca de turno?', en: 'ME|Which shift change?' },
+          { pt: '(ele olha pra caneca) Boa pergunta, doutor.',
+            en: '(he looks into the mug) Good question, boss.' },
+        ],
+        back: 'a',
+      },
+      filho: {
+        lines: [
+          { pt: 'Dois. Grandes, já não me aturam.',
+            en: 'Two. Grown, they cannot stand me anymore.' },
+          { pt: 'ME|Eles esperavam você acordado?',
+            en: 'ME|Did they use to wait up for you?' },
+          { pt: '(ele pensa)', en: '(he thinks about it)' },
+          { pt: 'O mais novo, sim. Uns dois anos.',
+            en: 'The younger one, yes. For a couple of years.' },
+          { pt: 'Um dia parou e eu nem reparei no dia.',
+            en: 'One day he stopped and I did not even notice which day.' },
+        ],
+        back: 'a',
       },
       saida: {
         lines: [
@@ -1844,8 +2171,13 @@ export const TALKS = {
           { pt: 'Onde está a minha filha?', en: 'Where is my daughter?', to: 'menina' },
           { pt: 'Por que você está aqui hoje?', en: 'Why are you here tonight?', to: 'hoje' },
           { pt: 'Cigarro?', en: 'Cigarette?', to: 'cigarro' },
+          { pt: 'O que você faz com sete anos parado?',
+            en: 'What do you do with seven years of sitting still?', to: 'anos' },
+          { pt: 'Você lembra da minha mulher?', en: 'Do you remember my wife?', to: 'julie' },
           { pt: 'Alguém escreveu no meu caderno.',
             en: 'Somebody wrote in my notebook.', to: 'caderno', req: 'ded_letra' },
+          { pt: 'A casa pegou fogo depois.',
+            en: 'The house burned afterwards.', to: 'fogo', req: 'ded_fogo' },
         ],
       },
       // O NUCLEO DA HISTORIA: o alibi dele e o registro da propria prisao.
@@ -1931,6 +2263,67 @@ export const TALKS = {
         ],
         back: 'a',
       },
+      anos: {
+        lines: [
+          { pt: 'Conta.', en: 'You count.' },
+          { pt: 'ME|Conta o quê?', en: 'ME|Count what?' },
+          { pt: 'Tudo. Passo até a parede, azulejo do banho, quantas vezes a porta abre.',
+            en: 'Everything. Steps to the wall, tiles in the shower, how many times the door opens.' },
+          { pt: 'Um dia o número muda e o senhor descobre que contou errado a vida toda.',
+            en: 'One day the number changes and you find out you counted wrong your whole life.' },
+          { pt: 'ME|E aí?', en: 'ME|And then?' },
+          { pt: 'Aí conta de novo.', en: 'Then you count again.' },
+        ],
+        back: 'a',
+      },
+      julie: {
+        lines: [
+          { pt: 'Do nome eu lembro. Do resto não.',
+            en: 'I remember the name. Not the rest.' },
+          { pt: 'ME|Você nunca a viu.', en: 'ME|You never saw her.' },
+          { pt: 'Nunca. O senhor falava dela no interrogatório.',
+            en: 'Never. You talked about her in the interview room.' },
+          { pt: 'ME|Eu não falei da minha mulher com você.',
+            en: 'ME|I did not talk about my wife with you.' },
+          { pt: 'Falou sim. Sete horas naquela sala, senhor. Ninguém aguenta sete horas sem falar de casa.',
+            en: 'You did. Seven hours in that room, sir. Nobody lasts seven hours without talking about home.' },
+        ],
+        back: 'a',
+      },
+      // ---- so depois do flashback ----
+      // ⚠ Ele NAO confirma e NAO nega. E diz uma coisa que nao teria como
+      // saber, e segue como se nao tivesse dito — regra do personagem.
+      fogo: {
+        lines: [
+          { pt: '(ele assente devagar, como quem ja sabia)',
+            en: '(he nods slowly, like a man who already knew)' },
+          { pt: 'Pegou.', en: 'It did.' },
+          { pt: 'ME|Como você sabe disso?', en: 'ME|How do you know that?' },
+          { pt: 'O senhor mesmo me contou.', en: 'You told me yourself.' },
+          { pt: 'ME|Eu nunca falei com você depois daquela noite.',
+            en: 'ME|I never spoke to you after that night.' },
+          { pt: '(ele coça o pulso, onde fica a pulseira de papel)',
+            en: '(he scratches his wrist, where the paper band sits)' },
+          { pt: 'Fogo é limpo, senhor. É a única coisa que não deixa pergunta.',
+            en: 'Fire is clean, sir. It is the only thing that leaves no question.' },
+        ],
+        press: 'fogo2',
+        back: 'a',
+      },
+      fogo2: {
+        lines: [
+          { pt: 'ME|Deixa uma.', en: 'ME|It leaves one.' },
+          { pt: 'Deixa.', en: 'It does.' },
+          { pt: 'ME|Não tinha nada dela lá dentro. Nada.',
+            en: 'ME|There was nothing of hers in there. Nothing.' },
+          { pt: '(pausa)', en: '(a pause)' },
+          { pt: 'Então ela não estava lá dentro.', en: 'Then she was not in there.' },
+          { pt: 'ME|...', en: 'ME|...' },
+          { pt: 'O senhor já sabia disso. Faz sete anos que o senhor sabe.',
+            en: 'You already knew that. You have known for seven years.' },
+        ],
+        back: 'a',
+      },
       // ---- DEGRAU 4 ----
       // Ele acende um pro cara falar. E tecnica, e oficio, ele fez isso mil
       // vezes. E ai acende um pra ele. No automatico. Sem pensar. Sem uma
@@ -1970,31 +2363,60 @@ export const TALKS = {
   // nunca ter lido o nome — e e por isso que a ultima cena funciona.
   // =====================================================================
 
+  // ---------------------------------------------------------------------
+  // JULIE
+  //
+  // A conversa mais importante do jogo, e a unica em que ninguem esconde
+  // nada. A primeira versao tinha tres perguntas e ela existia so para
+  // reagir a ele — que e o erro classico de escrever a mulher do
+  // protagonista. Aqui ela tem o proprio dia, o proprio cansaco, a propria
+  // opiniao sobre o trabalho dele, e uma coisa que ela quer.
+  //
+  // REGRAS:
+  //  · nada de sobrenatural, nada de premonicao, nada de despedida. Ela
+  //    nao sabe de nada, porque nao ha nada para saber ainda.
+  //  · ela nao e sofrida nem santa. Ela esta de bom humor: o marido chegou
+  //    cedo pela primeira vez em dois anos.
+  //  · o nome da menina NAO e dito. Ela fala "ela", "sua filha", "a
+  //    danada". Isso e regra do capitulo.
+  //  · o jogador precisa querer ficar. Se esta conversa nao der vontade de
+  //    continuar puxando assunto, a cena da varanda nao cobra nada.
+  // ---------------------------------------------------------------------
   julie: {
     speaker: { pt: 'JULIE', en: 'JULIE' },
     start: 'a',
     nodes: {
       a: {
         lines: [
-          { pt: 'Você comeu?', en: 'Did you eat?' },
-          { pt: 'ME|Comi um negócio lá.', en: 'ME|I had something there.' },
-          { pt: 'Então não comeu.', en: 'So you did not eat.' },
+          { pt: '(ela olha pro relógio da parede, depois pra ele)',
+            en: '(she looks at the wall clock, then at him)' },
+          { pt: 'Uma e pouco. Você está doente?',
+            en: 'Just past one. Are you sick?' },
+          { pt: 'ME|Eu terminei cedo.', en: 'ME|I finished early.' },
+          { pt: 'Você não termina cedo. Você é interrompido.',
+            en: 'You do not finish early. You get interrupted.' },
         ],
         choices: [
           { pt: 'Fechei o caso hoje.', en: 'I closed the case today.', to: 'caso' },
-          { pt: 'Ela ainda está acordada?', en: 'Is she still up?', to: 'menina' },
+          { pt: 'Cadê ela?', en: 'Where is she?', to: 'menina' },
+          { pt: 'Como foi o teu dia?', en: 'How was your day?', to: 'dia' },
+          { pt: 'Você está brava comigo.', en: 'You are angry with me.', to: 'brava' },
           { pt: 'Desculpa a hora.', en: 'Sorry about the hour.', to: 'hora' },
+          { pt: 'Você tem medo de alguma coisa?', en: 'Are you afraid of anything?', to: 'medo' },
+          { pt: 'Comer o quê?', en: 'Eat what?', to: 'comida' },
         ],
       },
       caso: {
         lines: [
           { pt: '(ela para o que estava fazendo)', en: '(she stops what she is doing)' },
           { pt: 'Aquele?', en: 'That one?' },
-          { pt: 'ME|Aquele.', en: 'That one.' },
+          { pt: 'ME|Aquele.', en: 'ME|That one.' },
           { pt: 'David.', en: 'David.' },
           { pt: 'ME|Eu sei.', en: 'ME|I know.' },
           { pt: 'Não, você não sabe. Faz dois anos que você não dorme por causa dele.',
             en: 'No, you do not. You have not slept in two years because of him.' },
+          { pt: 'Eu sei porque eu durmo do lado.',
+            en: 'I know because I sleep next to it.' },
         ],
         press: 'caso2',
         back: 'a',
@@ -2003,22 +2425,93 @@ export const TALKS = {
         lines: [
           { pt: 'ME|Acabou.', en: 'ME|It is over.' },
           { pt: 'Acabou mesmo?', en: 'Is it really over?' },
-          { pt: 'ME|Acabou.', en: 'ME|It is over.' },
+          { pt: 'ME|Acabou. Ele assinou. Está lá dentro.',
+            en: 'ME|It is over. He signed. He is inside.' },
           { pt: '(ela ri, e é a primeira vez em muito tempo)',
             en: '(she laughs, and it is the first time in a long while)' },
           { pt: 'Então amanhã você me leva pra algum lugar.',
             en: 'Then tomorrow you are taking me somewhere.' },
           { pt: 'ME|Levo.', en: 'ME|I will.' },
+          { pt: 'Não é pra dizer que leva. É pra levar.',
+            en: 'Do not say you will. Just do it.' },
+          { pt: 'ME|Eu levo.', en: 'ME|I will take you.' },
         ],
         back: 'a',
       },
       menina: {
         lines: [
-          { pt: 'Devia estar dormindo há duas horas.',
-            en: 'She should have been asleep two hours ago.' },
-          { pt: 'Ficou esperando você.', en: 'She stayed up for you.' },
-          { pt: 'ME|Ela não precisa esperar.', en: 'ME|She does not have to wait up.' },
+          { pt: 'No quarto. Acordada, obviamente.',
+            en: 'In her room. Awake, obviously.' },
+          { pt: 'ME|A essa hora?', en: 'ME|At this hour?' },
+          { pt: 'Ela desliga a luz quando ouve eu subir e acende de novo quando eu desço.',
+            en: 'She kills the light when she hears me coming and turns it back on when I go.' },
+          { pt: 'Já cansei. Vai lá você, que é o motivo.',
+            en: 'I have given up. You go, since you are the reason.' },
+        ],
+        press: 'menina2',
+        back: 'a',
+      },
+      menina2: {
+        lines: [
+          { pt: 'ME|Ela não precisa me esperar acordada.',
+            en: 'ME|She does not have to wait up for me.' },
           { pt: 'Fala isso pra ela.', en: 'Tell her that.' },
+          { pt: 'ME|Eu falo toda semana.', en: 'ME|I tell her every week.' },
+          { pt: 'E ela responde o quê?', en: 'And what does she say?' },
+          { pt: 'ME|Que não estava esperando.', en: 'ME|That she was not waiting up.' },
+          { pt: '(ela levanta as sobrancelhas) Puxou a quem?',
+            en: '(she raises her eyebrows) Wonder who she gets that from.' },
+        ],
+        back: 'a',
+      },
+      dia: {
+        lines: [
+          { pt: 'Ordinário. Do jeito que eu gosto.',
+            en: 'Ordinary. The way I like it.' },
+          { pt: 'A escola ligou por causa de uma tal de excursão que custa o olho da cara.',
+            en: 'The school called about some field trip that costs a fortune.' },
+          { pt: 'A torneira da cozinha continua pingando. Você disse que ia ver domingo.',
+            en: 'The kitchen tap is still dripping. You said you would look at it Sunday.' },
+          { pt: 'ME|Que domingo?', en: 'ME|Which Sunday?' },
+          { pt: 'Exatamente.', en: 'Exactly.' },
+        ],
+        press: 'dia2',
+        back: 'a',
+      },
+      dia2: {
+        lines: [
+          { pt: 'ME|E fora a torneira?', en: 'ME|And besides the tap?' },
+          { pt: '(ela pensa um pouco, e responde sério)',
+            en: '(she thinks about it, and answers seriously)' },
+          { pt: 'Eu fiquei o dia inteiro sem falar com adulto nenhum.',
+            en: 'I went the whole day without speaking to a single adult.' },
+          { pt: 'Não é reclamação. É só uma coisa que eu reparei hoje.',
+            en: 'It is not a complaint. It is just something I noticed today.' },
+          { pt: 'ME|Eu podia ter ligado.', en: 'ME|I could have called.' },
+          { pt: 'Podia. Aí eu ia perguntar quando você chega e a gente ia brigar.',
+            en: 'You could. Then I would ask when you were coming home and we would fight.' },
+        ],
+        back: 'a',
+      },
+      brava: {
+        lines: [
+          { pt: 'Estou.', en: 'I am.' },
+          { pt: 'ME|Por causa da hora.', en: 'ME|Because of the hour.' },
+          { pt: 'Não.', en: 'No.' },
+          { pt: 'Porque você chega, senta, e continua lá dentro.',
+            en: 'Because you come home, sit down, and you are still in there.' },
+          { pt: 'A tua cabeça atravessa a porta uma hora depois de você.',
+            en: 'Your head comes through that door an hour after the rest of you.' },
+        ],
+        press: 'brava2',
+        back: 'a',
+      },
+      brava2: {
+        lines: [
+          { pt: 'ME|E hoje?', en: 'ME|And tonight?' },
+          { pt: '(ela olha pra ele com atenção)', en: '(she looks at him properly)' },
+          { pt: 'Hoje você chegou inteiro.', en: 'Tonight you came home whole.' },
+          { pt: 'Faz tempo. Não estraga.', en: 'It has been a while. Do not ruin it.' },
         ],
         back: 'a',
       },
@@ -2027,32 +2520,92 @@ export const TALKS = {
           { pt: 'Você chega a hora que chega.', en: 'You get here when you get here.' },
           { pt: 'Só me avisa. É só isso que eu peço.',
             en: 'Just tell me. That is all I ask.' },
+          { pt: 'ME|Eu ia ligar.', en: 'ME|I was going to call.' },
+          { pt: 'Todo mundo ia ligar, David.', en: 'Everybody was going to call, David.' },
+        ],
+        back: 'a',
+      },
+      medo: {
+        lines: [
+          { pt: '(ela ri) Que pergunta é essa a uma da manhã?',
+            en: '(she laughs) What kind of question is that at one in the morning?' },
+          { pt: 'ME|É uma pergunta.', en: 'ME|It is a question.' },
+          { pt: '(ela pensa)', en: '(she thinks about it)' },
+          { pt: 'De um dia você entrar por essa porta e eu não ter mais o que dizer.',
+            en: 'That one day you walk through that door and I have nothing left to say.' },
+          { pt: 'Só isso. O resto é seguro.', en: 'That is all. The rest is insurance.' },
+        ],
+        press: 'medo2',
+        back: 'a',
+      },
+      medo2: {
+        lines: [
+          { pt: 'ME|E do meu trabalho?', en: 'ME|And of my work?' },
+          { pt: 'Do teu trabalho eu tenho raiva. Medo é outra coisa.',
+            en: 'Your work makes me angry. Fear is a different thing.' },
+          { pt: 'Medo é o que você traz pra dentro e deixa em cima da mesa.',
+            en: 'Fear is what you bring inside and leave on the table.' },
+          { pt: 'ME|Eu não trago.', en: 'ME|I do not bring it in.' },
+          { pt: 'Traz sim. Só que sem falar, que é pior.',
+            en: 'You do. You just do not say it, which is worse.' },
+        ],
+        back: 'a',
+      },
+      comida: {
+        lines: [
+          { pt: 'Tem arroz, tem o resto do de ontem, e tem um prato virado pra baixo que é o teu.',
+            en: 'There is rice, there is last night is leftovers, and there is a plate turned upside down that is yours.' },
+          { pt: 'ME|Você esperou.', en: 'ME|You waited.' },
+          { pt: 'Eu não esperei. Eu só não guardei.',
+            en: 'I did not wait. I just did not put it away.' },
+          { pt: 'ME|É a mesma coisa.', en: 'ME|That is the same thing.' },
+          { pt: 'É. Mas soa melhor assim.', en: 'It is. But it sounds better my way.' },
         ],
         back: 'a',
       },
       fim: {
         lines: [
-          { pt: 'Tira esse casaco molhado antes de sentar.',
-            en: 'Take that wet coat off before you sit down.' },
+          // ⚠ Ele nao esta de sobretudo aqui. A fala antiga mandava tirar o
+          // casaco molhado; a roupa mudou e a fala muda junto.
+          { pt: 'Tira essa gravata. Você já chegou.',
+            en: 'Take that tie off. You are home already.' },
         ],
       },
     },
   },
 
+  // ---------------------------------------------------------------------
+  // A MENINA — no quarto dela, sentada no chao, desenhando.
+  //
+  // ⚠ O NOME DELA NAO E DITO POR NINGUEM, e o nome do falante e um
+  // TRAVESSAO. O jogador termina o flashback sem nunca ter lido o nome —
+  // e e exatamente por isso que a ultima cena do capitulo funciona.
+  //
+  // REGRAS: ela e uma crianca de verdade, nao um simbolo. Fala o que
+  // crianca fala: nega o obvio, negocia, muda de assunto, tem uma teoria
+  // propria sobre o trabalho do pai. NADA que ela diz pode ser premonicao,
+  // e NADA no quarto dela pode ser migalha.
+  // ---------------------------------------------------------------------
   jenna: {
     speaker: { pt: '—', en: '—' },
     start: 'a',
     nodes: {
       a: {
         lines: [
+          { pt: '(ela não levanta a cabeça do papel)',
+            en: '(she does not lift her head from the paper)' },
           { pt: 'Eu não estou acordada.', en: 'I am not awake.' },
           { pt: 'ME|Não?', en: 'ME|No?' },
-          { pt: 'Não. Isso aqui é sonho.', en: 'No. This is a dream.' },
+          { pt: 'Não. Isso aqui é sonho. Você está sonhando.',
+            en: 'No. This is a dream. You are dreaming it.' },
         ],
         choices: [
           { pt: 'O que você está desenhando?', en: 'What are you drawing?', to: 'desenho' },
           { pt: 'Por que você não foi dormir?', en: 'Why did you not go to bed?', to: 'dormir' },
           { pt: 'Amanhã eu não trabalho.', en: 'I am not working tomorrow.', to: 'amanha' },
+          { pt: 'Sua mãe sabe que a luz está acesa?', en: 'Does your mother know that light is on?', to: 'mae' },
+          { pt: 'O que você acha que eu faço o dia todo?', en: 'What do you think I do all day?', to: 'trabalho' },
+          { pt: 'Tem alguma coisa te incomodando?', en: 'Is something bothering you?', to: 'medo' },
         ],
       },
       desenho: {
@@ -2072,6 +2625,11 @@ export const TALKS = {
             en: 'Because it is what you can see from far away.' },
           { pt: 'Quando você chega, primeiro aparece o casaco.',
             en: 'When you come home, the coat gets here first.' },
+          { pt: 'ME|E o rosto?', en: 'ME|And the face?' },
+          { pt: '(ela vira o papel de cabeça pra baixo)',
+            en: '(she turns the paper upside down)' },
+          { pt: 'O rosto eu faço amanhã. Amanhã eu tenho tempo.',
+            en: 'The face I will do tomorrow. Tomorrow I have time.' },
         ],
         back: 'a',
       },
@@ -2082,6 +2640,21 @@ export const TALKS = {
           { pt: 'Aí eu ia ficar acordada mais um pouco.',
             en: 'Then I would stay up a bit longer.' },
         ],
+        press: 'dormir2',
+        back: 'a',
+      },
+      dormir2: {
+        lines: [
+          { pt: 'ME|Como é que você sabe a hora que eu chego?',
+            en: 'ME|How do you know when I am getting home?' },
+          { pt: 'Pela janela. O carro faz um barulho diferente dos outros.',
+            en: 'The window. The car makes a different noise from the others.' },
+          { pt: 'ME|Faz nada.', en: 'ME|It does not.' },
+          { pt: 'Faz. Ele desliga antes de parar.',
+            en: 'It does. It switches off before it stops.' },
+          { pt: '(ele não tem o que responder pra isso)',
+            en: '(he has nothing to say to that)' },
+        ],
         back: 'a',
       },
       amanha: {
@@ -2091,6 +2664,64 @@ export const TALKS = {
           { pt: '(ela pensa)', en: '(she thinks about it)' },
           { pt: 'Então amanhã a gente acorda tarde.',
             en: 'Then tomorrow we sleep in.' },
+        ],
+        press: 'amanha2',
+        back: 'a',
+      },
+      amanha2: {
+        lines: [
+          { pt: 'ME|E a gente faz o quê?', en: 'ME|And what do we do?' },
+          { pt: 'Nada.', en: 'Nothing.' },
+          { pt: 'ME|Nada?', en: 'ME|Nothing?' },
+          { pt: 'Nada é quando ninguém sai. Eu já pensei nisso, viu.',
+            en: 'Nothing is when nobody leaves. I have thought about it, you know.' },
+        ],
+        back: 'a',
+      },
+      mae: {
+        lines: [
+          { pt: '(ela apaga o abajur com o pé, sem olhar)',
+            en: '(she switches the lamp off with her foot, without looking)' },
+          { pt: 'Que luz?', en: 'What light?' },
+          { pt: 'ME|Essa.', en: 'ME|That one.' },
+          { pt: '(ela acende de novo)', en: '(she turns it back on)' },
+          { pt: 'Ela sabe. Ela finge que não sabe. É um acordo.',
+            en: 'She knows. She pretends she does not. It is an arrangement.' },
+        ],
+        back: 'a',
+      },
+      trabalho: {
+        lines: [
+          { pt: 'Você procura gente.', en: 'You look for people.' },
+          { pt: 'ME|É mais ou menos isso.', en: 'ME|That is roughly it.' },
+          { pt: 'Não é mais ou menos. É isso.',
+            en: 'It is not roughly. It is exactly it.' },
+          { pt: 'Some gente e você acha. Por isso você chega tarde.',
+            en: 'People go missing and you find them. That is why you come home late.' },
+        ],
+        press: 'trabalho2',
+        back: 'a',
+      },
+      trabalho2: {
+        lines: [
+          { pt: 'ME|E se eu não achar?', en: 'ME|And if I do not find them?' },
+          { pt: '(ela olha pra ele como se a pergunta fosse boba)',
+            en: '(she looks at him like the question is a silly one)' },
+          { pt: 'Aí você procura mais.', en: 'Then you look for longer.' },
+          { pt: 'ME|E se demorar muito?', en: 'ME|And if it takes a very long time?' },
+          { pt: 'Demora, então. Você não desiste no meio, você fica bravo.',
+            en: 'Then it takes long. You do not quit halfway, you just get grumpy.' },
+        ],
+        back: 'a',
+      },
+      medo: {
+        lines: [
+          { pt: 'Não.', en: 'No.' },
+          { pt: 'ME|Nada mesmo?', en: 'ME|Nothing at all?' },
+          { pt: 'O corredor. Mas só quando está apagado e você não chegou.',
+            en: 'The hallway. But only when it is dark and you are not home.' },
+          { pt: 'ME|E quando eu chego?', en: 'ME|And when I am?' },
+          { pt: 'Aí é só um corredor.', en: 'Then it is just a hallway.' },
         ],
         back: 'a',
       },
@@ -2211,6 +2842,12 @@ export const JOURNAL = {
               en: 'Carlos has been two hundred kilometres away for seven years, according to Michael, and is sitting in the basement cell, according to my eyes. He did not threaten, deny or confirm anything. He knew about the porch.' },
   j3_book:  { cat: 'clue', pt: 'O livro de visitas da custódia tem uma linha por noite, sete anos de linhas, e a assinatura é a minha em todas. A caneta está presa por um barbante ao lado. O barbante está gasto no meio.',
               en: 'The holding visitor book has one line per night, seven years of lines, and the signature is mine on every one. The pen is tied beside it with string. The string is worn through in the middle.' },
+  // A pagina do incendio. Ela e o centro do capitulo: as duas coisas que o
+  // jogo nunca explicou — por que ele nao fuma e por que ele ainda imprime
+  // cartaz — saem inteiras daqui, e nenhuma das duas e dita com todas as
+  // letras. Ele so anota o que viu.
+  j3_fogo:  { cat: 'self', pt: 'Depois dos gritos a casa pegou fogo. Eu estava na varanda, de costas, com o telefone numa mão e um cigarro aceso na outra. Tiraram a Julie de lá. Da menina não acharam nada — nem naquela noite, nem nos onze dias seguintes, nem no que sobrou da casa.',
+              en: 'After the screams the house caught fire. I was on the porch with my back to it, phone in one hand and a lit cigarette in the other. They brought Julie out. Of the girl they found nothing — not that night, not in the eleven days after, not in what was left of the house.' },
   j3_cig:   { cat: 'self', pt: 'Acendi um para ele falar. É técnica, eu fiz isso mil vezes. Depois acendi outro sem pensar. Sete anos. Não decidi nada — só reparei com a coisa já na mão.',
               en: 'I lit one to get him talking. It is technique, I have done it a thousand times. Then I lit another without thinking. Seven years. I did not decide anything — I just noticed with the thing already in my hand.' },
 
@@ -2223,6 +2860,10 @@ export const JOURNAL = {
              en: 'Three people saw me leave and not come back. One saw me return and spend the night at my desk. The ashtray is full and the chair has no dust. The version that does not match the other three is mine.' },
   c_gaveta:{ cat: 'deduc', pt: 'A gaveta do D não estava no galpão porque ela está aqui, e é minha. Uma pasta por ano de coisa que eu não fechei. E tem uma pasta a mais do que anos que eu passei procurando.',
              en: 'Drawer D was missing from the warehouse because it is here, and it is mine. One folder for each year of what I did not close. And there is one folder more than the years I spent looking.' },
+  c_fogo:  { cat: 'deduc', pt: 'Nunca me entregaram um corpo. Não é esperança, é papel: sem corpo o caso não fecha, e o que não fecha continua aberto em algum lugar. É por isso que eu ainda mando imprimir cartaz. Não é luto atrasado — é um processo em andamento, e eu sou o único que ainda trabalha nele.',
+             en: 'They never gave me a body. That is not hope, it is paperwork: with no body the case does not close, and what does not close stays open somewhere. That is why I still have the posters printed. It is not late grief — it is an open case, and I am the only one still working it.' },
+  c_chama: { cat: 'deduc', pt: 'Eu estava com um cigarro aceso na mão quando a minha casa começou a queimar. O laudo diz origem indeterminada e o Michael diz que não fui eu. Os dois podem estar certos e não muda nada: faz sete anos que eu não consigo acender um sem acender aquele.',
+             en: 'I had a lit cigarette in my hand when my house started to burn. The report says undetermined origin and Michael says it was not me. Both can be right and it changes nothing: for seven years I have not been able to light one without lighting that one.' },
   c_visita:{ cat: 'deduc', pt: 'Sete anos de assinaturas minhas no livro da custódia, e a porta da cela nunca esteve trancada. Ninguém me trouxe aqui. Eu venho. Toda noite. E toda noite eu esqueço que vim.',
              en: 'Seven years of my signatures in the holding book, and the cell door was never locked. Nobody brought me here. I come. Every night. And every night I forget that I came.' },
 };
@@ -2260,6 +2901,15 @@ export const DEDUCTIONS = {
   gaveta: { a: 'j_clock',  b: 'j3_drawerd', page: 'c_gaveta', flag: 'ded_gaveta' },
   // Sete anos de assinaturas + uma porta que nunca esteve trancada.
   visita: { a: 'j3_book',  b: 'j3_carlos', page: 'c_visita', flag: 'ded_visita' },
+  // O incendio + a gaveta de cartazes novos. E a deducao que explica o
+  // personagem inteiro sem que ninguem precise dizer nada em voz alta: sem
+  // corpo nao ha caso fechado, e ele nunca parou de trabalhar neste.
+  // `ded_fogo` abre pergunta com o Michael e com o Carlos.
+  fogo:   { a: 'j3_fogo',  b: 'j3_drawer', page: 'c_fogo',   flag: 'ded_fogo' },
+  // O incendio + o cigarro que ele acendeu na cela sem decidir nada. So da
+  // para fazer no fim do capitulo, e e o unico lugar em que o jogo liga as
+  // duas coisas — e mesmo assim quem liga e o jogador.
+  chama:  { a: 'j3_fogo',  b: 'j3_cig',    page: 'c_chama',  flag: 'ded_chama' },
 };
 
 // Procura uma deducao para o par (ordem nao importa). Devolve { id, ...def }.

@@ -978,6 +978,19 @@ export function buildSevenYears() {
     barks: [{ x: 380, key: 'b3_past_3' }],
   });
   lvl.props.varandaX = VAR + 55;
+  lvl.props.portaX = PORTA + 17;
+  // Onde a casa queima. O fogo nao e desenhado pela fase — a fase so diz
+  // onde ficam as bocas dele: as duas janelas, a porta e a linha do
+  // telhado. Quem anima e `Fogo`, em chapter3.js.
+  lvl.props.fogo = {
+    casa: { x: CASA - 8, y: GY - 156, w: 356, h: 156 },
+    janelas: [
+      { x: CASA + 26, y: GY - 128, w: 44, h: 38 },
+      { x: CASA + 250, y: GY - 128, w: 44, h: 38 },
+    ],
+    porta: { x: PORTA, y: GY - 76, w: 34, h: 76 },
+    telhado: { x: CASA - 8, y: GY - 158, w: 356, h: 10 },
+  };
   return lvl;
 }
 
@@ -1080,10 +1093,27 @@ export function buildHome() {
   }
   inter.push({ x: 360, y: GY - 116, w: 106, h: 24, prompt: 'prompt_look', lines: 'c3_home_photos', range: 28 });
 
-  // ---- o corredor para o resto da casa, ao fundo ----
+  // ---- o corredor para o resto da casa, e a porta do quarto dela ----
+  //
+  // A menina NAO fica na sala com a mae. Ela devia estar dormindo ha duas
+  // horas e esta no quarto, acordada, com a luz do abajur acesa por baixo
+  // da porta. Fazer o jogador ANDAR ate la e o que separa "duas conversas
+  // seguidas" de "duas pessoas em dois lugares da propria casa".
   rect(g, 720, GY - 96, 46, 96, '#2a1e14');
   ditherV(g, 722, GY - 94, 42, 92, '#3f2e1e', '#1a120c', 5);
   lights.push({ x: 743, y: GY - 60, r: 92, color: '#e8b46a', i: 0.34, falloff: 1.3 });
+  const QRT = 730;
+  rect(g, QRT - 4, GY - 82, 42, 82, '#3a2a1c');
+  rect(g, QRT, GY - 78, 34, 78, '#4e3a24');
+  rect(g, QRT + 26, GY - 44, 3, 3, '#c8b070');
+  // a fresta de luz por baixo da porta: e ela que diz que tem alguem
+  // acordado ali dentro, antes de qualquer fala
+  rect(g, QRT, GY - 3, 34, 3, '#ffd9a0');
+  lights.push({ x: QRT + 17, y: GY - 2, r: 54, color: '#ffcf90', i: 0.42, falloff: 1.2 });
+  inter.push({
+    x: QRT - 4, y: GY - 82, w: 42, h: 82, prompt: 'prompt_open',
+    action: 'goto', to: 'ch3_room', tox: 70, tofacing: 1, range: 30, isDoor: true, prio: 1,
+  });
 
   // luz de teto quente, e a regra de preenchimento
   for (let x = 160; x < W; x += 300) {
@@ -1127,6 +1157,166 @@ export function buildHome() {
   return lvl;
 }
 
+
+// ---------------------------------------------------------------------------
+// 5c — O QUARTO DELA
+// ---------------------------------------------------------------------------
+// Ela devia estar dormindo ha duas horas. Esta sentada no chao do proprio
+// quarto, desenhando, com o abajur ligado e a cama intacta.
+//
+// A REGRA DA CASA VALE AQUI COM MAIS FORCA AINDA: nada de estranho, nenhuma
+// migalha, nenhum numero que nao fecha. Este e o unico comodo do jogo
+// inteiro em que nao ha o que investigar — e o jogador tem que sentir isso
+// como descanso, nao como armadilha. Se houver UM detalhe errado aqui, ele
+// passa a cena procurando o truque em vez de estar presente.
+//
+// O quarto e pequeno de proposito: 560px. Depois de uma hora de galpao e de
+// corredor de arquivo, um comodo em que da para ver as duas paredes ao
+// mesmo tempo e a coisa mais reconfortante que este jogo tem.
+
+export function buildKidsRoom() {
+  const W = 560;
+
+  const back = makeBuffer(Math.ceil(VW + (W - VW) * 0.5) + 8, VH);
+  {
+    const b = back.x;
+    rect(b, 0, 0, b.canvas.width, VH, '#2a2036');
+    ditherV(b, 0, 30, b.canvas.width, 130, '#3d3050', '#2a2036', 6);
+  }
+
+  const main = makeBuffer(W, VH);
+  const g = main.x;
+
+  // parede lilas desbotado com barrado de estrelas pintado a mao. Quente,
+  // e a unica parede do jogo que nao e tijolo, chapa ou concreto.
+  rect(g, 0, 0, W, VH, '#5a4a6a');
+  ditherV(g, 0, 20, W, GY - 60, '#7d6a90', '#54456a', 6);
+  grainRect(g, 0, 20, W, GY - 60, ['#8d7aa0', '#5a4a6a', '#6b5a7d'], 0.045, 9901);
+  for (let x = 6; x < W; x += 34) {
+    rect(g, x, GY - 104, 3, 1, '#c9b0d8');
+    rect(g, x + 1, GY - 105, 1, 3, '#c9b0d8');
+    rect(g, x + 17, GY - 96, 2, 1, '#a892bd');
+  }
+  M.woodPanel(g, 0, GY - 40, W, 40, 9911, { hi: '#6f5436', mid: '#54402a', dk: '#33261a' });
+  rect(g, 0, GY - 42, W, 3, '#7d6142');
+  rect(g, 0, 0, W, 20, '#2f2440');
+  M.woodPanel(g, 0, GY, W, VH - GY, 9921, { hi: '#7a5c3c', mid: '#5a422a', dk: '#3a2a1c' });
+  rect(g, 0, GY, W, 1, '#221812');
+
+  const inter = [];
+  const lights = [];
+
+  // ---- a porta de volta para o corredor ----
+  const ex0 = M.doorFrame(g, 34, GY, 9931);
+  inter.push({
+    x: ex0.x, y: ex0.y, w: ex0.w, h: ex0.h, prompt: 'prompt_open',
+    action: 'goto', to: 'ch3_home', tox: 700, tofacing: -1, range: 30, isDoor: true, prio: 1,
+  });
+
+  // ---- a cama, feita, sem ninguem nela ----
+  const CAMA = 330;
+  rect(g, CAMA, GY - 34, 150, 22, '#6f5436');
+  rect(g, CAMA, GY - 34, 150, 2, '#8a6844');
+  rect(g, CAMA + 4, GY - 30, 142, 14, '#c2b9d2');      // colcha clara
+  rect(g, CAMA + 4, GY - 30, 142, 2, '#ddd4e8');
+  rect(g, CAMA + 108, GY - 36, 36, 10, '#e8e0ec');     // travesseiro
+  rect(g, CAMA - 6, GY - 52, 8, 52, '#54402a');        // cabeceira
+  rect(g, CAMA + 146, GY - 44, 8, 44, '#54402a');
+  rect(g, CAMA + 2, GY - 12, 6, 12, '#3a2c1d');
+  rect(g, CAMA + 140, GY - 12, 6, 12, '#3a2c1d');
+  inter.push({ x: CAMA, y: GY - 52, w: 154, h: 52, prompt: 'prompt_look', lines: 'c3_room_bed', range: 30 });
+
+  // ---- o abajur em cima da comoda: a luz do comodo ----
+  const COM = 210;
+  rect(g, COM, GY - 44, 62, 44, '#6f5436');
+  rect(g, COM, GY - 44, 62, 2, '#8a6844');
+  for (let i = 0; i < 2; i++) {
+    rect(g, COM + 5, GY - 36 + i * 16, 52, 12, '#5a422a');
+    rect(g, COM + 26, GY - 32 + i * 16, 10, 3, '#a88a5c');
+  }
+  rect(g, COM + 44, GY - 58, 4, 14, '#4a3524');
+  rect(g, COM + 36, GY - 70, 20, 12, '#d8a8c0');
+  rect(g, COM + 38, GY - 68, 16, 8, '#ffe0c8');
+  lights.push({ x: COM + 46, y: GY - 64, r: 172, color: '#ffcf9a', i: 0.9, falloff: 0.88 });
+  lights.push({ x: COM + 46, y: GY - 64, r: 26, color: '#fff4e0', i: 0.72 });
+  inter.push({ x: COM, y: GY - 70, w: 62, h: 70, prompt: 'prompt_look', lines: 'c3_room_lamp', range: 26 });
+
+  // ---- o chao onde ela desenha: papel espalhado e lapis de cor ----
+  const DES = 120;
+  for (let i = 0; i < 5; i++) {
+    const px = DES + i * 13 + (i % 2) * 4;
+    rect(g, px, GY - 5, 11, 5, '#d8d0bc');
+    rect(g, px, GY - 5, 11, 1, '#efe8d6');
+  }
+  for (const [px, cor] of [[DES + 6, '#a8382c'], [DES + 20, '#3d6a8a'], [DES + 34, '#c9a03a'],
+                           [DES + 48, '#4a7d4a'], [DES + 60, '#7a4a8a']]) {
+    rect(g, px, GY - 2, 7, 2, cor);
+  }
+  inter.push({ x: DES - 4, y: GY - 12, w: 84, h: 12, prompt: 'prompt_look', lines: 'c3_room_draw', range: 26 });
+
+  // ---- a janela do quarto: a rua la fora, e nada acontecendo nela ----
+  const JAN = 452;
+  rect(g, JAN, GY - 128, 56, 46, '#3a2c40');
+  rect(g, JAN + 3, GY - 125, 50, 40, '#2a3a4e');
+  rect(g, JAN + 27, GY - 125, 2, 40, '#4a3a52');
+  rect(g, JAN + 3, GY - 107, 50, 2, '#4a3a52');
+  rect(g, JAN - 6, GY - 132, 68, 5, '#54402a');
+  lights.push({ x: JAN + 28, y: GY - 104, r: 78, color: '#6a86a8', i: 0.24, falloff: 1.3 });
+  inter.push({ x: JAN, y: GY - 132, w: 56, h: 50, prompt: 'prompt_look', lines: 'c3_room_window', range: 28 });
+
+  // ---- as coisas dela na prateleira, e o bicho de pelucia caido ----
+  rect(g, 96, GY - 96, 92, 5, '#6f5436');
+  for (const [px, w2, h2, cor] of [[102, 10, 14, '#a8382c'], [116, 8, 12, '#3d6a8a'],
+                                   [128, 12, 16, '#c9a03a'], [146, 9, 13, '#4a7d4a'],
+                                   [158, 11, 15, '#7a4a8a']]) {
+    rect(g, px, GY - 96 - h2, w2, h2, cor);
+    rect(g, px, GY - 96 - h2, w2, 1, '#e0d8c8');
+  }
+  inter.push({ x: 96, y: GY - 116, w: 92, h: 24, prompt: 'prompt_look', lines: 'c3_room_shelf', range: 26 });
+  rect(g, 296, GY - 12, 14, 12, '#b07a4a');
+  rect(g, 298, GY - 16, 10, 6, '#b07a4a');
+  rect(g, 300, GY - 15, 2, 2, '#2a1e14');
+  rect(g, 305, GY - 15, 2, 2, '#2a1e14');
+  inter.push({ x: 292, y: GY - 20, w: 24, h: 20, prompt: 'prompt_look', lines: 'c3_room_bear', range: 24 });
+
+  // luz de teto fraca e a regra de preenchimento
+  lights.push({ x: 280, y: 42, r: 168, color: '#e8bc90', i: 0.42, falloff: 1.05 });
+  preencher(lights, W, '#b08a6c', 0.24);
+
+  const fore = makeBuffer(Math.ceil(VW + (W - VW) * 1.2) + 8, VH);
+  {
+    const f = fore.x;
+    rect(f, 0, 0, f.canvas.width, 10, '#0a0705');
+    rect(f, 0, VH - 8, f.canvas.width, 8, '#0a0705');
+    // o batente da porta passando na frente, igual ao resto do capitulo
+    rect(f, 240, 0, 12, VH, '#120c10');
+    rect(f, 240, 0, 2, VH, '#1e1518');
+  }
+
+  const lvl = new Level({
+    key: 'ch3_room',
+    nameKey: 'loc_room',
+    width: W, groundY: GY,
+    ambient: '#6a5a52',
+    layers: [{ c: back.c, par: 0.5 }, { c: main.c, par: 1 }],
+    fores: [{ c: fore.c, par: 1.2 }],
+    lightDefs: lights,
+    interactables: inter,
+    weather: 'none',
+    reflect: 0.05,
+    minX: 26, maxX: W - 44,
+    spawn: { x: 70, facing: 1 },
+    bloom: 0.6,
+    indoor: true, safe: true,
+    material: 'wood',
+    ambience: [{ n: 'roomtone', g: 0.07 }],
+    randomSfx: [],
+    maxInimigos: 0,
+    flashback: true,
+    enterBarks: ['b3_room_1', 'b3_room_2'],
+  });
+  return lvl;
+}
 
 // ---------------------------------------------------------------------------
 // 6 — A CELA
@@ -1240,6 +1430,7 @@ export function buildChapter3() {
     ch3_archive: buildDeadArchive(),
     ch3_past: buildSevenYears(),
     ch3_home: buildHome(),
+    ch3_room: buildKidsRoom(),
     ch3_cell: buildCell(),
   };
 }

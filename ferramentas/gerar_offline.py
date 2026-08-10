@@ -152,7 +152,11 @@ def main():
     )
     html = html.replace('</body>', runtime + '\n</body>')
 
-    with open(SAIDA, 'w', encoding='utf-8') as f:
+    # newline='\n' e obrigatorio: sem isso o Python no Windows grava o pacote
+    # inteiro com CRLF, e cada regeneracao numa maquina Windows aparece no
+    # git como as ~24 mil linhas do arquivo trocadas, escondendo a mudanca
+    # de verdade. O jogo funciona dos dois jeitos; o historico, nao.
+    with open(SAIDA, 'w', encoding='utf-8', newline='\n') as f:
         f.write(html)
     print('  gerado: %s  (%.0f KB)' % (SAIDA, os.path.getsize(SAIDA) / 1024))
 

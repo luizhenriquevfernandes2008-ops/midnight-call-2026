@@ -10,15 +10,19 @@
   Documento de história. Só narrativa — nada de código aqui.
   A parte técnica fica em CHAMADO_DA_MEIA_NOITE.md.
 
-  Última atualização: 07/08/2026 (sessão 18)
+  Última atualização: 10/08/2026 (sessão 21)
   Estado: CAPÍTULO 1 escrito e implementado no jogo.
           CAPÍTULO 2 escrito, decidido e IMPLEMENTADO — os oito setores, os
           três inimigos, o Credor, o diário, o inventário, a sanidade e a
           cena do espelho estão no jogo. Falta teste humano.
-          CAPÍTULO 3 ESCRITO em 07/08 (PARTE IX). Ainda NÃO implementado.
-          O passado de David foi travado nesta sessão — ver IX.0. Isso muda
-          o sentido de coisas que já estão no jogo desde o Capítulo 1, mas
-          não exige mexer em nenhuma delas: só passam a significar mais.
+          CAPÍTULO 3 escrito em 07/08 (PARTE IX) e IMPLEMENTADO nas sessões
+          19 e 20: os seis setores, as seis conversas, a escada do cigarro,
+          o painel de senha do Credor, o flashback e o fim com o nome.
+          Falta teste humano.
+          O passado de David foi travado em 07/08 — ver IX.0.
+          O FLASHBACK FOI REESCRITO em 10/08 (sessão 21): outra roupa, o
+          quarto da menina, o telefone que se atende de qualquer lugar, e
+          A CASA PEGANDO FOGO. Ver a Cena 5 e o IX.0.
 
   COMO USAR ESTE ARQUIVO
   ----------------------
@@ -1858,10 +1862,48 @@ IX.0 — A ESPINHA  (canon travado em 07/08)
   Quando ele voltou pra dentro, a mulher estava morta. A filha tinha sumido.
   Foi o homem que ele prendeu, ou gente dele. Nunca ficou provado.
 
+  E A CASA PEGOU FOGO.  [travado em 10/08, sessão 21]
+
+  O fogo começa DEPOIS dos gritos, com ele ainda na varanda, de costas, com
+  o telefone numa mão e um cigarro aceso na outra. Ele corre pra porta, bate,
+  e o estouro do ar joga ele pra trás. Ele não entra. Não tinha como entrar.
+
   O CORPO DA FILHA NUNCA FOI ENCONTRADO.
 
   É ESSE o caso que não fecha. Não é caso de trabalho — é o dele. Depois
   disso ele perdeu o distintivo, depois a casa, depois o resto.
+
+  ------------------------------------------------------------------------
+  POR QUE O FOGO — ele fecha duas coisas que o jogo carregava em aberto
+  ------------------------------------------------------------------------
+
+  1. POR QUE ELE NÃO CONSEGUE FUMAR.
+     Não é só "ele estava fumando enquanto acontecia". Ele estava com um
+     cigarro ACESO NA MÃO quando a casa dele começou a queimar. O laudo diz
+     origem indeterminada, o Michael diz na cara dele que não foi ele, e
+     nada disso muda coisa nenhuma: faz sete anos que ele não consegue
+     acender um sem estar acendendo AQUELE.
+     Cada "hoje não..." do Capítulo 1 passa a ser isso, e nenhuma linha do
+     Capítulo 1 precisa mudar.
+
+  2. POR QUE ELE ACHA QUE ELA ESTÁ VIVA.
+     Ele nunca viu o corpo. Depois do fogo não havia o que ver, e da menina
+     não apareceu nada — nem naquela noite, nem nos onze dias de busca, nem
+     no que sobrou da casa. Tiraram a Julie de lá; ela, não.
+     Sem corpo o caso não fecha. Não é esperança, é processo em aberto — e
+     é por isso que ele ainda manda imprimir cartaz novo depois de sete
+     anos. Isso é dito por ele mesmo, no caderno, e só se o jogador juntar
+     as duas páginas (dedução `fogo`).
+
+  ⚠ REGRA MANTIDA: nada de DENTRO da casa é mostrado, nem antes nem depois
+  do fogo. O incêndio sai pelas janelas, pela porta e pelo telhado, e a
+  câmera fica na varanda, com ele, do lado de fora. O fogo é uma parede de
+  luz entre o jogador e o que aconteceu.
+
+  ⚠ E ELE GRITA UM NOME SÓ. Ele grita JULIE. O nome da filha não sai da
+  boca dele nem com a casa queimando — e é o mesmo nome que o plantonista
+  vai pedir no fim do capítulo. O fogo não arranca o que sete anos não
+  arrancaram.
 
   ------------------------------------------------------------------------
   AS TRÊS CONSEQUÊNCIAS, e todas já estão plantadas no jogo
@@ -1954,7 +1996,7 @@ IX.0 — A ESPINHA  (canon travado em 07/08)
 
 
 -------------------------------------------------------------------------------
-IX.1 — MAPA DO CAPÍTULO — 6 setores
+IX.1 — MAPA DO CAPÍTULO — 6 cenas, 8 setores
 -------------------------------------------------------------------------------
 
   #  SETOR                   MIN   O QUE ENTREGA
@@ -1964,6 +2006,9 @@ IX.1 — MAPA DO CAPÍTULO — 6 setores
   3  A Mesa Dele               8   Degrau 2 do cigarro. O cinzeiro.
   4  Arquivo Morto (-1)        8   A GAVETA D. O corredor mais longo na volta.
   5  Sete Anos Atrás          12   Flashback jogável. Sem inimigo, sem sanidade.
+     5a a rua                     o carro, a fachada, a varanda. E o FOGO.
+     5b a sala                    JULIE. Outra roupa nele.
+     5c o quarto dela             A MENINA, desenhando no chão.
   6  A Cela                   10   O homem. DEGRAU 4. E o nome.
   -- ----------------------- ---
                             ~55 min
@@ -2276,6 +2321,13 @@ TEMPO:  ~12 min
   errado: se o jogador não conhece as duas, ele não perde nada quando elas
   se vão. Ele ENTRA, CONVERSA, e só depois sai.
 
+  ⚠ REESCRITO DE NOVO em 10/08 (sessão 21), com quatro mudanças do Luiz:
+     · OUTRA ROUPA. Ele não pode estar de sobretudo marrom aqui.
+     · A MENINA NÃO FICA NA SALA. Ela está no quarto dela.
+     · O TELEFONE se atende de qualquer lugar, assim que ele sai.
+     · DEPOIS DOS GRITOS, A CASA PEGA FOGO.
+    As quatro estão detalhadas abaixo.
+
   ⚠ SEM INIMIGO. SEM SANIDADE. SEM COMBATE. SEM PERIGO NENHUM.
   Não tem tensão porque não pode ter: o jogador já sabe que ele sobrevive.
   O que tem é uma noite boa, jogada por inteiro.
@@ -2285,6 +2337,51 @@ TEMPO:  ~12 min
     · sem sobretudo rasgado, sem sangue no casaco
     · e o ÓCIO DELE MUDA: parado, ele TIRA O CIGARRO, ACENDE, FUMA e
       GUARDA O MAÇO. Sem hesitar. Sem "hoje não".
+
+  ------------------------------------------------------------------------
+  ★ A ROUPA — travado em 10/08
+  ------------------------------------------------------------------------
+
+  Ele NÃO usa o sobretudo marrom aqui.
+
+  O sobretudo é a roupa que ele veste HÁ SETE ANOS, todo dia, sem tirar. É
+  a piada silenciosa do jogo inteiro, e se ele aparecer com ela no passado
+  a piada morre: vira só o figurino do personagem.
+
+  Sete anos atrás ele era um homem com emprego, e vestia roupa de trabalho:
+  CAMISA CLARA, GRAVATA, e COLETE DE TWEED oliva-acinzentado. Sem aba de
+  sobretudo, sem gola levantada, sem coldre no quadril.
+
+  O ganho é de silhueta, e é grande: a aba do casaco é quase metade da área
+  do boneco. Sem ela o corpo fica estreito, os braços aparecem inteiros e
+  ele anda mais leve — sem uma linha de diálogo dizendo isso.
+
+  A CABEÇA CONTINUA SENDO A DELE. É o mesmo homem e o jogador tem que
+  reconhecer na hora. Quem muda é a roupa, não a pessoa.
+
+  E isso reescreve de graça uma migalha que já estava no jogo: o BETINHO
+  diz que viu David voltar de madrugada "com aquele casaco marrom" e passar
+  a noite na mesa. Só que naquela noite o David não tinha casaco marrom.
+  Ninguém comenta. Nunca.
+
+  ------------------------------------------------------------------------
+  ★ ONDE CADA UMA ESTÁ — travado em 10/08
+  ------------------------------------------------------------------------
+
+  A mulher fica na SALA. A menina fica no QUARTO DELA, com a porta fechada
+  e a luz do abajur passando por baixo.
+
+  São duas conversas em dois cômodos, e o jogador ATRAVESSA a casa entre
+  uma e outra. É isso que faz a casa virar uma casa em vez de um cenário
+  com duas pessoas paradas lado a lado.
+
+  O quarto é pequeno (560px), quente, e é o único cômodo do jogo inteiro em
+  que não há o que investigar. A cama está feita e ela nem deitou. Ela está
+  sentada no chão, desenhando, com papel espalhado e nenhum desenho pronto.
+
+  ⚠ A REGRA DA CASA VALE AQUI COM MAIS FORÇA: nenhuma migalha, nenhum
+  relógio parado, nenhum número que não fecha. Se este quarto tiver UM
+  detalhe errado, o jogador passa a cena procurando o truque.
 
   (nota: o jogador vai ver essa animação dezenas de vezes ao longo de doze
    minutos, e vai achar que é só uma versão antiga do personagem. É a
@@ -2364,10 +2461,11 @@ TEMPO:  ~12 min
   o nome — e é exatamente por isso que a última cena do capítulo funciona.
 
   ------------------------------------------------------------------------
-  O TELEFONE
+  O TELEFONE  — mudou em 10/08
   ------------------------------------------------------------------------
 
-  Só depois das DUAS conversas, o telefone DELE toca. No bolso dele.
+  Só depois das DUAS conversas, o telefone DELE toca. No bolso dele. E toca
+  em qualquer cômodo: na sala, no quarto, no corredor.
 
     "Meu telefone."
     "A essa hora só pode ser da delegacia."
@@ -2376,12 +2474,24 @@ TEMPO:  ~12 min
 
     "Aqui dentro não dá. Vou pra varanda."
 
+  ⚠ E A PARTIR DO INSTANTE EM QUE ELE PÕE O PÉ FORA DE CASA, DÁ PRA
+  ATENDER DE QUALQUER LUGAR. O botão de USAR aparece na tela em qualquer
+  ponto da rua e continua lá até ele atender.
+
+  A versão antiga tinha um ponto fixo na varanda, e o jogador tinha que
+  procurar a marca certa no chão pra usar o próprio telefone. Isso é errado
+  duas vezes: é um objeto que ele está CARREGANDO, e o gesto que a cena
+  precisa é SAIR — não caminhar até um X marcado.
+
+  A varanda continua sendo onde a cena acontece, porque é pra lá que ele
+  anda sozinho. Mas quem decide onde atender é o jogador.
+
   ------------------------------------------------------------------------
   A ÚLTIMA AÇÃO É DO JOGADOR
   ------------------------------------------------------------------------
 
-  Ele tem que SAIR. Atravessar a porta, chegar na varanda, e atender.
-  Ninguém manda fazer isso. É a única coisa que resta.
+  Ele tem que SAIR. Atravessar a porta e atender. Ninguém manda fazer isso.
+  É a única coisa que resta.
 
     "Alô."
     (ele acende um cigarro enquanto espera — o jogador já viu esse gesto
@@ -2398,15 +2508,64 @@ TEMPO:  ~12 min
     (ele se vira. Tarde.)
     "JULIE—"
 
-  Zumbido de ouvido. A tela apaga com ele ainda na varanda, com o cigarro
-  na mão — a mesma composição da Cena 4 do Capítulo 1, agachado de costas
-  pra porta. Sete anos antes.
+  ⚠ O QUE A LIGAÇÃO DIZ: NADA. Nem uma palavra, nem um tom de voz. Se o
+  jogador ouvir qualquer coisa, o Capítulo 4 perde a revelação.
+
+  ------------------------------------------------------------------------
+  ★★★ E A CASA COMEÇA A PEGAR FOGO — travado em 10/08
+  ------------------------------------------------------------------------
+
+  A cena é ENCENADA, não jogada. Dar o controle ao jogador aqui seria
+  prometer que dá pra salvar alguém.
+
+  Ordem exata, ~14 segundos:
+
+    1. BRASA (2s)
+       Um clarão cresce atrás das cortinas das duas janelas. Ainda não há
+       chama nenhuma do lado de fora. O rugido grave do ar sendo puxado
+       para dentro começa baixo.
+
+    2. ESTOURO (1,4s)
+       O vidro cede. As duas janelas estouram, o clarão vira chama, a tela
+       treme e pisca laranja.
+         DAVID: "Não—"
+
+    3. A PORTA (3,4s)
+       Ele corre. Não anda: corre — e o jogador vê a animação de corrida
+       que este homem não usa em mais nenhum lugar do capítulo.
+         DAVID: "JULIE!"
+       Ele chega na porta e bate. O vão já está cheio de fogo.
+
+    4. O BAQUE (1,5s)
+       O ar estoura pra fora e joga ele pra trás. Ele cai.
+         DAVID: "—"
+
+    5. ELE SE LEVANTA (3,6s)
+         DAVID: "Abre. Abre. ABRE—"
+       Àquela altura o fogo já saiu pelo telhado.
+
+    6. FIM (2,6s)
+       Ele fica de pé, olhando. A fumaça sobe. As brasas passam na frente
+       dele.
+         DAVID: "..."
+
+  Zumbido de ouvido, e a tela apaga com ele de pé na varanda, olhando a
+  casa, com o cigarro ainda entre os dedos — a mesma composição da Cena 4
+  do Capítulo 1, de costas pro que importa. Sete anos antes.
 
     (nota: essa rima de enquadramento é a coisa mais importante da cena.
      Quem reparar, monta o jogo inteiro sozinho.)
 
-  ⚠ O QUE A LIGAÇÃO DIZ: NADA. Nem uma palavra, nem um tom de voz. Se o
-  jogador ouvir qualquer coisa, o Capítulo 4 perde a revelação.
+  ⚠ ELE GRITA UM NOME SÓ, E É O DA MULHER. O nome da filha não sai da boca
+  dele nem com a casa queimando. É o mesmo nome que o plantonista vai pedir
+  na última cena do capítulo — e o fogo não arranca o que sete anos não
+  arrancaram.
+
+  ⚠ NADA DE DENTRO DA CASA É MOSTRADO, NEM DEPOIS DO FOGO. O incêndio sai
+  pelas janelas, pela porta e pelo telhado. A câmera fica na varanda.
+
+  O caderno ganha uma página só disso (`j3_fogo`), e ela é insumo de duas
+  deduções novas — ver IX.0 e IX.6.
 
 
 ===============================================================================
@@ -2600,6 +2759,11 @@ IX.6 — AS MIGALHAS DO CAPÍTULO 3
    9. Sete pastas na primeira contagem, oito na segunda.             (fam. 3)
   10. O corredor do arquivo é mais longo na volta.                   (fam. 5)
   11. Sete anos de assinaturas dele no livro de visitas da cela.     (fam. 1)
+  12. Os bombeiros já estavam na rua antes de alguém chamar.         (fam. 5)
+  13. O Betinho viu David "com aquele casaco marrom" numa noite em   (fam. 5)
+      que David não tinha casaco marrom. A roupa do flashback mudou
+      em 10/08 e reescreveu esta migalha de graça, sem tocar numa
+      linha da conversa dele.
 
   A REGRA DE OURO CONTINUA: David nunca junta duas em voz alta, nunca diz
   "isso é impossível" duas vezes seguidas, e NUNCA especula sobre estar

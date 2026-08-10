@@ -274,6 +274,84 @@ class Audio {
     src.start(t, Math.random() * 3, 0.6); src.stop(t + 0.6);
   }
 
+  // Vidro de janela estourando pelo calor. Nao e o vidro de garrafa do bar:
+  // e uma chapa grande cedendo de uma vez, entao tem um estalo grave por
+  // baixo dos caquinhos. Os cacos sao seis toques agudos espalhados em 300ms
+  // — vidro nao cai todo no mesmo instante.
+  glassBreak(vol = 1) {
+    if (!this.ensure()) return;
+    const c = this.ctx, t = c.currentTime;
+    const src = c.createBufferSource();
+    src.buffer = this.noiseBuf;
+    src.playbackRate.value = 1.6;
+    const f = c.createBiquadFilter();
+    f.type = 'highpass'; f.frequency.value = 2600;
+    src.connect(f);
+    const g = this._env(f, t, 0.002, 0.5, 0.20 * vol);
+    g.connect(this.verb);
+    src.start(t, Math.random() * 3, 0.6); src.stop(t + 0.6);
+
+    // a chapa cedendo
+    const o = c.createOscillator();
+    o.type = 'triangle';
+    o.frequency.setValueAtTime(180, t);
+    o.frequency.exponentialRampToValueAtTime(70, t + 0.18);
+    this._env(o, t, 0.002, 0.2, 0.13 * vol);
+    o.start(t); o.stop(t + 0.25);
+
+    // os cacos, espalhados
+    for (let i = 0; i < 6; i++) {
+      const dt2 = 0.04 + Math.random() * 0.3;
+      const p = c.createOscillator();
+      p.type = 'sine';
+      p.frequency.value = 2600 + Math.random() * 2600;
+      const pg = this._env(p, t + dt2, 0.001, 0.05 + Math.random() * 0.05, 0.05 * vol);
+      pg.connect(this.verb);
+      p.start(t + dt2); p.stop(t + dt2 + 0.14);
+    }
+  }
+
+  // Madeira estourando dentro do fogo. Serve de pontuacao por cima do loop:
+  // fogo constante vira chuveiro depois de dez segundos, e o que faz o
+  // ouvido continuar acreditando sao os estalos irregulares.
+  fireCrack(vol = 1) {
+    if (!this.ensure()) return;
+    const c = this.ctx, t = c.currentTime;
+    for (let i = 0; i < 2 + Math.floor(Math.random() * 3); i++) {
+      const dt2 = Math.random() * 0.22;
+      const src = c.createBufferSource();
+      src.buffer = this.noiseBuf;
+      src.playbackRate.value = 0.7 + Math.random() * 1.4;
+      const f = c.createBiquadFilter();
+      f.type = 'bandpass'; f.Q.value = 4 + Math.random() * 6;
+      f.frequency.value = 500 + Math.random() * 2200;
+      src.connect(f);
+      const g = this._env(f, t + dt2, 0.001, 0.05 + Math.random() * 0.07, 0.16 * vol);
+      g.connect(this.verb);
+      src.start(t + dt2, Math.random() * 3, 0.2); src.stop(t + dt2 + 0.2);
+    }
+  }
+
+  // O BAQUE DO FOGO PEGANDO A CASA INTEIRA. Uma coisa so, grave, com um
+  // sopro por cima. E o instante em que a noite dele acaba, e ele nao ve
+  // nada disso: esta de costas, no telefone.
+  fireBurst(vol = 1) {
+    if (!this.ensure()) return;
+    const c = this.ctx, t = c.currentTime;
+    const src = c.createBufferSource();
+    src.buffer = this.noiseBuf;
+    src.playbackRate.value = 0.42;
+    const f = c.createBiquadFilter();
+    f.type = 'lowpass';
+    f.frequency.setValueAtTime(900, t);
+    f.frequency.exponentialRampToValueAtTime(180, t + 1.4);
+    src.connect(f);
+    const g = this._env(f, t, 0.03, 1.6, 0.34 * vol);
+    g.connect(this.verb);
+    src.start(t, Math.random() * 2, 2); src.stop(t + 2);
+    this.flameWhoosh(1.2 * vol);
+  }
+
   thunder(vol = 1) {
     if (!this.ensure()) return;
     const c = this.ctx, t = c.currentTime + Math.random() * 0.2;
@@ -996,6 +1074,31 @@ class Audio {
       const lg = c.createGain(); lg.gain.value = 190;
       lfo.connect(lg); lg.connect(f.frequency); lfo.start(t);
       this.loops[name + '_lfo'] = { src: lfo, gain: lg };
+    } else if (name === 'fogo') {
+      // A CASA QUEIMANDO. Duas camadas: um rugido grave, que e o ar sendo
+      // puxado para dentro do fogo, e um chiado alto por cima, que e a
+      // chama propriamente dita. O LFO lento abre e fecha o grave — fogo
+      // grande respira, e um ruido plano soa a chuveiro ligado.
+      src.playbackRate.value = 0.34;
+      f.type = 'lowpass'; f.frequency.value = 620;
+      const f2 = c.createBiquadFilter();
+      f2.type = 'peaking'; f2.frequency.value = 180; f2.Q.value = 1.4; f2.gain.value = 8;
+      src.connect(f); f.connect(f2); f2.connect(g);
+
+      const alto = c.createBufferSource();
+      alto.buffer = this.noiseBuf; alto.loop = true;
+      alto.playbackRate.value = 1.5;
+      const fa = c.createBiquadFilter();
+      fa.type = 'bandpass'; fa.Q.value = 0.6; fa.frequency.value = 2400;
+      const ga = c.createGain(); ga.gain.value = 0.34;
+      alto.connect(fa); fa.connect(ga); ga.connect(g);
+      alto.start(t, Math.random() * 2);
+      this.loops[name + '_alto'] = { src: alto, gain: ga };
+
+      const lfo = c.createOscillator(); lfo.type = 'sine'; lfo.frequency.value = 0.23;
+      const lg = c.createGain(); lg.gain.value = 240;
+      lfo.connect(lg); lg.connect(f.frequency); lfo.start(t);
+      this.loops[name + '_lfo'] = { src: lfo, gain: lg };
     } else if (name === 'hum') {
       // Zumbido eletrico da sala de maquinas. O disjuntor geral esta
       // desligado e selado com arame — e mesmo assim ele existe.
@@ -1039,8 +1142,20 @@ class Audio {
     L.gain.gain.linearRampToValueAtTime(0.0001, t + fade);
     try { L.src.stop(t + fade + 0.1); } catch (e) { /* ja parou */ }
     delete this.loops[name];
-    const lfo = this.loops[name + '_lfo'];
-    if (lfo) { try { lfo.src.stop(t + fade + 0.1); } catch (e) {} delete this.loops[name + '_lfo']; }
+    // Camadas presas a este loop (o LFO do vento e da serra, a chama aguda
+    // do fogo). Sem isto elas continuavam tocando sozinhas depois que o som
+    // principal ja tinha sumido.
+    for (const suf of ['_lfo', '_alto']) {
+      const extra = this.loops[name + suf];
+      if (!extra) continue;
+      if (extra.gain) {
+        extra.gain.gain.cancelScheduledValues(t);
+        extra.gain.gain.setValueAtTime(extra.gain.gain.value, t);
+        extra.gain.gain.linearRampToValueAtTime(0.0001, t + fade);
+      }
+      try { extra.src.stop(t + fade + 0.1); } catch (e) { /* ja parou */ }
+      delete this.loops[name + suf];
+    }
   }
 
   setLoopGain(name, v, ramp = 0.6) {

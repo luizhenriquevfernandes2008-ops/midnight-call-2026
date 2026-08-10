@@ -89,6 +89,23 @@ const C = {
   '5': '#4a3620', '6': '#31240f',
   // cafe e caneca
   C: '#c9c1a8', '7': '#3a2a1c',
+  // ---- a roupa de trabalho do David, sete anos atras ----
+  // Todas as 26 letras (nos dois caixas) e todos os digitos ja estavam em
+  // uso quando esta roupa foi desenhada, entao daqui para baixo o mapa usa
+  // simbolos. Funciona igual: cada caractere da grade e um pixel.
+  //
+  // Colete de tweed sobre camisa e gravata. NAO pode puxar para o marrom do
+  // sobretudo — o ponto da roupa e que ela e outra roupa. Puxa para o
+  // oliva-acinzentado, que separa dele e do branco encardido do Michael.
+  // ⚠ Estes quatro sao a EXCECAO da regra da paleta, e a excecao tem
+  // motivo: a regra manda pintar mais claro do que a logica pede porque a
+  // cena e multiplicada pela luz. Aqui o colete precisa CONTRASTAR com a
+  // camisa (#b9b8ae) que esta logo do lado dele, no mesmo corpo, sob a
+  // mesma luz. Pintado claro, o tronco inteiro virava uma mancha bege e a
+  // roupa deixava de ser "colete sobre camisa" para virar "camisa larga".
+  // E seguro escurecer porque esta roupa so existe no flashback, que sao
+  // os dois setores mais claros do jogo.
+  '+': '#5c5544', '=': '#3f3a2d', '*': '#736b56', '-': '#33301f',
 };
 
 const P = {};
@@ -1088,6 +1105,77 @@ function build() {
     ]
   });
 
+  // =======================================================================
+  // O DAVID DE SETE ANOS ATRAS
+  // =======================================================================
+  // Ele nao pode estar com a mesma roupa. O sobretudo marrom e o que ele
+  // veste HA SETE ANOS, todo dia, e a piada silenciosa do jogo inteiro e
+  // essa: um homem que nao troca de roupa desde a noite em que parou.
+  // Entao no flashback ele veste o que um detetive de turno veste: camisa,
+  // gravata e colete. Sem aba de sobretudo, sem gola levantada, sem coldre
+  // no quadril.
+  //
+  // O ganho e de silhueta, e e enorme: a aba do casaco e metade da area do
+  // boneco. Sem ela o corpo fica estreito, os bracos aparecem inteiros e
+  // ele anda mais leve — sem uma linha de dialogo dizendo isso.
+  //
+  // ⚠ A cabeca continua sendo a DELE. E o mesmo homem, e o jogador tem que
+  // reconhecer na hora; quem muda e a roupa, nao a pessoa.
+  P.pastTorso = sprite({
+    pivot: [9, 20], map: C, rows: [
+      '...==++++++++=....',
+      '..=++++++++++=....',
+      '.=++++++++++XX=...',
+      '.=+++++++++=XO=...',
+      '.=++=+++++*=XO=...',
+      '.=++=+++++9=XO=...',
+      '.=++=+++++*=XO=...',
+      '.=++=+++++*=Xo=...',
+      '.=++=+++++9=XO=...',
+      '.=++=+++++*=XO=...',
+      '.=++=+++++*=Xo=...',
+      '.=++=+++++9=XO=...',
+      '.=++=+++++*=XO=...',
+      '.=++++++++++X=....',
+      '.=------------=...',
+      '.=++++++++++++=...',
+      '.=++=+++++*=+=....',
+      '.=++=+++++*=+=....',
+      '..=+=+++++*=+=....',
+      '..=++++++++++=....',
+      '...==++++++++=....',
+    ]
+  });
+  // Manga de camisa: pano claro ate o punho. A mao continua sendo a dele.
+  P.pastUpper = sprite({
+    pivot: [2, 1], map: C, rows: [
+      'cXXXXc', 'cXXXXc', 'cXXXXc', 'cXXXXc', 'cXXXXc', 'cXXXXc',
+      'cXXXXc', 'cXXXXc', 'cXXXXc', '.cXXXc', '.cxxxc',
+    ]
+  });
+  P.pastFore = sprite({
+    pivot: [2, 1], map: C, rows: [
+      'cXXXXc', 'cXXXXc', 'cXXXXc', 'cXXXXc', '.cXXXc', '.cXXXc',
+      '.cXXXc', '.cXXXc', 'c9999c', '.cccc.',
+    ]
+  });
+  // Colarinho de camisa, no lugar da gola levantada do sobretudo. Sem
+  // alguma coisa aqui a cabeca pousa num pescoco de 2px e parece colada —
+  // foi o bug B-08 e ele nao vai voltar por causa de uma troca de roupa.
+  P.pastCollar = sprite({
+    pivot: [8, 9], map: C, rows: [
+      '................',
+      '................',
+      '................',
+      '................',
+      '................',
+      '................',
+      '.....cXXXXXXc...',
+      '....cXXXXXXXXc..',
+      '....cxxxxxxxxc..',
+    ]
+  });
+
   // versões escurecidas dos membros de trás
   const K = 0.68, T2 = '#22304a';
   for (const nome of ['faceUpper', 'faceFore', 'faceHand', 'faceThigh', 'faceShin', 'faceFoot',
@@ -1099,7 +1187,7 @@ function build() {
     // entram aqui os que realmente desenharam um.
     'deskUpper', 'deskFore', 'miUpper', 'miFore', 'beUpper', 'beFore',
     'caUpper', 'caFore', 'caShin', 'caFoot', 'juUpper', 'juFore',
-    'jeUpper', 'jeFore']) {
+    'jeUpper', 'jeFore', 'pastUpper', 'pastFore']) {
     P['d_' + nome] = darken(P[nome], K, T2);
   }
 
@@ -1214,6 +1302,16 @@ export function partesDe(id) {
       upperArm: P.jeUpper, forearm: P.jeFore,
       dUpperArm: P.d_jeUpper, dForearm: P.d_jeFore,
       collar: null, coatSkirt: null, holster: null,
+    };
+
+    // O PROPRIO DAVID, sete anos atras. Cabeca, mao, perna e bota continuam
+    // sendo as dele — cai no detetive para tudo que nao esta declarado
+    // aqui. `coatSkirt: null` e o que muda a silhueta inteira.
+    case 'david_passado': return {
+      torso: P.pastTorso,
+      upperArm: P.pastUpper, forearm: P.pastFore,
+      dUpperArm: P.d_pastUpper, dForearm: P.d_pastFore,
+      collar: P.pastCollar, coatSkirt: null, holster: null,
     };
   }
   return null;

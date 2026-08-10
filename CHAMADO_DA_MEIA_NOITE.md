@@ -334,6 +334,169 @@ ainda precisam de teste humano para ajuste fino de dificuldade.
 
 ---
 
+## SESSÃO 21 — 10/08/2026 · Claude · o flashback reescrito, e o fogo
+
+Sessão pedida pelo Luiz, com cinco mudanças no Capítulo 3 e uma correção que
+apareceu no caminho.
+
+### 1. Outra roupa no flashback 🟢
+
+David não usa mais o sobretudo marrom nos doze minutos de sete anos atrás.
+O sobretudo é a roupa que ele veste **há sete anos sem tirar** — se ele
+aparecer com ela no passado, a distância entre os dois homens some.
+
+Peças novas em `creatures.js` (`partesDe('david_passado')`): camisa clara,
+gravata e colete de tweed. `coatSkirt: null`, `holster: null`, e um
+colarinho de camisa no lugar da gola levantada. A cabeça continua sendo a
+dele — quem muda é a roupa, não a pessoa.
+
+O ganho é de silhueta: a aba do sobretudo é quase metade da área do boneco,
+e sem ela o corpo fica estreito e os braços aparecem inteiros.
+
+> ⚠ Todas as 26 letras (nas duas caixas) e todos os dez dígitos já estavam
+> em uso no mapa de cores de `creatures.js`. A roupa nova usa símbolos
+> (`+ = * -`) como chave de pixel. Funciona igual.
+
+A troca entra em `entrarFlashback()` e sai em `sairFlashback()` — inclusive
+quando não há estado guardado, e inclusive ao **carregar um save dentro do
+passado**, que antes devolvia o homem certo vestido de sobretudo.
+
+### 2. A menina saiu da sala 🟢
+
+Ela não fica mais na sala junto com a mãe. Setor novo **`ch3_room`**, o
+quarto dela: 560px, parede lilás, abajur, cama feita que ela nem desfez,
+papel de desenho espalhado pelo chão, urso caído, e a janela de onde ela vê
+o carro chegar.
+
+A porta fica no corredor do fundo da sala, com a **luz do abajur passando
+por baixo** — é ela que diz que tem alguém acordado ali antes de qualquer
+fala. São duas conversas em dois cômodos, e o jogador atravessa a casa
+entre uma e outra.
+
+A regra da casa vale com mais força aqui: **nenhuma migalha**, nenhum
+relógio parado, nenhum número que não fecha.
+
+### 3. O telefone se atende de qualquer lugar 🟢
+
+Era um ponto fixo na varanda: o jogador tinha que procurar a marca certa no
+chão para usar o próprio telefone. Errado duas vezes — é um objeto que ele
+está carregando, e o gesto que a cena precisa é **sair**, não caminhar até
+um X.
+
+Agora, no instante em que ele põe o pé fora de casa, o interagível gruda no
+jogador e o botão de **USAR** fica na tela em qualquer ponto da rua até ele
+atender. A varanda continua sendo onde a cena acontece, porque é para lá que
+ele anda sozinho — mas quem decide onde atender é o jogador.
+
+### 4. 🔥 A casa pega fogo 🟢
+
+Depois dos gritos, a casa começa a queimar. Não é efeito: é o que responde
+as duas perguntas que o jogo carregava em aberto desde o Capítulo 1.
+
+| Pergunta | O que o fogo responde |
+|---|---|
+| **Por que ele não consegue fumar** | Ele estava com um cigarro **aceso na mão** quando a casa dele começou a queimar. O laudo diz origem indeterminada e o Michael diz na cara dele que não foi ele — e não muda nada. Cada "hoje não..." é aquele cigarro |
+| **Por que ele acha que ela está viva** | Ele nunca viu o corpo. Tiraram a Julie de lá; da menina não apareceu nada, nem nos onze dias de busca, nem no que sobrou da casa. Sem corpo o caso não fecha — e é por isso que ele ainda manda imprimir cartaz |
+
+`Fogo`, em `js/systems/chapter3.js`: seis fases em ~14,5s — brasa atrás das
+cortinas, o vidro estourando, ele correndo até a porta, o estouro do ar
+jogando ele para trás, ele se levantando, e ele parado olhando. A chama é
+feita de colunas de retângulos com altura sorteada por quadro, em quatro
+tons, igual ao resto do cenário do jogo. Fumaça no telhado e brasas subindo
+pelo sistema de partículas.
+
+Sons novos: loop `fogo` (rugido grave com LFO + chiado agudo por cima),
+`glassBreak`, `fireCrack` e `fireBurst`.
+
+> ⚠ **Nada de dentro da casa é mostrado**, nem antes nem depois. O fogo sai
+> pelas janelas, pela porta e pelo telhado, e a câmera fica na varanda. E
+> **ele grita um nome só, o da mulher** — o nome da filha não sai da boca
+> dele nem com a casa queimando, e é o mesmo que o plantonista vai pedir na
+> última cena.
+
+A cena é encenada, não jogada: dar o controle ao jogador aqui seria prometer
+que dá para salvar alguém.
+
+### 5. Os diálogos do Capítulo 3 ficaram fundos 🟢
+
+Reclamação do Luiz, procedente: um capítulo que é só conversa estava com
+árvores de três perguntas.
+
+- **Julie** foi de 3 para **7 assuntos**, com insistência em quatro deles.
+  Ela deixou de ser a mulher que só reage: tem o próprio dia, a própria
+  raiva ("a tua cabeça atravessa a porta uma hora depois de você"), o
+  próprio medo, e uma coisa que ela quer. Nada de premonição, nada de
+  despedida — ela não sabe de nada porque não há nada a saber ainda.
+- **A menina** foi de 3 para **6 assuntos**. Criança de verdade: nega o
+  óbvio, negocia, apaga a luz com o pé quando ele pergunta da mãe, e tem uma
+  teoria própria sobre o trabalho do pai ("some gente e você acha").
+- **Michael** ganhou o relatório, o que sobrou da casa, o incêndio e a
+  plaquinha da mesa. E a fala dele sobre aquela noite mudou: agora ele conta
+  que **viu a luz ao virar a esquina** — o jogador desce para o arquivo já
+  sabendo que a casa queimou, e depois joga a noite inteira dentro dela.
+- **Carlos** ganhou o que ele faz com sete anos parado, a Julie, e o
+  incêndio. Continua sem ameaçar, sem negar e sem confirmar.
+- **Ruiz** ganhou os bombeiros (**já estavam na rua** — migalha, e ninguém
+  comenta) e a manhã seguinte. **Elaine**, as duas ligações daquela noite e
+  por que ninguém quis assinar. **Betinho**, o café e os filhos dele.
+  **O plantonista**, o quadro de homenagens e o livro de assinaturas.
+
+**Duas deduções novas:** `fogo` (o incêndio + a gaveta dos cartazes → *sem
+corpo o caso não fecha*) e `chama` (o incêndio + o cigarro da cela). A
+primeira destrava pergunta com o Michael e com o Carlos.
+
+### 6. 🐛 Bug encontrado de passagem — B-58
+
+Os três objetos examináveis da sala da casa (`c3_home_tv`, `c3_home_table`,
+`c3_home_photos`) eram citados pelos interagíveis desde a sessão 20 e **os
+textos nunca existiram**. Examinar a televisão, a mesa posta ou os
+porta-retratos abria uma **caixa de diálogo vazia**, na única sala quente do
+jogo. Nenhum teste pegava porque todos conferiam que o interagível existe —
+nunca que ele fala. O teste agora exige texto em PT e EN para todo
+interagível com `lines` dentro da casa e do quarto.
+
+### 7. 🐛 E um bug meu, achado pelo teste — B-59
+
+A primeira versão do `Fogo` avançava de fase com
+`idx = min(idx + 1, ultima)` e zerava o cronômetro. Na última fase isso
+reentrava nela para sempre: o cronômetro voltava a zero antes de a condição
+de fim ser lida, **a cena nunca terminava e o jogador ficava preso no
+passado**, com a casa queimando em loop e sem controle. O fim virou ramo
+próprio.
+
+### Duas coisas ajustadas OLHANDO A TELA, não o teste
+
+- **O colete estava sumindo.** Pintado pela regra da paleta (mais claro do
+  que a lógica pede, porque a cena é multiplicada pela luz), ele ficava no
+  mesmo valor da camisa que está ao lado dele, no mesmo corpo, sob a mesma
+  luz — e o tronco inteiro virava uma mancha bege. Escurecido de propósito:
+  é a única exceção da regra no projeto, e ela é segura porque essa roupa só
+  existe nos dois setores mais claros do jogo.
+- **O fogo estourava de branco.** Na primeira medição as janelas estavam
+  chapadas, o bloom comia a parede de tijolo e o David sumia contra o
+  próprio incêndio. As luzes caíram para cerca de dois terços e o fogo do
+  telhado ganhou passo maior — na largura de coluna das janelas, 356px de
+  telhado viravam um pente de dentes iguais atravessando a tela.
+
+> Fogo grande não é fogo claro. É fogo com sombra do lado.
+
+### Verificação
+
+`ferramentas/teste_capitulo3.html` cobre agora, além do que já cobria: a
+troca de roupa na ida e na volta, o quarto como setor com ida e volta, texto
+de verdade em todo objeto da casa e do quarto, o telefone respondendo de
+quatro pontos diferentes da rua, as seis fases do fogo, o fogo terminando
+sozinho, o fogo não vazando para outra partida, e o percurso completo
+sala → quarto → rua → incêndio → cela.
+
+**Status:** implementado e validado por regressão automatizada.
+**Falta teste humano** — e é dele que vem a validação (M-06). O que eu
+preciso saber: se a conversa com a Julie dá vontade de ficar, se atravessar
+a casa até o quarto é bom ritmo ou enche, e se o incêndio assusta ou parece
+efeito.
+
+---
+
 ## 1. IDENTIDADE DO PROJETO
 
 | Campo | Valor |
@@ -345,9 +508,9 @@ ainda precisam de teste humano para ajuste fino de dificuldade.
 | **Plataforma** | Navegador desktop |
 | **Perspectiva** | Lateral fixa, câmera acompanha no eixo X |
 | **Idiomas** | 🇧🇷 PT-BR e 🇬🇧 EN, com seletor no menu |
-| **Repositório** | `github.com/luizhenriquevfernandes2008-ops/the-midnight-call` (público) |
+| **Repositório** | `github.com/luizhenriquevfernandes2008-ops/midnight-call-2026` (público) |
 | **Início** | 03/08/2026 |
-| **Status** | 🟡 Sessão 09 — **Capítulos 1 e 2 jogáveis do início ao fim.** Aguardando teste humano completo |
+| **Status** | 🟡 Sessão 21 — **Capítulos 1, 2 e 3 jogáveis do início ao fim.** Nada do Capítulo 3 passou por teste humano |
 
 ### Pitch
 
@@ -468,6 +631,8 @@ chamado da meia noite/
 │   │   ├── materials.js       pincéis: tijolo, asfalto, sangue, destroço...
 │   │   ├── levels.js          as 5 fases do Cap. 1 + carro + rua da cutscene
 │   │   ├── levels-ch2.js      os 8 setores do Capítulo 2
+│   │   ├── levels-ch3.js      os 8 setores do Capítulo 3 (com a casa e o quarto)
+│   │   ├── levels-chase.js    o segundo ato da fuga, atrás da Doca 3
 │   │   └── fx.js              chuva, névoa, partículas, poeira
 │   ├── systems/
 │   │   ├── player.js          controle, arma, porrete, dano, falas, ócio
@@ -475,20 +640,31 @@ chamado da meia noite/
 │   │   ├── cutscene.js        abertura (carro + narração)
 │   │   ├── scene-nota.js      cena da nota, figura negra, nocaute, despertar
 │   │   ├── scene-espelho.js   o espelho em PRIMEIRA PESSOA (Cap. 2)
+│   │   ├── scene-chase-intro.js  o Credor saindo do escuro e o chute
 │   │   ├── sanity.js          o medidor que não aparece na tela
-│   │   ├── journal.js         o caderno, e as páginas que ele não escreveu
+│   │   ├── journal.js         o caderno, a dedução, e as páginas alheias
 │   │   ├── inventory.js       o inventário É O SOBRETUDO
 │   │   ├── enemies.js         os 3 inimigos, o Credor e o DIRETOR
-│   │   ├── npc.js             o Vigia e a Telefonista
-│   │   └── chase.js           a perseguição do Credor
+│   │   ├── npc.js             as pessoas dos Caps. 2 e 3
+│   │   ├── chase.js           a perseguição do Credor
+│   │   ├── chase-sequence.js  o clímax: portão, palete, pátio de carga
+│   │   ├── chase-setpieces.js os recursos de uso único da fuga
+│   │   ├── combat-finishers.js  Frenzy e as finalizações
+│   │   ├── difficulty.js      HISTÓRIA · NORMAL · DIFÍCIL · MENTE
+│   │   ├── supplies.js        o sorteio de munição, curas e paletes
+│   │   ├── puzzle-turno.js    o circuito das 02h14
+│   │   └── chapter3.js        cigarro, senha do Credor, flashback, O FOGO, o nome
 │   └── ui/
 │       ├── menu.js            tela de título (é uma cena viva, não um cartaz)
 │       ├── panels.js          slots de save e painel de opções
 │       └── pause.js           menu de pausa
 │
 ├── ferramentas/
-│   ├── gerar_offline.py       empacota os 21 módulos no HTML único
-│   └── servidor_dev.py        servidor + endpoint de captura de tela (só dev)
+│   ├── gerar_offline.py       empacota os 40 módulos no HTML único
+│   ├── servidor_dev.py        servidor + endpoint de captura de tela (só dev)
+│   ├── teste_capitulo3.html   regressão do Capítulo 3 e do seletor
+│   ├── teste_regressao_cap2.html · teste_puzzle_turno.html
+│   └── teste_deducao.html · teste_save_itens.html
 │
 ├── assets/
 │   ├── audio/
@@ -871,6 +1047,10 @@ salva texto diferente**.
 | Sistema de diálogo com NPC | 🟢 **com escolhas, e com dois NPCs usando** |
 | Sala de teste de animação | 🟢 |
 | **CAPÍTULO 2 — os 8 setores** | 🟡 construídos e percorridos por script |
+| **CAPÍTULO 3 — os 8 setores** | 🟡 construídos e percorridos por script, 934 checagens verdes |
+| Flashback: a casa, o quarto e o fogo | 🟡 sessão 21, **nada disso foi jogado por uma pessoa** |
+| Roupa de sete anos atrás | 🟢 medida na tela, com o colete escurecido para separar da camisa |
+| Diálogos do Capítulo 3 | 🟡 aprofundados na 21; só leitura humana diz se prendem |
 | Sanidade (4 estados, sem barra) | 🟡 recalibrada na 09, **falta sentir jogando** |
 | Caderno / diário | 🟡 |
 | Inventário (o sobretudo) | 🟡 arrastar com o mouse, **falta mão humana** |
@@ -1008,6 +1188,8 @@ salva texto diferente**.
 | B-54 | Memória de conversa vinha vazia quando o objeto cruzava janelas | `opts.memory instanceof Set` dá **falso** quando o `Set` foi criado em outro realm (página de teste × iframe do jogo). O código caía no ramo da cópia, a conversa funcionava, e quem chamou ficava sem registro nenhum do que foi perguntado | `asSet()` por *duck typing* (`typeof x.add === 'function'`) em vez de `instanceof`. Vale para qualquer código que receba objeto de outra janela | 18 |
 | B-55 | 🔥 **A cela do Capítulo 3 era um beco sem saída** | O Arquivo Morto não tinha porta para a custódia: a cela só era alcançável pela volta do flashback. Sair dela uma vez trancava o jogador **fora do Carlos**, que é obrigatório para o cigarro e para o fim do capítulo. Nenhuma verificação de estrutura pegava isso porque todas checavam "a porta aponta para uma fase que existe", nunca "dá para voltar" | Porta da custódia no fim do corredor do arquivo. E o teste passou a exigir ida **e volta** entre todos os setores da rota, mais "nenhum setor pode ter zero saídas" | 19 |
 | B-57 | 🔥 **As pessoas do Capítulo 3 eram invisíveis** | Duas metades do mesmo descuido: o laço que **desenha** NPC estava dentro do `if (cap2)`, e o laço que **insere o gancho de interação** ficava depois de um `return` seco em `entrouCh2()` para setores fora do Capítulo 2. Resultado: conversa escrita, caixa de colisão pendurada à mão, e ninguém na tela | Desenho para fora do `if (cap2)`, inserção extraída para `_porGenteNaFase()` e chamada pelos dois caminhos, e oito personagens desenhados de verdade em `creatures.js`. O teste agora mede **pixel na tela**, não a existência do objeto | 20 |
+| B-58 | **Três objetos da casa do flashback abriam caixa de diálogo VAZIA** | `c3_home_tv`, `c3_home_table` e `c3_home_photos` eram citados pelos interagíveis da sala desde a sessão 20 e os textos nunca foram escritos. Na única sala quente do jogo, examinar a televisão, a mesa posta ou os porta-retratos não dizia nada. Nenhum teste pegava: todos conferiam que o interagível EXISTE, nenhum que ele FALA — é o M-07 outra vez, com outra roupa | Os três textos escritos em PT e EN, e o teste passou a exigir texto não-vazio para todo `lines` da casa e do quarto | 21 |
+| B-59 | 🔥 **A cena do incêndio nunca terminava, e prendia o jogador no passado** | O avanço de fase fazia `idx = min(idx + 1, última)` e zerava o cronômetro. Na última fase a condição de avanço continuava verdadeira, então o cronômetro voltava a zero **antes** de a condição de fim ser lida: a casa queimava em loop, sem controle e sem saída. Achado pelo teste de regressão no mesmo dia em que foi escrito | O fim virou ramo próprio, antes do avanço de fase | 21 |
 | B-56 | 🔥 **Cena roteirizada vazava para outra partida** | A volta do flashback é agendada com `setTimeout` de 8,2s e só conferia `state === 'play'`. Sair para o menu, carregar um save ou trocar de capítulo dentro daqueles 8 segundos deixava o relógio correndo — e depois de carregar o estado **é** `'play'`, só que de outra partida. O jogador era arrancado para a cela no meio de outra coisa. O fim do Capítulo 2 tinha exatamente o mesmo defeito, e está no jogo desde a sessão 12 | `game.runId`, incrementado em Novo Jogo, seletor de capítulo, carregar save e voltar ao menu. A cena congela o número e confere na hora de disparar. Aplicado nas três cenas agendadas | 19 |
 
 ### 12.3 — 🔍 Erros de método (meus, registrados para não repetir)
@@ -1019,6 +1201,7 @@ salva texto diferente**.
 | M-03 | **Deixei o servidor de captura na porta 8137**, a mesma do `ABRIR_JOGO.bat`, e derrubei o jogo do jogador no meio de uma sessão. Usar 8140 |
 | M-04 | **Repeti o B-23 inteiro** (sessão 09): construí o corredor de carga com luz calibrada para uma sala, num espaço 3× maior. A lição já estava escrita neste documento e eu não a apliquei. **A regra agora é numérica, não é sensibilidade:** lâmpada forte a cada ~400px e preenchimento fraco a cada ~200px na altura do chão, em qualquer fase maior que 800px |
 | M-05 | **Escrevi números de sanidade sem medir** (sessão 09). Trinta segundos de jogo levavam o medidor de 100 a 16. Números de ritmo têm que ser medidos rodando, e não escolhidos porque "parecem certos" — é o mesmo erro do M-02 com outra roupa |
+| M-10 | **Escrevi uma máquina de estados que nunca saía do último estado** (sessão 21). O avanço de fase do incêndio fazia `idx = min(idx + 1, última)` e zerava o cronômetro; na última fase a condição de avanço continuava verdadeira e o cronômetro voltava a zero **antes** de a condição de fim ser lida. A cena queimava em loop e prendia o jogador. O padrão é o mesmo de sempre: **um `min()` que satura não é uma condição de parada** — quem termina tem que ser um ramo próprio, e o teste tem que perguntar "acabou?", não "chegou na última fase?" |
 | M-09 | **Medi imagem com o grão de filme ligado** (sessão 20b). O grão muda ~180 pixels sozinho entre dois quadros; a medição do plantonista virou ruído puro. E no mesmo teste tratei coordenada de mundo como coordenada de tela, ignorando um `cam.iy` de −27. **Verificação de imagem precisa zerar grão e scanline, conferir o piso de ruído, e converter pelo `cam`** |
 | M-07 | **Testei que o NPC EXISTE, nunca que ele APARECE** (sessão 19). O teste do Capítulo 3 tinha 393 checagens verdes com oito pessoas invisíveis na tela. Todas verificavam objeto, conversa, flag e caixa de colisão — nenhuma verificava um pixel. **Coisa que se vê precisa ser medida no canvas**, e agora é |
 | M-08 | **Escrevi um interrogatório inteiro sem ancorar em fato nenhum** (sessão 19). O Carlos aparecia numa cela sem motivo e falava por enigma; a conversa soava profunda e não dizia nada. Um NPC precisa de uma razão mundana para estar onde está e de uma informação verificável para dar — senão o jogador para de acreditar no resto do jogo. **Nenhum teste pega isso; só leitura humana** |
@@ -1055,6 +1238,8 @@ salva texto diferente**.
 | R-24 | 🔥 **Nada da sessão 10 foi jogado por uma pessoa ainda** | Salvar no meio da fuga, sair de um esconderijo com o Credor em cima, bater num Empilhado, arrastar item no casaco: tudo isso foi verificado por script e por captura de tela. **Foi exatamente esse tipo de coisa que escondeu os quatro bugs fatais da sessão 09** (ver M-06) |
 | R-25 | **O save vive no `localStorage`, não numa pasta** | Você pediu uma pasta `saves/` no jogo. Um jogo que roda por `file://` **não pode escrever no disco** — o navegador proíbe, e é por isso que ele roda com dois cliques sem instalar nada. O `localStorage` é permanente e sobrevive a fechar o jogo, mas é do navegador: limpar dados do site apaga. **Se quiser arquivo de verdade, dá para fazer botões EXPORTAR/IMPORTAR** que baixam e leem um `.save` — diga e eu faço |
 | R-26 | **O fim do capítulo nunca foi visto por uma pessoa** | Ele existe: chegar na doca 3 durante a fuga dispara as três falas e o Credor parado olhando. Só nunca foi alcançado jogando |
+| R-27 | 🔥 **O flashback inteiro do Capítulo 3 nunca foi jogado por uma pessoa** | A casa, o quarto da menina, as duas conversas longas e o incêndio foram construídos e percorridos por script na sessão 21. Script não sente ritmo: ele não sabe se sete assuntos com a Julie prendem ou cansam, se atravessar a casa até o quarto é bom, nem se um incêndio de 14,5s sem controle nenhum assusta ou irrita. **É do jogador que vem a validação** (M-06) |
+| R-28 | **O fogo é a única cena longa do jogo sem controle nenhum** | 14,5 segundos. Se na sua mão parecer tempo demais, o lugar de cortar é a fase `levanta` (3,6s) e a `fim` (2,6s) em `FASES`, no `chapter3.js` — as duas existem para dar o tempo de olhar, e são as primeiras a sobrar |
 
 ### 13.3 — 🟡 Precisa de atenção, mas não urgente
 
@@ -1078,7 +1263,21 @@ salva texto diferente**.
 
 ## 14. ROADMAP — O QUE VEM AGORA
 
-### 📌 PRÓXIMO PASSO: **jogar o Capítulo 2 inteiro, com as mãos**
+### 📌 PRÓXIMO PASSO (sessão 21): **jogar o flashback do Capítulo 3**
+
+> `MENU → CAPÍTULOS → 3`, descer até o Arquivo Morto e abrir a gaveta D.
+>
+> As três perguntas que só a sua mão responde:
+>
+> 1. A conversa com a **Julie** dá vontade de continuar puxando assunto, ou
+>    cansa? Ela tem sete assuntos agora — se o jogador sair no terceiro, o
+>    fogo não vai cobrar nada depois.
+> 2. Atravessar a casa até o **quarto da menina** é bom ritmo, ou é
+>    caminhada à toa?
+> 3. O **incêndio** assusta, ou parece efeito? Ele dura ~14,5s e o jogador
+>    não tem controle nenhum durante ele.
+
+### 📌 PASSO ANTERIOR, AINDA EM ABERTO: **jogar o Capítulo 2 inteiro, com as mãos**
 
 > Tudo abaixo foi construído e percorrido **por script**, não por uma pessoa.
 > O que só mão humana mede: se uma hora é uma hora, se o combate é justo, se
@@ -1201,7 +1400,9 @@ propriedade.
 | ~~D-08~~ | ~~O Credor volta no Capítulo 3?~~ | ✅ **Volta, e não persegue.** Fica sentado na sala de espera da delegacia com uma senha de atendimento na mão, motosserra desligada no colo. O número do painel sobe a cada setor. Na saída chamam a senha dele e a cadeira está vazia |
 | ~~D-09~~ | ~~Onde exatamente o cigarro destrava?~~ | ✅ **Na cela, no fim do Capítulo 3** — e ele não decide nada. Acende um pro homem da cela (técnica de interrogatório, ofício) e acende um pra ele no automático. Só percebe olhando pra própria mão |
 | D-10 | **A aproximação de câmera em conversa amplia o pixel do cenário** | 1,6x ajuda muito e denuncia; 1,3x ajuda pouco e não denuncia. Decisão de tela, não de papel |
-| D-11 | **Nomes: filha, mulher, criminoso, parceiro, e o sobrenome do David** | O sobrenome deixou de ser opcional: o Cap. 3 tem pasta, livro de visitas, plaquinha e crachá |
+| ~~D-11~~ | ~~Nomes: filha, mulher, criminoso, parceiro, e o sobrenome do David~~ | ✅ **DAVID HENRY · JENNA · JULIE · CARLOS · MICHAEL**, travados em 07/08 |
+| D-12 | **O incêndio foi acidente ou foi posto?** | O laudo diz origem indeterminada, o Michael diz que não foi ele, e o Carlos não nega nem confirma. **A minha recomendação é nunca responder:** enquanto não há resposta, o cigarro na mão dele é a acusação que ele faz a si mesmo — e é isso que o Capítulo 4 tem para cobrar. Se virar "foi um curto", o personagem perde o motivo |
+| D-13 | **Ele acha mesmo que ela está viva, ou é só o processo aberto?** | A dedução `fogo` faz ele escrever "não é esperança, é papel". Isso é a defesa dele, não a verdade — e o Capítulo 4 pode escolher desmontar |
 
 ---
 
@@ -1981,6 +2182,8 @@ medidas dentro do pacote.
 | **`itensSoltos`** | Os poucos objetos desenhados por quadro, porque precisam sumir quando pegos |
 | **Conveniência** | A regra do Capítulo 2: tudo que ele precisa aparece na hora exata. Não é preguiça de design — é enredo, e ele comenta |
 | **Dedução** | Juntar duas páginas do caderno (`X` numa, `X` na outra) para gerar uma terceira. A conclusão grava uma flag, e a flag abre pergunta nova em conversa |
+| **`david_passado`** | O conjunto de peças da roupa de sete anos atrás: camisa, gravata e colete, sem aba de sobretudo e sem coldre. A cabeça continua sendo a dele |
+| **O fogo** | A casa queimando depois dos gritos, no flashback. Responde por que ele não fuma e por que ele acha que ela está viva — sem que ninguém diga nenhuma das duas coisas |
 | **Conclusão** | A página que só existe se o jogador deduzir. Categoria própria no caderno |
 | **Insistir** | Perguntar de novo o que já foi respondido. Custa 5 de sanidade, só dá uma vez por assunto, e às vezes é o único caminho |
 | **`talkMem`** | O que ele já perguntou a cada pessoa, guardado nas flags do save em vez da sessão |
@@ -1993,7 +2196,18 @@ medidas dentro do pacote.
 
 ---
 
-> **Última atualização:** 07/08/2026 — Sessão 20b (Claude)
+> **Última atualização:** 10/08/2026 — Sessão 21 (Claude)
+> **O que mudou nela:** outra roupa no flashback, o quarto da menina, o
+> telefone que se atende de qualquer lugar, **a casa pegando fogo**, os
+> diálogos do Capítulo 3 aprofundados, e dois bugs (B-58 e B-59).
+> **Próximo passo:** **jogar o flashback com as mãos.** O que eu preciso
+> saber: a conversa com a Julie dá vontade de ficar ou cansa? Atravessar a
+> casa até o quarto é bom ritmo ou é caminhada à toa? E o incêndio assusta,
+> ou parece efeito?
+>
+> _(a nota abaixo é da sessão 20b e continua valendo)_
+>
+> **Última atualização anterior:** 07/08/2026 — Sessão 20b (Claude)
 > **Próximo passo:** **jogar o Capítulo 3 pelo seletor.** O que eu preciso
 > saber: as oito pessoas parecem gente na tela? O flashback dentro de casa
 > funciona — as duas conversas dão vontade de ficar ali? E os depoimentos
