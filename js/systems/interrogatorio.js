@@ -41,7 +41,7 @@ import { text, measure } from '../core/text.js';
 import { PAL } from '../art/palette.js';
 import { input } from '../core/input.js';
 import { audio } from '../core/audio.js';
-import { t as T, tx, INTERROGATORIO as SCRIPT, TALKS } from '../i18n.js';
+import { t as T, tx, INTERROGATORIO as SCRIPT } from '../i18n.js';
 
 const VERBOS = ['perguntar', 'pressionar', 'bater'];
 
@@ -68,6 +68,7 @@ export class Interrogatorio {
     this.usos = { perguntar: 0, pressionar: 0, bater: 0 };
     this.ultimo = null;
     this.travado = false;     // levou um soco: a proxima pergunta nao anda
+    this.carlosT = 0;
     this.vazou = 0;
     this.onEnd = null;
     this.runId = -1;
@@ -108,7 +109,7 @@ export class Interrogatorio {
     if (!arr.length) return false;
     const e = arr[Math.min(idx, arr.length - 1)];
     const eu = T('speaker_me');
-    const ele = tx(TALKS.carlos.speaker);
+    const ele = T('speaker_carlos');
     const linhas = [];
     for (const [campo, quem] of [['d', eu], ['c', ele], ['d2', eu], ['c2', ele],
                                  ['d3', eu], ['c3', ele]]) {
@@ -130,10 +131,28 @@ export class Interrogatorio {
     return 0;
   }
 
+  // A ATUACAO. Nao da para ver o rosto de ninguem aqui, entao cada verbo
+  // tem um corpo proprio: o David muda de pose e o outro homem responde
+  // com o corpo dele. Sem isto os tres botoes seriam o mesmo botao.
+  _encenar(game, verbo) {
+    const p = game.player;
+    const ca = game.npcs.carlos;
+    if (verbo === 'perguntar') {
+      p.det.play('intAsk', { restart: true, blend: 0.16 });
+    } else if (verbo === 'pressionar') {
+      p.det.play('intPush', { restart: true, blend: 0.1 });
+      if (ca) { ca.det.play('sitFlinch', { restart: true, blend: 0.18 }); this.carlosT = 1.0; }
+    } else if (verbo === 'bater') {
+      p.det.play('intHit', { restart: true, blend: 0.05 });
+      if (ca) { ca.det.play('sitHurt', { restart: true, blend: 0.04 }); this.carlosT = 1.2; }
+    }
+  }
+
   escolher(game, verbo) {
     const p = PESO[verbo];
     const idx = this.usos[verbo];
     this.usos[verbo]++;
+    this._encenar(game, verbo);
 
     // Bater duas vezes seguidas: ele fecha a cara e a barra CAI.
     if (verbo === 'bater' && this.ultimo === 'bater') {
@@ -183,12 +202,31 @@ export class Interrogatorio {
     // a camera fecha nos dois e nao volta mais ate acabar
     this.zoom = lerp(this.zoom, this.quebrou ? 1.5 : 1.35, 1 - Math.exp(-2.2 * dt));
 
+    // Depois de apanhar ele volta a sentar. Nao ha animacao de "sentar
+    // machucado": o que diz que ele apanhou e ele continuar sentado igual.
+    if (this.carlosT > 0) {
+      this.carlosT -= dt;
+      if (this.carlosT <= 0) {
+        const ca = game.npcs.carlos;
+        if (ca) ca.det.play('sitChair', { blend: 0.3 });
+      }
+    }
+
     // Enquanto a caixa de dialogo estiver falando, quem manda e ela.
-    if (this.fase === 'fala' || this.fase === 'vazamento' || this.fase === 'quebra') {
+    if (this.fase === 'fala' || this.fase === 'vazamento' || this.fase === 'quebra'
+        || this.fase === 'cigarro') {
       if (game.dialogue.active) return;
 
-      // A confissao era a ultima coisa: acabou o interrogatorio.
-      if (this.fase === 'quebra') { this.encerrar(game); return; }
+      // Depois da confissao vem o CIGARRO — o degrau 4 — e so entao a cena
+      // acaba. O jogo nao pergunta nada ao jogador aqui: nao tem escolha,
+      // nao tem botao. Se virasse escolha, viraria vitoria.
+      if (this.fase === 'quebra') {
+        this.fase = 'cigarro';
+        this._falar(game, 'cigarro', 0);
+        if (this.onCigarro) this.onCigarro();
+        return;
+      }
+      if (this.fase === 'cigarro') { this.encerrar(game); return; }
 
       // Cruzou um degrau? Ele vaza um pedaco antes de devolver o menu.
       if (this.fase === 'fala' && this.vazou < LIMIARES.length
@@ -283,26 +321,41 @@ export class Interrogatorio {
     if (this.fase !== 'menu') return;
 
     // ---- os tres verbos ----
+    const LX = 322;
     const ops = [
       { k: 'int_perguntar', custo: 0 },
       { k: 'int_pressionar', custo: PESO.pressionar.sanidade },
       { k: 'int_bater', custo: PESO.bater.sanidade },
     ];
     const y0 = VH - 66;
+    // Painel proprio atras dos verbos. Sem ele a lista disputa leitura com
+    // as pernas do personagem, e o jogador le "PERGUNTAR" em cima de um
+    // homem — o que e uma piada que a cena nao pode pagar.
+    // ⚠ A lista fica na DIREITA. Os dois homens ocupam o centro-esquerda da
+    // tela depois que a camera fecha, e a versao anterior escrevia
+    // "PERGUNTAR" em cima das pernas do personagem.
+    ctx.save();
+    ctx.globalAlpha = 0.82;
+    ctx.fillStyle = '#07090c';
+    ctx.fillRect(LX - 20, y0 - 9, 152, 45);
+    ctx.globalAlpha = 0.5;
+    ctx.fillStyle = '#2a323c';
+    ctx.fillRect(LX - 20, y0 - 9, 1, 45);
+    ctx.restore();
     for (let i = 0; i < 3; i++) {
       const sel = i === this.sel;
       const y = y0 + i * 15;
       if (sel) {
-        text(ctx, '>', 46, y, { size: 10, font: 'ui', weight: 'bold', color: PAL.uiAccent });
+        text(ctx, '>', LX - 12, y, { size: 10, font: 'ui', weight: 'bold', color: PAL.uiAccent });
       }
       const nome = T(ops[i].k);
-      text(ctx, nome, 58, y, {
+      text(ctx, nome, LX, y, {
         size: 10, font: 'ui', weight: sel ? 'bold' : 'normal',
         color: sel ? PAL.uiAccent : PAL.uiDim, track: 0,
       });
       if (ops[i].custo) {
         const w = measure(nome, { size: 10, font: 'ui', weight: sel ? 'bold' : 'normal' }).w;
-        text(ctx, T('int_custo').replace('%d', ops[i].custo), 58 + w + 10, y + 1, {
+        text(ctx, T('int_custo').replace('%d', ops[i].custo), LX + w + 8, y + 1, {
           size: 8, font: 'ui', weight: 'normal', color: sel ? '#8a5a52' : '#5a4a46',
         });
       }

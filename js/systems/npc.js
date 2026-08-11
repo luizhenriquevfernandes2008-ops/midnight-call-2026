@@ -86,10 +86,19 @@ export const NPCS = {
     anim: 'sitChair', arte: 'betinho',
     talk: 'colega_c', prompt: 'prompt_talk',
   },
-  carlos: {
+  // O HOMEM VISTO DE FORA, atras das barras. Nao conversa: olhar para ele
+  // so oferece a mesma coisa que a porta oferece — entrar.
+  preso: {
     level: 'ch3_cell', x: 400, facing: -1,
     anim: 'sitChair', arte: 'carlos',
-    talk: 'carlos', prompt: 'prompt_talk',
+    talk: null, prompt: 'prompt_use', acao: 'ch3_entrar_cela',
+  },
+  // E o mesmo homem, DENTRO da cela, quando o David atravessa a grade. E
+  // este que o interrogatorio usa.
+  carlos: {
+    level: 'ch3_dentro', x: 196, facing: -1,
+    anim: 'sitChair', arte: 'carlos',
+    talk: null, prompt: 'prompt_talk', acao: 'ch3_interrogar',
   },
 
   // ---- a casa, sete anos atras ----
@@ -195,6 +204,9 @@ export class Npc {
       prompt: this.cfg.prompt,
       npc: this.id, range: 34, prio: 2,
     };
+    // Acao propria, quando o NPC tem uma. E como o homem atras das barras
+    // oferece ENTRAR em vez de conversa.
+    if (this.cfg.acao) { base.action = this.cfg.acao; return base; }
     // Quem nao tem conversa nao abre conversa. A figura negra e olhada, e
     // ela nao responde — nem aqui, nem no Capitulo 1, nem nunca.
     if (!this.cfg.talk) { base.action = 'ch3_figura'; base.prio = 1; return base; }

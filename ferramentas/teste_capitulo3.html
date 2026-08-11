@@ -37,9 +37,9 @@ async function pronto() {
 }
 
 const SETORES = ['ch3_reception', 'ch3_plantao', 'ch3_desk', 'ch3_archive',
-                 'ch3_past', 'ch3_home', 'ch3_room', 'ch3_cell'];
+                 'ch3_past', 'ch3_home', 'ch3_room', 'ch3_cell', 'ch3_dentro'];
 const PESSOAS = ['plantonista', 'michael', 'colega_a', 'colega_b', 'colega_c',
-                 'carlos', 'julie', 'jenna'];
+                 'carlos', 'preso', 'julie', 'jenna'];
 
 document.getElementById('rodar').onclick = async () => {
   try {
@@ -48,6 +48,7 @@ document.getElementById('rodar').onclick = async () => {
 
     const w = await pronto();
     const g = w.game;
+    const { ITEMS } = await import('../js/systems/inventory.js');
     const i18n = await import('../js/i18n.js');
     const { TALKS, JOURNAL, DEDUCTIONS, LINES, INTERROGATORIO } = i18n;
     const T = i18n.t;
@@ -195,8 +196,10 @@ document.getElementById('rodar').onclick = async () => {
       // O que diz "preso" nao e cara de mau: e o macacao de custodia. Ele
       // precisa (a) separar do concreto e (b) ser QUENTE, senao vira mais
       // um cinza no meio de uma cela cinza.
+      // ⚠ Ele mora em `ch3_dentro` desde a sessao 23. Medir na sala errada
+      // media parede.
       const ca = g.npcs.carlos;
-      d.ir('ch3_cell', ca.x - 48, 1);
+      d.ir(ca.cfg.level, ca.x - 48, 1);
       g.player.x = ca.x - 48; g.cam.snapTo(g.player.x, 0);
       for (let i = 0; i < 30; i++) d.step(1 / 60);
       const media = (wx, wy, bw, bh) => {
@@ -221,13 +224,23 @@ document.getElementById('rodar').onclick = async () => {
         return [R / n, G / n, B2 / n];
       };
       const tronco = quente(ca.x - 8, 172, 16, 14);
-      const parede = media(ca.x + 60, 176, 14, 14);
+      // ⚠ Um ponto de parede que exista NA SALA DELE. Ele mudou de comodo na
+      // sessao 23 e o antigo x+60 caia fora do cubiculo de 300px.
+      // Um pedaco de parede LIMPA: alto o bastante para nao pegar banco,
+      // mesa nem cinzeiro, e dentro do cubiculo de 300px.
+      const pxp = Math.min(ca.x + 52, g.levels[ca.cfg.level].width - 24);
+      const parede = media(pxp, 112, 14, 14);
       ok('o macacao e QUENTE, nao mais um cinza',
         tronco[0] - tronco[2] > 14, `R-B = ${Math.round(tronco[0] - tronco[2])}`);
       ok('o macacao separa do concreto da cela',
         tronco[0] > parede[0] * 2, `${Math.round(tronco[0])} vs ${Math.round(parede[0])}`);
-      ok('a parede da cela e neutra (nao compete com ele)',
-        Math.abs(parede[0] - parede[2]) < 6);
+      // ⚠ Esta checagem mudou na sessao 23. Ela exigia parede NEUTRA em
+      // termos absolutos, e a cela por dentro e quente de proposito (uma
+      // lampada amarela e o teto inteiro). O que importa nunca foi a parede
+      // ser cinza: e o macacao ser MAIS QUENTE que ela.
+      ok('o macacao e mais quente que a parede',
+        (tronco[0] - tronco[2]) > (parede[0] - parede[2]) + 8,
+        `${Math.round(tronco[0] - tronco[2])} vs ${Math.round(parede[0] - parede[2])}`);
       ok('ele tem canela e pe proprios (macacao e pe descalco)',
         !!(ca.det.parts.shin && ca.det.parts.foot));
       ok('ele NAO usa sobretudo, gola nem coldre',
@@ -243,9 +256,14 @@ document.getElementById('rodar').onclick = async () => {
       ok('a caixa da Jenna acompanha a escala',
         g.npcs.jenna.caixa(214).y0 > g.npcs.michael.caixa(214).y0);
 
-      // o gancho dos NPCs do Capitulo 3 usa a rotina de conversa do 3
+      // O gancho dos NPCs do Capitulo 3 usa a rotina de conversa do 3 —
+      // menos quem nao tem conversa nenhuma. O homem da cela abre a CENA, e
+      // a figura da sala de espera nao abre nada.
+      const SEM_CONVERSA = { carlos: 'ch3_interrogar', preso: 'ch3_entrar_cela' };
       for (const id of PESSOAS) {
-        ok(`${id} usa a conversa do Capitulo 3`, g.npcs[id].gancho().action === 'talk3');
+        const esperado = SEM_CONVERSA[id] || 'talk3';
+        ok(`${id} abre a acao certa`, g.npcs[id].gancho().action === esperado,
+          g.npcs[id].gancho().action);
       }
       ok('os NPCs do Capitulo 2 continuam na rotina antiga',
         g.npcs.vigia.gancho().action === 'talk');
@@ -499,8 +517,10 @@ document.getElementById('rodar').onclick = async () => {
         if (!g.fogo.ativo) { acabou = true; break; }
       }
       ok('o fogo cresce ate o maximo', Math.abs(cresceu - 1) < 0.001, String(cresceu));
+      // ⚠ O fim mudou na sessao 23: ele CHUTA a porta, cai com ela e ENTRA.
       ok('o fogo passa por todas as fases',
-        viu.brasa && viu.estouro && viu.porta && viu.baque && viu.levanta && viu.fim,
+        viu.brasa && viu.estouro && viu.porta && viu.chute && viu.queda
+        && viu.entra && viu.fim,
         Object.keys(viu).join(','));
       // 🐛 A primeira versao reentrava na ultima fase para sempre e a cena
       // nunca terminava: o jogador ficava preso no passado com a casa
@@ -543,10 +563,41 @@ document.getElementById('rodar').onclick = async () => {
       const d = w.__dev;
       const passo = n => { for (let i = 0; i < n; i++) d.step(1 / 60); };
       g.startChapter(3); g.state = 'play';
-      d.ir('ch3_cell', 352, 1);
+      d.ir('ch3_cell', 470, -1);
       passo(20);
-      const gancho = g.level.interactables.find(x => x.npc === 'carlos');
-      ok('o Carlos tem gancho de conversa', !!gancho);
+
+      // ---- ATRAVESSAR A GRADE ----
+      //
+      // A porta da cela, que "nunca esteve trancada", agora ABRE. E quando
+      // ele atravessa, a delegacia sai da tela.
+      const porta = g.level.interactables.find(x => x.id === 'porta_cela');
+      ok('a porta da cela deixa ENTRAR', !!porta && porta.action === 'ch3_entrar_cela');
+      const homem = g.level.interactables.find(x => x.npc === 'preso');
+      ok('o homem atras das barras tambem deixa entrar',
+        !!homem && homem.action === 'ch3_entrar_cela');
+      ok('e ele NAO abre conversa', !TALKS.preso);
+
+      g.acaoCh3(porta);
+      for (let i = 0; i < 240 && g.level.key !== 'ch3_dentro'; i++) d.step(1 / 60);
+      ok('entrar troca de setor', g.level.key === 'ch3_dentro', g.level.key);
+      ok('o setor de dentro e o menor do jogo', g.levels.ch3_dentro.width <= 320,
+        String(g.levels.ch3_dentro.width));
+      ok('e ele nao tem inimigo', g.levels.ch3_dentro.maxInimigos === 0);
+      ok('e tem saida de volta',
+        !!g.levels.ch3_dentro.interactables.find(x => x.action === 'goto' && x.to === 'ch3_cell'));
+      ok('o homem esta dentro dele', g.npcs.carlos.cfg.level === 'ch3_dentro');
+      // ⚠ A 88px o soco acertava o AR. Este numero e a cena.
+      ok('e os dois ficam ao alcance do braco',
+        Math.abs(g.npcs.carlos.x - g.levels.ch3_dentro.props.marcaInt) <= 60,
+        String(Math.abs(g.npcs.carlos.x - g.levels.ch3_dentro.props.marcaInt)));
+      // a luz tem que CHEGAR NO CHAO. (B-23, quinta vez)
+      {
+        const fortes = g.levels.ch3_dentro.lightDefs.filter(L => L.i >= 0.4);
+        const alcanca = fortes.some(L => (214 - L.y) < L.r);
+        ok('a luz da cela chega no chao', alcanca === true);
+      }
+
+      const gancho = { action: 'ch3_interrogar' };
 
       // o roteiro existe inteiro, nos dois idiomas
       for (const k of ['abertura', 'retomo', 'perguntar', 'pressionar', 'bater',
@@ -574,20 +625,53 @@ document.getElementById('rodar').onclick = async () => {
       avancar();
       ok('a abertura devolve o menu', g.interrog.fase === 'menu', g.interrog.fase);
 
+      // ---- AS ANIMACOES ----
+      // Sem elas os tres verbos seriam o mesmo botao.
+      {
+        const nomes = (await import('../js/art/detective.js')).ANIM_NAMES;
+        for (const a of ['intAsk', 'intPush', 'intHit', 'sitHurt', 'sitFlinch']) {
+          ok(`a animacao ${a} existe`, nomes.indexOf(a) >= 0);
+        }
+      }
+
       // PERGUNTAR anda pouco, PRESSIONAR anda mais, BATER anda muito
       const p0 = g.interrog.pressao;
       escolher(0);
       const dPerg = g.interrog.pressao - p0;
+      ok('perguntar tem corpo proprio', g.player.det.anim === 'intAsk', g.player.det.anim);
       ok('perguntar anda pouco', dPerg > 0 && dPerg <= 10, String(dPerg));
       const p1 = g.interrog.pressao;
       escolher(1);
       const dPress = g.interrog.pressao - p1;
+      ok('pressionar tem corpo proprio', g.player.det.anim === 'intPush', g.player.det.anim);
       ok('pressionar anda mais que perguntar', dPress > dPerg, `${dPress} vs ${dPerg}`);
       ok('pressionar custa cabeca', g.sanity.value < 100);
 
       const p2v = g.interrog.pressao;
       escolher(2);
       const dBat = g.interrog.pressao - p2v;
+      ok('bater tem corpo proprio', g.player.det.anim === 'intHit', g.player.det.anim);
+
+      // ⚠ E O OUTRO HOMEM APANHA SENTADO. `hurt` e um recuo de quem esta em
+      // pe: um homem sentado tocando `hurt` parece ter levantado da cadeira
+      // para levar o soco. A medicao tem que ser NO INSTANTE do golpe — a
+      // reacao dura pouco mais de um segundo e depois ele volta a sentar.
+      {
+        g.interrog.escolher(g, 'bater');
+        ok('bater poe o homem em reacao sentada',
+          g.npcs.carlos.det.anim === 'sitHurt', g.npcs.carlos.det.anim);
+        for (let i = 0; i < 100; i++) g.interrog.update(1 / 60, g);
+        ok('e depois ele volta a sentar',
+          g.npcs.carlos.det.anim === 'sitChair', g.npcs.carlos.det.anim);
+        g.interrog.escolher(g, 'pressionar');
+        ok('pressionar so faz ele encolher',
+          g.npcs.carlos.det.anim === 'sitFlinch', g.npcs.carlos.det.anim);
+        for (let i = 0; i < 100; i++) g.interrog.update(1 / 60, g);
+        // devolve a sequencia como estava: o proximo BATER precisa contar
+        // como repeticao para o teste seguinte medir a queda da barra.
+        g.interrog.ultimo = 'bater';
+        avancar();
+      }
       ok('bater anda muito', dBat > dPress, `${dBat} vs ${dPress}`);
       ok('bater cala o Carlos', g.interrog.travado === true);
 
@@ -625,6 +709,28 @@ document.getElementById('rodar').onclick = async () => {
       ok('o caderno registra que a confissao nao presta',
         /presta/i.test(JOURNAL.j3_conf.pt));
 
+      // ⚠ E ELE NAO TEM MAIS ARVORE DE CONVERSA NENHUMA. Tudo o que o
+      // Carlos diz esta na cena jogavel, inclusive o cigarro.
+      ok('o Carlos nao tem mais conversa fora do interrogatorio', !TALKS.carlos);
+      ok('o cigarro e o fim do interrogatorio', !!INTERROGATORIO.cigarro);
+      ok('e ele destravou de verdade', g.flags.cig_livre === true);
+      ok('o degrau 4 virou pagina', g.journal.has('j3_cig'));
+      // ⚠ E O CAPITULO PASSA A TER FIM. Antes disto dava para fazer tudo e
+      // nao acontecer nada.
+      ok('o capitulo fica pronto para acabar', g.flags.ch3_pronto === true);
+
+      // ⚠ E ELE NAO CHAMA O DAVID DE SENHOR EM LUGAR NENHUM.
+      {
+        const senhores = [];
+        for (const k in INTERROGATORIO) for (const e of INTERROGATORIO[k]) {
+          for (const campo of ['c', 'c2', 'c3']) {
+            if (e[campo] && /senhor/i.test(e[campo].pt)) senhores.push(`${k}.${campo}`);
+          }
+        }
+        ok('o Carlos trata o David por voce, nunca por senhor',
+          senhores.length === 0, senhores.join(', '));
+      }
+
       // Michael ganha assunto novo, travado pela flag
       const novos = TALKS.michael.nodes.a.choices.filter(c => c.req === 'carlos_quebrou');
       ok('Michael ganha assunto novo pos-interrogatorio', novos.length >= 2, String(novos.length));
@@ -633,8 +739,8 @@ document.getElementById('rodar').onclick = async () => {
 
       // trocar de partida no meio nao pode deixar interrogatorio aberto
       g.interrog.reset();
-      d.ir('ch3_cell', 352, 1); passo(10);
-      g.acaoCh3(g.level.interactables.find(x => x.npc === 'carlos'));
+      d.ir('ch3_dentro', g.levels.ch3_dentro.props.marcaInt, 1); passo(10);
+      g.abrirInterrogatorio();
       g.runId++;
       g.interrog.update(1 / 60, g);
       ok('o interrogatorio nao vaza para outra partida', g.interrog.ativo === false);
@@ -682,8 +788,13 @@ document.getElementById('rodar').onclick = async () => {
       g.player.hasGun = false;
       d.ir('ch3_desk', 340, 1); passo(10);
       g.acaoCh3(arm);
-      ok('e ela continua onde estava', g.player.hasGun === false);
+      // ⚠ ELA E PEGAVEL, e vai pro casaco. A regra da portaria continua de
+      // pe: ela nao vira arma jogavel neste capitulo, so viaja com ele.
+      ok('a doze e PEGAVEL', g.inv.has('shotgun') === true);
+      ok('e nao vira pistola na mao dele', g.player.hasGun === false);
       ok('a doze vira pagina do caderno', g.journal.has('j3_shotgun'));
+      ok('e ela ocupa espaco de verdade no casaco',
+        !!ITEMS.shotgun && ITEMS.shotgun.w >= 3, JSON.stringify(ITEMS.shotgun));
 
       // ---- O CANON DA LIGACAO ----
       // Ninguem mais afirma que ele ligou para si proprio. A telefonista
@@ -808,8 +919,10 @@ document.getElementById('rodar').onclick = async () => {
     // =================================================================
     sec('AS CINCO CONVERSAS NOVAS');
     // =================================================================
+    // ⚠ O `carlos` NAO esta aqui: ele perdeu a arvore de conversa na sessao
+    // 23 e tudo o que ele diz virou cena jogavel (secao O INTERROGATORIO).
     for (const tk of ['plantonista', 'michael', 'colega_a', 'colega_b', 'colega_c',
-                      'carlos', 'julie', 'jenna']) {
+                      'julie', 'jenna']) {
       const t = TALKS[tk];
       ok(`conversa ${tk} existe`, !!t);
       if (!t) continue;
@@ -1014,13 +1127,30 @@ document.getElementById('rodar').onclick = async () => {
       ok('[fluxo] voltou vestindo o sobretudo', g.player.det.parts === null);
       ok('[fluxo] a casa parou de queimar', g.fogo.ativo === false);
       ok('[fluxo] o incendio virou pagina', g.journal.has('j3_fogo'));
+      // ⚠ E NAO SE ENTRA LA DE NOVO.
+      ok('[fluxo] o passado fica marcado como visto', g.flags.viu_passado === true);
+      {
+        await ceder();
+        d.ir('ch3_archive', 920, 1); passo(10);
+        const gav = g.levels.ch3_archive.interactables.find(x => x.action === 'ch3_gaveta_d');
+        g.acaoCh3(gav);
+        passo(30);
+        ok('[fluxo] a gaveta D NAO devolve ao passado de novo',
+          g.level.key === 'ch3_archive', g.level.key);
+        d.ir('ch3_cell', 470, -1); passo(10);
+      }
 
-      // ---- CARLOS: primeiro o INTERROGATORIO, depois a conversa ----
+      // ---- CARLOS: ATRAVESSAR A GRADE, e o interrogatorio ----
       //
-      // Falar com ele nao abre mais arvore nenhuma: abre a unica coisa
-      // jogavel do capitulo. A conversa normal — e com ela o cigarro — so
-      // existe depois que ele quebra.
-      andarAte(380); interagir();
+      // Nao ha mais conversa com ele em lugar nenhum: a porta da cela abre,
+      // o jogo troca de setor, e o que acontece la dentro e a unica coisa
+      // jogavel do capitulo.
+      {
+        const pc = g.levels.ch3_cell.interactables.find(x => x.id === 'porta_cela');
+        andarAte(pc.x + 12); interagir();
+      }
+      for (let i = 0; i < 240 && g.level.key !== 'ch3_dentro'; i++) d.step(1 / 60);
+      ok('[fluxo] ele ENTRA na cela', g.level.key === 'ch3_dentro', g.level.key);
       ok('[fluxo] o Carlos abre o interrogatorio', g.interrog.ativo === true);
       {
         const avancar = () => { for (let n = 0; n < 24 && g.dialogue.active; n++) { d.key('KeyE'); passo(10); } };
@@ -1039,17 +1169,19 @@ document.getElementById('rodar').onclick = async () => {
       ok('[fluxo] e a confissao fica registrada', g.flags.carlos_quebrou === true);
       ok('[fluxo] o interrogatorio devolve o controle', g.player.controllable === true);
 
-      await ceder();
-      // agora sim a conversa, e nela o cigarro
-      andarAte(380); interagir(); conversarTudo();
-      ok('[fluxo] falou com Carlos depois de quebrar', g.flags.npc3_carlos === true);
-      // o degrau 4 depende de escolher o assunto do cigarro
-      g.noDeConversa('carlos', 'cigarro');
-      ok('[fluxo] o cigarro destravou', g.flags.cig_livre === true);
-      g.flags.ch3_pronto = true;
+      // ⚠ E O CAPITULO PASSA A TER FIM SOZINHO. Antes disto o jogador podia
+      // fazer tudo e nao acontecer nada: `ch3_pronto` dependia de uma
+      // conversa que nao existe mais.
+      ok('[fluxo] o cigarro destravou dentro da cena', g.flags.cig_livre === true);
+      ok('[fluxo] o capitulo fica pronto para acabar', g.flags.ch3_pronto === true);
 
       await ceder();
-      // a volta: cela -> arquivo -> mesa -> plantao -> recepcao
+      // a volta: dentro -> cela -> arquivo -> mesa -> plantao -> recepcao
+      {
+        const sc = g.levels.ch3_dentro.interactables.find(x => x.id === 'sair_cela');
+        andarAte(Math.max(g.levels.ch3_dentro.minX, sc.x + sc.w / 2)); interagir();
+      }
+      ok('[fluxo] ele sai da cela', g.level.key === 'ch3_cell', g.level.key);
       andarAte(g.levels.ch3_cell.minX + 6); interagir();
       ok('[fluxo] a cela volta para o arquivo', g.level.key === 'ch3_archive', g.level.key);
       andarAte(g.levels.ch3_archive.minX + 6); interagir();

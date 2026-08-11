@@ -1400,9 +1400,12 @@ export function buildCell() {
   // o cinzeiro em cima da mesa, com dois cigarros
   rect(g, CEL + 132, GY - 45, 12, 5, '#4a4640');
   // a porta da cela: destrancada. Nunca esteve trancada.
+  // A PORTA DA CELA. Ela nunca esteve trancada — e agora isso deixa de ser
+  // so uma frase: da para ENTRAR. Atravessar essa grade e o gesto que abre
+  // o interrogatorio, e e o jogador que executa.
   inter.push({
-    x: CEL + 176, y: GY - 118, w: 24, h: 118, prompt: 'prompt_look',
-    action: 'ch3_porta_cela', range: 26, id: 'porta_cela',
+    x: CEL + 168, y: GY - 118, w: 34, h: 118, prompt: 'prompt_use',
+    action: 'ch3_entrar_cela', range: 30, id: 'porta_cela', prio: 2,
   });
   lights.push({ x: CEL + 100, y: GY - 132, r: 148, color: '#d8a850', i: 0.66, flick: 'bulb', falloff: 0.95 });
   lights.push({ x: CEL + 100, y: GY - 132, r: 22, color: '#ffe0a0', i: 0.6 });
@@ -1469,6 +1472,140 @@ export function buildCell() {
 }
 
 // ---------------------------------------------------------------------------
+// 6b — DENTRO DA CELA
+// ---------------------------------------------------------------------------
+// O jogo inteiro se passa em corredores de 700 a 1700 pixels. Esta sala tem
+// 300, e e a menor do jogo por muita distancia.
+//
+// Nao e economia: e a cena. Quando o David atravessa a grade, a delegacia
+// SAI DA TELA — some o corredor, some a profundidade, some a saida. Sobra
+// concreto, uma lampada e outro homem. E dai em diante nao existe mais para
+// onde a camera fugir.
+//
+// A grade fica ATRAS dele, do lado esquerdo, em primeiro plano: o jogador ve
+// as barras entre a camera e o proprio personagem, e e assim que ele entende
+// que quem entrou na jaula foi o David.
+
+export function buildInsideCell() {
+  const W = 300;
+
+  const back = makeBuffer(Math.ceil(VW + (W - VW) * 0.5) + 8, VH);
+  {
+    const b = back.x;
+    rect(b, 0, 0, b.canvas.width, VH, '#05070a');
+  }
+
+  const main = makeBuffer(W, VH);
+  const g = main.x;
+
+  rect(g, 0, 0, W, VH, '#151a20');
+  M.brickWall(g, 0, 10, W, GY - 10, 9801, { hi: '#41413c', mid: '#2f2f2b', dk: '#1d1d1b' });
+  rect(g, 0, 0, W, 10, '#080a0d');
+  M.asphalt(g, 0, GY, W, VH - GY, 9811, { hi: '#37342c', mid: '#292620', dk: '#1b1a16' });
+  rect(g, 0, GY, W, 1, '#0a0908');
+
+  // manchas de umidade e as marcas de quem passou a noite aqui
+  grainRect(g, 0, 40, W, GY - 40, ['#4a4a44', '#22221f'], 0.03, 9821);
+  for (let i = 0; i < 5; i++) rect(g, 214 + (i % 2) * 3, 96 + i * 6, 9, 1, '#5a5a52');
+
+  const inter = [];
+  const lights = [];
+
+  // ---- o banco de concreto, e a mesa parafusada ----
+  rect(g, 150, GY - 40, 96, 8, '#3a3d42');
+  rect(g, 150, GY - 40, 96, 2, '#4c5057');
+  rect(g, 158, GY - 32, 9, 32, '#2e3136');
+  rect(g, 230, GY - 32, 9, 32, '#2e3136');
+  rect(g, 60, GY - 44, 54, 5, '#31353b');
+  rect(g, 60, GY - 44, 54, 1, '#454a51');
+  rect(g, 84, GY - 39, 7, 39, '#262a2f');
+  // o cinzeiro, que so ganha dois cigarros no fim
+  rect(g, 72, GY - 49, 14, 5, '#4a4640');
+  rect(g, 73, GY - 50, 12, 1, '#33302b');
+
+  // ---- a grade, ATRAS dele, do lado da porta ----
+  // (desenhada na camada de primeiro plano, mais abaixo)
+
+  // ---- a lampada: uma so, amarela, e ela e o teto inteiro ----
+  //
+  // ⚠ A primeira versao tinha raio 168 pendurada em y=30. O chao esta em
+  // 214: a luz morria 40 pixels antes de chegar nos dois homens, e a cena
+  // inteira ficava preta com duas manchas dentro. E o B-23 pela quinta vez.
+  // Aqui a lampada CHEGA NO CHAO, e ainda ha uma poca propria na altura em
+  // que a conversa acontece.
+  M.bareBulb(g, 150, 12, 16);
+  lights.push({ x: 150, y: 30, r: 250, color: '#e0b45c', i: 0.95, flick: 'bulb', falloff: 0.82 });
+  lights.push({ x: 150, y: 30, r: 26, color: '#fff0c0', i: 0.7 });
+  // a poca em cima dos dois, na altura do peito
+  lights.push({ x: 174, y: GY - 40, r: 176, color: '#d8a860', i: 0.62, falloff: 0.95 });
+  // e a grade pega um contraluz frio, para ela existir no quadro
+  lights.push({ x: 18, y: GY - 62, r: 132, color: '#7d90a8', i: 0.44, falloff: 1.1 });
+  preencher(lights, W, '#8a7a58', 0.26);
+
+  // ---- a saida: de volta para o corredor ----
+  // ⚠ A caixa da saida tem que ficar ao ALCANCE de onde o jogador consegue
+  // parar. Com `minX` em 74 e a porta centrada em 23, ele encostava na
+  // parede e o prompt nunca aparecia: dava para entrar na cela e nao dava
+  // para sair dela a pe.
+  inter.push({
+    x: 30, y: GY - 100, w: 48, h: 100, prompt: 'prompt_open',
+    action: 'goto', to: 'ch3_cell', tox: 300, tofacing: -1, range: 44, isDoor: true, prio: 1,
+    id: 'sair_cela',
+  });
+
+  const grade = makeBuffer(W, VH);
+  {
+    const q = grade.x;
+    // as barras vistas de DENTRO: mais proximas, mais grossas, e passando
+    // na frente do proprio personagem do jogador
+    for (let bx = 0; bx < 64; bx += 11) {
+      rect(q, bx, GY - 150, 4, 150, '#3d4650');
+      rect(q, bx, GY - 150, 1, 150, '#5a6674');
+      rect(q, bx + 3, GY - 150, 1, 150, '#252d36');
+    }
+    rect(q, 0, GY - 150, 64, 5, '#4f5a67');
+    rect(q, 0, GY - 6, 64, 6, '#3d4650');
+  }
+
+  const fore = makeBuffer(Math.ceil(VW + (W - VW) * 1.2) + 8, VH);
+  {
+    const f = fore.x;
+    rect(f, 0, 0, f.canvas.width, 10, '#030405');
+    rect(f, 0, VH - 6, f.canvas.width, 6, '#030405');
+  }
+
+  const lvl = new Level({
+    key: 'ch3_dentro',
+    nameKey: 'loc_inside',
+    width: W, groundY: GY,
+    ambient: '#22242c',
+    layers: [{ c: back.c, par: 0.5 }, { c: main.c, par: 1 }],
+    fores: [{ c: grade.c, par: 1 }, { c: fore.c, par: 1.2 }],
+    lightDefs: lights,
+    interactables: inter,
+    weather: 'none',
+    reflect: 0.04,
+    minX: 74, maxX: W - 40,
+    spawn: { x: 100, facing: 1 },
+    bloom: 0.4,
+    indoor: true,
+    material: 'concrete',
+    ambience: [{ n: 'roomtone', g: 0.12 }],
+    randomSfx: [],
+    maxInimigos: 0,
+    enterBarks: [],
+  });
+  lvl.props.cigarrosNoCinzeiro = false;
+  // Onde ele para, de frente para o homem sentado. ⚠ A distancia entre os
+  // dois e a coisa mais importante desta sala: a 88 pixels o soco acertava
+  // o AR, e um soco que nao alcanca ninguem nao e um soco, e um gesto. A
+  // 46 o braco esticado chega no outro homem, que e o comprimento real de
+  // um braco na escala do jogo.
+  lvl.props.marcaInt = 150;
+  return lvl;
+}
+
+// ---------------------------------------------------------------------------
 
 export function buildChapter3() {
   return {
@@ -1480,5 +1617,6 @@ export function buildChapter3() {
     ch3_home: buildHome(),
     ch3_room: buildKidsRoom(),
     ch3_cell: buildCell(),
+    ch3_dentro: buildInsideCell(),
   };
 }

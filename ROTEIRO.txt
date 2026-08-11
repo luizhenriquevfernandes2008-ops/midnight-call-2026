@@ -10,7 +10,13 @@
   Documento de história. Só narrativa — nada de código aqui.
   A parte técnica fica em CHAMADO_DA_MEIA_NOITE.md.
 
-  Última atualização: 10/08/2026 (sessão 22)
+  Última atualização: 10/08/2026 (sessão 23)
+  ⚠ NESTA SESSÃO: o David ENTRA na cela e a delegacia sai da tela; o Carlos
+     perdeu a árvore de conversa (tudo virou cena jogável, inclusive o
+     cigarro) e parou de chamar o David de "senhor"; o incêndio acaba com
+     ele CHUTANDO A PORTA E ENTRANDO; o flashback acontece uma vez só; e a
+     calibre doze virou item de inventário.
+
   ⚠ MUDANÇA DE CANON NESTA SESSÃO: a ligação das 02h14 ganhou dono. Ninguém
      mais diz que o David ligou para si próprio — foi um policial de dentro
      da delegacia, e o Carlos entrega o nome no interrogatório. Ver IX.0.
@@ -2075,6 +2081,8 @@ IX.1 — MAPA DO CAPÍTULO — 6 cenas, 8 setores
      5b a sala                    JULIE. Outra roupa nele.
      5c o quarto dela             A MENINA, desenhando no chão.
   6  A Cela                   10   O homem. DEGRAU 4. E o nome.
+     6a o corredor                a grade, e o homem visto de fora.
+     6b DENTRO da cela            300px. O INTERROGATÓRIO.
   -- ----------------------- ---
                             ~55 min
 
@@ -2343,10 +2351,12 @@ TEMPO:  ~8 min
       "A doze ainda está no armário. Carregada."
       "Sete anos e ninguém recolheu. Ninguém nem trancou."
       "Deixa aí. Hoje eu entrei pela porta."
-      ⚠ ELA NÃO É PEGÁVEL. A arma fica na portaria e essa regra não tem
-      exceção. Ela é a promessa do Capítulo 4 deixada em cima da mesa — é
-      com ela que ele caçou o Andrade —, e ele comenta a conveniência,
-      que é a defesa dele desde o Capítulo 2.
+      ⚠ ELA É PEGÁVEL (mudou em 10/08, sessão 23). Vai pro casaco e ocupa
+      o cinto INTEIRO — 4x1 —, que é o preço de carregar uma arma de cano
+      longo dentro de um sobretudo. Ela NÃO vira arma jogável neste
+      capítulo: não há combate no 3 e a regra da portaria continua de pé.
+      Ela só viaja com ele, e é com ela que ele caçou o Andrade.
+      E ele comenta a conveniência, que é a defesa dele desde o Cap. 2.
       (nota: e é mais uma migalha da família 6 — enquanto a papelada não
        fechar, ele ainda é de casa. Ninguém comenta.)
 
@@ -2383,6 +2393,11 @@ TEMPO:  ~8 min
 
   Uma das pastas é a do caso. Ele abre — e é aqui que o flashback começa.
   A transição NÃO é um corte: a luz muda no meio do movimento dele.
+
+  ⚠ UMA VEZ SÓ (10/08, sessão 23). Abrir a gaveta de novo não devolve ao
+  passado. A gaveta continua abrindo e a pasta continua na mão dele, mas
+  ele não volta lá: "Já abri essa pasta hoje. Uma vez foi mais do que
+  suficiente."
 
   ------- O CORREDOR MAIS LONGO NA VOLTA -------
 
@@ -2639,18 +2654,32 @@ TEMPO:  ~12 min
        O ar estoura pra fora e joga ele pra trás. Ele cai.
          DAVID: "—"
 
-    5. ELE SE LEVANTA (3,6s)
-         DAVID: "Abre. Abre. ABRE—"
-       Àquela altura o fogo já saiu pelo telhado.
+    4. O CHUTE (1,5s)  — reescrito em 10/08, sessão 23
+       Ele CHUTA a porta. A animação `kick` estava guardada no rig desde a
+       sessão 13, pro Credor, e é a mesma coisa aqui: um homem pondo o corpo
+       inteiro atrás de um pé.
+         DAVID: "ABRE—"
 
-    6. FIM (2,6s)
-       Ele fica de pé, olhando. A fumaça sobe. As brasas passam na frente
-       dele.
+    5. A QUEDA (1,6s)
+       A porta cede. Ele cai PARA DENTRO, junto com ela.
+         DAVID: "—"
+
+    6. ELE ENTRA (2,2s)
+       Levanta e atravessa a soleira.
+         DAVID: "Sai da frente. SAI DA FRENTE—"
+
+    7. FIM (1,2s)
          DAVID: "..."
 
-  Zumbido de ouvido, e a tela apaga com ele de pé na varanda, olhando a
-  casa, com o cigarro ainda entre os dedos — a mesma composição da Cena 4
-  do Capítulo 1, de costas pro que importa. Sete anos antes.
+  ⚠ ELE ENTRA. A primeira versão tinha o estouro do ar jogando ele para
+  trás — ou seja, o JOGO decidia por ele que não dava. A diferença não é de
+  encenação, é de personagem: um homem jogado para trás é uma vítima do
+  incêndio; um homem que arrombou a própria porta e entrou é alguém que
+  passou sete anos sabendo que entrou, e que mesmo assim não adiantou nada.
+  A segunda versão dele é a que sobra no resto do jogo.
+
+  Zumbido de ouvido, e a tela apaga com ele ATRAVESSANDO A SOLEIRA, com o
+  cigarro ainda entre os dedos — e continua sem mostrar nada de dentro.
 
     (nota: essa rima de enquadramento é a coisa mais importante da cena.
      Quem reparar, monta o jogo inteiro sozinho.)
@@ -2698,9 +2727,54 @@ TEMPO:  ~10 min
   David tratava BEM o homem que mandou matar a família dele. Agora é a única
   coisa JOGÁVEL do capítulo inteiro.
 
-  A CÂMERA FECHA. Só aqui, e só nesta cena — 1,35x, sem corte, com a luz
-  fechando numa poça em cima dos dois. É a resposta da dúvida D-10, decidida
-  olhando a tela: 1,6x amplia o pixel a ponto de denunciar; 1,35x não.
+  ------------------------------------------------------------------------
+  ★ ELE ENTRA NA CELA  — travado em 10/08, sessão 23
+  ------------------------------------------------------------------------
+
+  A porta que "nunca esteve trancada" deixou de ser só uma frase: ELA ABRE.
+  O prompt é ENTRAR, e quem atravessa é o jogador.
+
+  E QUANDO ELE ATRAVESSA, A DELEGACIA SAI DA TELA.
+
+  O jogo troca de setor para um cubículo de 300px — o menor do jogo por
+  muita distância. Não há corredor, não há profundidade, não há saída no
+  quadro. Só concreto, uma lâmpada e outro homem.
+
+  A GRADE FICA ATRÁS DELE, em primeiro plano: o jogador vê as barras entre
+  a câmera e o próprio personagem. É assim que ele entende, sem uma linha de
+  diálogo, que quem entrou na jaula foi o David.
+
+  ⚠ E OS DOIS FICAM A 46 PIXELS UM DO OUTRO. A 88 o soco acertava o AR, e um
+  soco que não alcança ninguém não é um soco, é um gesto. Esse número é a
+  cena.
+
+  A CÂMERA FECHA. Só aqui — 1,35x, sem corte, com a luz fechando numa poça
+  em cima dos dois. É a resposta da dúvida D-10, decidida olhando a tela:
+  1,6x amplia o pixel a ponto de denunciar; 1,35x não.
+
+  ------------------------------------------------------------------------
+  ★ AS ANIMAÇÕES  — e a escada está no corpo
+  ------------------------------------------------------------------------
+
+  Não dá pra ver o rosto de ninguém aqui. Então a atuação é o CORPO, e cada
+  pose é mais baixa e mais fechada que a anterior:
+
+    intAsk ..... peso na perna de trás, braço cruzado, cabeça inclinada.
+                 Distância profissional. Ele ainda é um detetive.
+    intPush .... um passo à frente, o dedo subindo, o tronco entrando no
+                 espaço do outro homem. Ainda é conversa, mas já não é
+                 educada.
+    intHit ..... não é o soco de briga. É um gancho DE CIMA PARA BAIXO em
+                 alguém sentado, com recuo longo e uma PARADA de três
+                 quadros no impacto — é a parada que dá peso.
+
+  E o outro homem apanha SENTADO (sitHurt) ou só encolhe (sitFlinch). A
+  animação de apanhar em pé faz um homem sentado parecer que levantou da
+  cadeira para levar o soco, e o efeito é cômico exatamente onde não pode
+  ser.
+
+  Quem estiver olhando vai ver o David encolher enquanto a barra sobe. E
+  ninguém vai dizer isso em voz alta.
 
   TRÊS VERBOS, e uma barra de PRESSÃO sem número nenhum:
 
@@ -2811,15 +2885,27 @@ TEMPO:  ~10 min
 
   ------- ★★★ O DEGRAU 4 — ELE NÃO DECIDE NADA ★★★ -------
 
-  ⚠ ONDE ISTO ACONTECE AGORA (sessão 22): DEPOIS do interrogatório. Falar
-  com o Carlos abre a barra de pressão; a conversa normal com ele só existe
-  depois que ele quebra. O cigarro acontece nessa conversa — com os dois
-  homens já destruídos, um que acabou de confessar e um que acabou de bater
-  num preso algemado.
+  ⚠ ONDE ISTO ACONTECE AGORA (sessão 23): DENTRO DO INTERROGATÓRIO, no fim.
+  O Carlos NÃO TEM MAIS ÁRVORE DE CONVERSA NENHUMA — ela foi removida
+  inteira, e tudo o que ele diz está na cena jogável. Depois da confissão e
+  do nome, ele pede um cigarro, e a cena continua:
+
+    CARLOS: "Me dá um cigarro."
+    (David tira dois do maço, põe um na boca dele e acende com o próprio
+     isqueiro)
+    (o homem fecha os olhos e traga)
+    (depois ele acende o outro, no automático, sem pensar)
+    DAVID:  "..." / "Sete anos." / "Sete anos sem."
+    CARLOS: "Bem-vindo de volta."
 
   É melhor assim do que era antes. O gesto de acender um pro outro deixa de
   ser técnica de interrogatório e vira a única coisa parecida com decência
-  que sobrou na sala.
+  que sobrou na sala — com os dois homens já destruídos, um que acabou de
+  confessar e um que acabou de bater num preso.
+
+  ⚠ E O CARLOS NÃO CHAMA O DAVID DE SENHOR. Em lugar nenhum. Ele não tem
+  medo, não tem respeito e não tem nada a perder; tratar por você É o
+  personagem. (o teste de regressão reprova qualquer "senhor" na boca dele)
 
   A meio da conversa, o homem pede um cigarro.
 

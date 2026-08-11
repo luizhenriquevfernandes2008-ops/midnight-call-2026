@@ -43,6 +43,10 @@ export const ITEMS = {
   note:    { w: 1, h: 1, name: 'it_note',    desc: 'it_note_d',    color: '#b3ac97', edge: '#8b1a14' },
   medkit:  { w: 2, h: 2, name: 'it_medkit',  desc: 'it_medkit_d',  color: '#aaa799', edge: '#8b211b', usable: true },
   sedative:{ w: 1, h: 2, name: 'it_sedative',desc: 'it_sedative_d',color: '#688ca0', edge: '#d8d2c2', usable: true },
+  // A CALIBRE DOZE da mesa dele. 4x1 — ela nao cabe em bolso nenhum a nao
+  // ser o cinto, e ocupa o cinto inteiro. Carregar ela custa espaco, e e
+  // pra custar: e uma arma de cano longo dentro de um sobretudo.
+  shotgun: { w: 4, h: 1, name: 'it_shotgun', desc: 'it_shotgun_d', color: '#4a3a26', edge: '#8f959e' },
   relay_hand: { w: 1, h: 1, name: 'it_relay_hand', desc: 'it_relay_hand_d', color: '#7c6232', edge: '#d0b368', quest: true },
   relay_eye:  { w: 1, h: 1, name: 'it_relay_eye',  desc: 'it_relay_eye_d',  color: '#6c5730', edge: '#caa95f', quest: true },
   relay_voice:{ w: 1, h: 1, name: 'it_relay_voice',desc: 'it_relay_voice_d',color: '#72572e', edge: '#d3ad5d', quest: true },

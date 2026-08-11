@@ -196,6 +196,7 @@ const STR = {
   // ⚠ O cartao do lugar nao pode dizer o nome dela. "O QUARTO" e o que o
   // jogo tem direito de escrever aqui.
   loc_room:       { pt: 'O QUARTO',             en: 'HER ROOM' },
+  loc_inside:     { pt: 'DENTRO',               en: 'INSIDE' },
   loc_cell:       { pt: 'CUSTODIA',             en: 'HOLDING' },
 
   loc_corridor:   { pt: 'CORREDOR DE CARGA',    en: 'LOADING CORRIDOR' },
@@ -316,6 +317,10 @@ const STR = {
   map_unknown:   { pt: 'SALA 0',      en: 'ROOM 0' },
 
   speaker_me:     { pt: 'DAVID',   en: 'DAVID' },
+  // O Carlos perdeu a arvore de conversa na sessao 23 e com ela o campo
+  // `speaker`. O nome dele passou a morar aqui, que e onde deveria estar
+  // desde sempre: quem fala numa cena nao depende de existir uma arvore.
+  speaker_carlos: { pt: 'CARLOS',  en: 'CARLOS' },
   talk_leave:     { pt: 'Deixa pra lá.', en: 'Never mind.' },
   prompt_take:    { pt: 'PEGAR',   en: 'TAKE' },
   prompt_read:    { pt: 'LER',     en: 'READ' },
@@ -590,6 +595,9 @@ const STR = {
   it_gun:         { pt: 'PISTOLA',            en: 'PISTOL' },
   it_gun_d:       { pt: 'Limpa demais pra um lugar assim.',
                     en: 'Too clean for a place like this.' },
+  it_shotgun:     { pt: 'CALIBRE DOZE',       en: 'TWELVE GAUGE' },
+  it_shotgun_d:   { pt: 'Do armario da minha mesa. Carregada, e ninguem deu baixa nela em sete anos.',
+                    en: 'From the cabinet in my desk. Loaded, and nobody signed it out in seven years.' },
   it_map:         { pt: 'MAPA DO GALPAO',     en: 'WAREHOUSE MAP' },
   it_map_d:       { pt: 'Planta baixa. Alguém marcou a doca 3 a lápis.',
                     en: 'Floor plan. Somebody pencilled a mark on dock 3.' },
@@ -721,6 +729,8 @@ const STR = {
                 en: 'A, B, C. E. Down here the D exists.' },
   b3_arq_volta:{ pt: 'Eu andei menos do que isso na ida.',
                 en: 'I walked less than this on the way in.' },
+  b3_arq_denovo:{ pt: 'Ja abri essa pasta hoje. Uma vez foi mais do que suficiente.',
+                en: 'I already opened that folder tonight. Once was more than enough.' },
 
   // ---------- falas soltas: sete anos atras ----------
   b3_past_1:  { pt: 'Boa noite pra terminar cedo.',
@@ -767,11 +777,13 @@ const STR = {
                 en: 'No—' },
   b3_fogo_2:  { pt: 'JULIE!',
                 en: 'JULIE!' },
-  b3_fogo_3:  { pt: '—',
+  b3_fogo_3:  { pt: 'ABRE—',
+                en: 'OPEN—' },
+  b3_fogo_4:  { pt: '—',
                 en: '—' },
-  b3_fogo_4:  { pt: 'Abre. Abre. ABRE—',
-                en: 'Open. Open. OPEN—' },
-  b3_fogo_5:  { pt: '...',
+  b3_fogo_5:  { pt: 'Sai da frente. SAI DA FRENTE—',
+                en: 'Get out of the way. GET OUT OF THE WAY—' },
+  b3_fogo_6:  { pt: '...',
                 en: '...' },
 
   // ---------- falas soltas: a cela ----------
@@ -825,6 +837,8 @@ const STR = {
                    en: '...' },
   b3_int_saida:  { pt: 'Eu nao vou conseguir desouvir isso.',
                    en: 'I am not going to be able to un-hear that.' },
+  b3_int_sair:   { pt: 'Eu preciso sair daqui. Agora.',
+                   en: 'I need to get out of here. Now.' },
 
   b3_cell_vazia:{ pt: 'Dois cigarros acesos. Da mesma marca.',
                 en: 'Two cigarettes burning. Same brand.' },
@@ -1798,12 +1812,15 @@ export const TALKS = {
           { pt: 'Você prendeu o Carlos às oito e doze e foi pra casa feliz da vida.',
             en: 'You booked Carlos at eight twelve and went home happy as hell.' },
           { pt: 'ME|E depois?', en: 'ME|And then?' },
-          { pt: 'Depois o telefone daqui tocou, duas e quatorze, e era você.',
-            en: 'Then the phone here rang at two fourteen, and it was you.' },
+          { pt: 'Depois o telefone daqui tocou, duas e quatorze, e era você do outro lado.',
+            en: 'Then the phone here rang at two fourteen, and it was you on the other end.' },
           { pt: 'Você não conseguia falar. Só respirava.',
             en: 'You could not talk. You were just breathing.' },
-          { pt: 'E antes disso saiu uma chamada DAQUI pra sua casa. Um minuto antes.',
-            en: 'And a minute before that, a call went out from HERE to your house.' },
+          { pt: 'E um minuto ANTES disso saiu uma chamada daqui pra sua casa.',
+            en: 'And one minute BEFORE that, a call went out from here to your house.' },
+          { pt: 'ME|Daqui pra minha casa.', en: 'ME|From here to my house.' },
+          { pt: 'Do ramal desta sala. E ninguém nunca soube quem discou.',
+            en: 'From the extension in this room. And nobody ever knew who dialled.' },
           // ⚠ Michael conta o incendio ANTES de o jogador ver o incendio. E
           // proposital: o jogador desce para o arquivo sabendo que a casa
           // queimou, e ai joga a noite inteira dentro dela. Cada minuto do
@@ -1825,13 +1842,14 @@ export const TALKS = {
           { pt: 'ME|Michael. Quem me ligou?',
             en: 'ME|Michael. Who called me?' },
           { pt: '(ele passa a mão na nuca)', en: '(he rubs the back of his neck)' },
-          { pt: 'A companhia disse que naquela madrugada não entrou chamada nenhuma no seu número.',
-            en: 'The phone company said no call came into your number that night.' },
-          { pt: 'ME|Eu atendi.', en: 'ME|I answered it.' },
-          { pt: 'Eu sei que você atendeu. Eu vi o telefone na sua mão.',
-            en: 'I know you did. I saw the phone in your hand.' },
-          { pt: 'Nunca conseguimos explicar isso, e eu parei de tentar.',
-            en: 'We never explained it, and I stopped trying.' },
+          { pt: 'A companhia confirmou a chamada. Origem: esta sala. Duração: onze segundos.',
+            en: 'The company confirmed the call. Origin: this room. Duration: eleven seconds.' },
+          { pt: 'ME|E quem estava nesta sala às duas e quatorze?',
+            en: 'ME|And who was in this room at two fourteen?' },
+          { pt: 'Meia dúzia de gente, e nenhuma delas assumiu o telefone.',
+            en: 'Half a dozen people, and not one of them owned up to the phone.' },
+          { pt: 'Nunca conseguimos fechar isso, e eu parei de tentar.',
+            en: 'We never closed that, and I stopped trying.' },
         ],
         back: 'a',
       },
@@ -2160,16 +2178,16 @@ export const TALKS = {
       },
       ligacao2: {
         lines: [
-          { pt: 'ME|Você anotou de onde veio a chamada?',
-            en: 'ME|Did you log where the call came from?' },
+          { pt: 'ME|E teve alguma chamada SAINDO daqui naquela noite?',
+            en: 'ME|And did any call go OUT from here that night?' },
           { pt: '(ela para de datilografar)', en: '(she stops typing)' },
-          { pt: 'Anotei. Do ramal desta sala.',
-            en: 'I did. From the extension in this room.' },
-          { pt: 'ME|Como assim desta sala.', en: 'ME|What do you mean, this room.' },
-          { pt: 'A chamada entrou daqui de dentro, David.',
-            en: 'The call came from inside here, David.' },
-          { pt: 'Foi por isso que ninguém quis assinar aquele relatório.',
-            en: 'That is why nobody would sign that report.' },
+          { pt: 'Teve. Duas e treze. Do ramal desta sala pro seu número.',
+            en: 'There was. Two thirteen. From the extension in this room to your number.' },
+          { pt: 'ME|Quem discou?', en: 'ME|Who dialled?' },
+          { pt: 'O livro pede o nome de quem usa a linha. Aquela está em branco.',
+            en: 'The book asks for the name of whoever uses the line. That one is blank.' },
+          { pt: 'É a única linha em branco em sete anos de livro. Foi por isso que ninguém quis assinar o relatório.',
+            en: 'It is the only blank line in seven years of that book. That is why nobody would sign the report.' },
         ],
         back: 'a',
       },
@@ -2254,209 +2272,17 @@ export const TALKS = {
   },
 
   // ---------------------------------------------------------------------
-  // CARLOS — a cela. O interrogatorio.
+  // ⚠ O CARLOS NAO TEM MAIS ARVORE DE CONVERSA.
   //
-  // REGRAS: nunca ameaca, nunca levanta a voz, nunca e "vilao". Nunca
-  // confirma nem nega o que fez. Responde perguntas sobre DAVID com
-  // precisao desconfortavel. E uma vez, uma vez so, diz algo que nao teria
-  // como saber — e segue falando como se nao tivesse dito.
+  // Ela existiu ate a sessao 22 e foi removida inteira na 23: falar com ele
+  // abria uma lista de assuntos e o David tratava BEM o homem que mandou
+  // matar a familia dele. Tudo o que ele diz agora esta em INTERROGATORIO,
+  // que e uma cena jogavel — inclusive o cigarro, que era o no `cigarro`
+  // desta arvore e virou o fim da cena.
   //
-  // O no `cigarro` e onde o DEGRAU 4 acontece. main.js escuta esse no.
+  // Ele tambem parou de chamar o David de "senhor". Ele nao tem medo, nao
+  // tem respeito e nao tem nada a perder; tratar por voce e o personagem.
   // ---------------------------------------------------------------------
-  carlos: {
-    speaker: { pt: 'CARLOS', en: 'CARLOS' },
-    start: 'a',
-    nodes: {
-      a: {
-        lines: [
-          { pt: '(ele está sentado no banco de concreto. Camiseta. Sem sapato.)',
-            en: '(he is sitting on the concrete bench. Undershirt. No shoes.)' },
-          { pt: 'Demorou sete anos.', en: 'Took you seven years.' },
-        ],
-        choices: [
-          { pt: 'Você mandou matar a minha mulher.',
-            en: 'You had my wife killed.', to: 'foi' },
-          { pt: 'Onde está a minha filha?', en: 'Where is my daughter?', to: 'menina' },
-          { pt: 'Por que você está aqui hoje?', en: 'Why are you here tonight?', to: 'hoje' },
-          { pt: 'Cigarro?', en: 'Cigarette?', to: 'cigarro' },
-          { pt: 'O que você faz com sete anos parado?',
-            en: 'What do you do with seven years of sitting still?', to: 'anos' },
-          { pt: 'Você lembra da minha mulher?', en: 'Do you remember my wife?', to: 'julie' },
-          { pt: 'Alguém escreveu no meu caderno.',
-            en: 'Somebody wrote in my notebook.', to: 'caderno', req: 'ded_letra' },
-          { pt: 'A casa pegou fogo depois.',
-            en: 'The house burned afterwards.', to: 'fogo', req: 'ded_fogo' },
-        ],
-      },
-      // O NUCLEO DA HISTORIA: o alibi dele e o registro da propria prisao.
-      // David o prendeu as 20h. A familia morreu as 02h14. Ele estava numa
-      // cela — e por isso a teoria da vinganca nunca fechou.
-      foi: {
-        lines: [
-          { pt: 'O senhor me algemou às oito e doze.',
-            en: 'You cuffed me at eight twelve.' },
-          { pt: 'ME|Eu sei a hora.', en: 'ME|I know the time.' },
-          { pt: 'Então o senhor sabe onde eu estava às duas e quatorze.',
-            en: 'Then you know where I was at two fourteen.' },
-          { pt: 'ME|Você tinha gente.', en: 'ME|You had people.' },
-          { pt: 'Tinha. E eles foram todos ouvidos, um por um, e todos tinham onde estar.',
-            en: 'I did. And every one of them was questioned, and every one of them was somewhere else.' },
-          { pt: 'O senhor mesmo assinou os depoimentos.',
-            en: 'You signed the statements yourself.' },
-        ],
-        press: 'foi2',
-        back: 'a',
-      },
-      foi2: {
-        lines: [
-          { pt: 'ME|Alguém entrou na minha casa.',
-            en: 'ME|Somebody came into my house.' },
-          { pt: 'Alguém entrou.', en: 'Somebody did.' },
-          { pt: 'ME|E não foi você.', en: 'ME|And it was not you.' },
-          { pt: '(ele não responde por um tempo)', en: '(he does not answer for a while)' },
-          { pt: 'O senhor estava na varanda.', en: 'You were out on the porch.' },
-          { pt: 'ME|Como você sabe da varanda?',
-            en: 'ME|How do you know about the porch?' },
-          { pt: 'No telefone. Com um cigarro na mão.',
-            en: 'On the phone. Cigarette in your hand.' },
-          { pt: '(ele muda de assunto sem pausa nenhuma)',
-            en: '(he changes the subject without a beat)' },
-          { pt: 'Aqui dentro não tem relógio. O senhor reparou?',
-            en: 'There is no clock in here. Did you notice?' },
-        ],
-        back: 'a',
-      },
-      menina: {
-        lines: [
-          { pt: 'Eu não sei.', en: 'I do not know.' },
-          { pt: 'ME|Você sabe.', en: 'ME|You know.' },
-          { pt: 'Se eu soubesse eu tinha trocado por alguma coisa. Faz sete anos que eu tenho o que trocar.',
-            en: 'If I knew I would have traded it for something. I have had seven years of things to trade.' },
-        ],
-        press: 'menina2',
-        back: 'a',
-      },
-      menina2: {
-        lines: [
-          { pt: 'ME|Nunca acharam ela.', en: 'ME|They never found her.' },
-          { pt: 'Morto fica onde caiu, senhor. É a graça de morto.',
-            en: 'The dead stay where they fell, sir. That is the thing about the dead.' },
-          { pt: 'ME|E ela?', en: 'ME|And her?' },
-          { pt: 'Ela o senhor procura até hoje.', en: 'Her you are still looking for.' },
-          { pt: '(pausa)', en: '(a pause)' },
-          { pt: 'Toda noite, senhor. O senhor procura toda noite.',
-            en: 'Every night, sir. You look for her every night.' },
-        ],
-        back: 'a',
-      },
-      // O motivo mundano de ele estar aqui. Sem isso a cela nao se sustenta.
-      hoje: {
-        lines: [
-          { pt: 'Transferência. Audiência de manhã.',
-            en: 'Transfer. Hearing in the morning.' },
-          { pt: 'Passo a noite aqui e sigo às sete.',
-            en: 'I spend the night here and move on at seven.' },
-          { pt: 'ME|Justo hoje.', en: 'ME|Tonight of all nights.' },
-          { pt: 'Justo hoje.', en: 'Tonight of all nights.' },
-        ],
-        back: 'a',
-      },
-      caderno: {
-        lines: [
-          { pt: 'Letra firme?', en: 'Steady hand?' },
-          { pt: 'ME|Firme.', en: 'ME|Steady.' },
-          { pt: 'Então é de antes.', en: 'Then it is from before.' },
-          { pt: 'ME|Antes de quê?', en: 'ME|Before what?' },
-          { pt: 'De o senhor ficar assim.', en: 'Before you got like this.' },
-        ],
-        back: 'a',
-      },
-      anos: {
-        lines: [
-          { pt: 'Conta.', en: 'You count.' },
-          { pt: 'ME|Conta o quê?', en: 'ME|Count what?' },
-          { pt: 'Tudo. Passo até a parede, azulejo do banho, quantas vezes a porta abre.',
-            en: 'Everything. Steps to the wall, tiles in the shower, how many times the door opens.' },
-          { pt: 'Um dia o número muda e o senhor descobre que contou errado a vida toda.',
-            en: 'One day the number changes and you find out you counted wrong your whole life.' },
-          { pt: 'ME|E aí?', en: 'ME|And then?' },
-          { pt: 'Aí conta de novo.', en: 'Then you count again.' },
-        ],
-        back: 'a',
-      },
-      julie: {
-        lines: [
-          { pt: 'Do nome eu lembro. Do resto não.',
-            en: 'I remember the name. Not the rest.' },
-          { pt: 'ME|Você nunca a viu.', en: 'ME|You never saw her.' },
-          { pt: 'Nunca. O senhor falava dela no interrogatório.',
-            en: 'Never. You talked about her in the interview room.' },
-          { pt: 'ME|Eu não falei da minha mulher com você.',
-            en: 'ME|I did not talk about my wife with you.' },
-          { pt: 'Falou sim. Sete horas naquela sala, senhor. Ninguém aguenta sete horas sem falar de casa.',
-            en: 'You did. Seven hours in that room, sir. Nobody lasts seven hours without talking about home.' },
-        ],
-        back: 'a',
-      },
-      // ---- so depois do flashback ----
-      // ⚠ Ele NAO confirma e NAO nega. E diz uma coisa que nao teria como
-      // saber, e segue como se nao tivesse dito — regra do personagem.
-      fogo: {
-        lines: [
-          { pt: '(ele assente devagar, como quem ja sabia)',
-            en: '(he nods slowly, like a man who already knew)' },
-          { pt: 'Pegou.', en: 'It did.' },
-          { pt: 'ME|Como você sabe disso?', en: 'ME|How do you know that?' },
-          { pt: 'O senhor mesmo me contou.', en: 'You told me yourself.' },
-          { pt: 'ME|Eu nunca falei com você depois daquela noite.',
-            en: 'ME|I never spoke to you after that night.' },
-          { pt: '(ele coça o pulso, onde fica a pulseira de papel)',
-            en: '(he scratches his wrist, where the paper band sits)' },
-          { pt: 'Fogo é limpo, senhor. É a única coisa que não deixa pergunta.',
-            en: 'Fire is clean, sir. It is the only thing that leaves no question.' },
-        ],
-        press: 'fogo2',
-        back: 'a',
-      },
-      fogo2: {
-        lines: [
-          { pt: 'ME|Deixa uma.', en: 'ME|It leaves one.' },
-          { pt: 'Deixa.', en: 'It does.' },
-          { pt: 'ME|Não tinha nada dela lá dentro. Nada.',
-            en: 'ME|There was nothing of hers in there. Nothing.' },
-          { pt: '(pausa)', en: '(a pause)' },
-          { pt: 'Então ela não estava lá dentro.', en: 'Then she was not in there.' },
-          { pt: 'ME|...', en: 'ME|...' },
-          { pt: 'O senhor já sabia disso. Faz sete anos que o senhor sabe.',
-            en: 'You already knew that. You have known for seven years.' },
-        ],
-        back: 'a',
-      },
-      // ---- DEGRAU 4 ----
-      // Ele acende um pro cara falar. E tecnica, e oficio, ele fez isso mil
-      // vezes. E ai acende um pra ele. No automatico. Sem pensar. Sem uma
-      // linha de dialogo antes. O JOGO NAO PERGUNTA NADA AO JOGADOR AQUI.
-      cigarro: {
-        lines: [
-          { pt: '(ele olha para o bolso do sobretudo)',
-            en: '(he looks at the coat pocket)' },
-          { pt: 'O senhor ainda carrega o maço.', en: 'You still carry the pack.' },
-          { pt: 'ME|Carrego.', en: 'ME|I do.' },
-          { pt: 'Me dá um.', en: 'Give me one.' },
-          { pt: '(David tira dois do maço, estende um pela grade e acende com o próprio isqueiro)',
-            en: '(David takes two from the pack, holds one through the bars and lights it with his own lighter)' },
-          { pt: '(depois acende o outro)', en: '(then he lights the other one)' },
-        ],
-        back: 'a',
-      },
-      fim: {
-        lines: [
-          { pt: 'Volta quando quiser. Eu não vou a lugar nenhum.',
-            en: 'Come back whenever. I am not going anywhere.' },
-        ],
-      },
-    },
-  },
 
   // =====================================================================
   // A CASA, SETE ANOS ATRAS
@@ -2890,8 +2716,12 @@ export const JOURNAL = {
              en: 'SHIFT REPORT — fragment 1/3. “At 2:14 the supervisor ordered gate 3 kept shut. The emergency call was classified as duplicate. Signature removed.”' },
   d_caso: { cat: 'document', pt: 'FICHA DE EVIDÊNCIA — trecho 2/3. “Objeto pessoal recolhido: sobretudo escuro, cigarro da marca habitual, gravação sem fita. O responsável pela coleta recusou-se a identificar a vítima.”',
             en: 'EVIDENCE FORM — fragment 2/3. “Personal effects: dark overcoat, usual cigarette brand, recorder without tape. Collecting officer refused to identify the victim.”' },
-  d_voz: { cat: 'document', pt: 'TRANSCRIÇÃO — trecho 3/3. “Chamador: D. [inaudível]. Operadora: senhor, esta linha vem de dentro. Chamador: eu sei. Não abra a porta quando eu pedir.” O restante foi apagado.',
-           en: 'TRANSCRIPT — fragment 3/3. “Caller: D. [inaudible]. Operator: sir, this line comes from inside. Caller: I know. Do not open the door when I ask.” The remainder was erased.' },
+  // ⚠ MUDOU na sessao 23. A transcricao dizia "Chamador: D." e apontava o
+  // proprio David como quem ligou — o canon velho. Agora o nome esta
+  // comido pelo mesmo jeito que come o nome da filha nos documentos: o
+  // jogador quer ler e nao consegue. E a inicial e outra.
+  d_voz: { cat: 'document', pt: 'TRANSCRIÇÃO — trecho 3/3. “Chamador: A—[inaudível]. Operadora: senhor, esta linha vem de dentro. Chamador: eu sei. Não abra a porta quando eu pedir.” O restante foi apagado.',
+           en: 'TRANSCRIPT — fragment 3/3. “Caller: A—[inaudible]. Operator: sir, this line comes from inside. Caller: I know. Do not open the door when I ask.” The remainder was erased.' },
   d_code: { cat: 'document', pt: 'PAPEL DO ZELADOR. Quatro números escritos dentro de um círculo: 0 — 2 — 1 — 4. Embaixo: “A hora nunca mudou. Você é que continua chegando tarde.”',
             en: 'CARETAKER’S PAPER. Four numbers inside a circle: 0 — 2 — 1 — 4. Below: “The hour never changed. You are the one who keeps arriving late.”' },
   d_safe: { cat: 'document', pt: 'NOTA DO COFRE. “A CULPA PRECISA DE UM ROSTO. SABIA QUE TU FARIA ISSO.” A segunda frase está na minha letra. A primeira não está em letra nenhuma que eu reconheça.',
@@ -2940,14 +2770,14 @@ export const JOURNAL = {
               en: 'The ashtray on my desk is full. I quit seven years ago and nobody uses that desk. I counted eleven butts. All eleven are my brand.' },
   j3_drawer:{ cat: 'self', pt: 'A gaveta de baixo está cheia de cartazes novos. Papel recente, tinta recente. Eu não lembro de ter mandado imprimir. Fechei a gaveta.',
               en: 'The bottom drawer is full of new posters. Fresh paper, fresh ink. I do not remember ordering them. I closed the drawer.' },
-  j3_michael:{ cat: 'people', pt: 'Michael conta aquela noite sem hesitar em nenhuma parte, e o que ele conta bate com o livro. Diz que eu liguei para cá às 02h14 e que eu não conseguia falar. A plaquinha na mesa dele tem o meu nome.',
-              en: 'Michael tells that night without hesitating anywhere, and what he says matches the book. He says I called in at 2:14 and could not speak. The nameplate on his desk has my name on it.' },
+  j3_michael:{ cat: 'people', pt: 'Michael conta aquela noite sem hesitar em nenhuma parte, e o que ele conta bate com o livro. Uma chamada saiu do ramal daquela sala para a minha casa às 02h13, e a linha do livro que diz quem discou está em branco. É a única em branco em sete anos. A plaquinha na mesa dele tem o meu nome.',
+              en: 'Michael tells that night without hesitating anywhere, and what he says matches the book. A call went out from that room to my house at 2:13, and the line in the book that says who dialled is blank. It is the only blank one in seven years. The nameplate on his desk has my name on it.' },
   j3_shift: { cat: 'people', pt: 'Três pessoas dizem que eu saí às 20h12 e não voltei. Uma diz que eu voltei de madrugada e fiquei sentado na minha mesa até clarear. As três estão de acordo. Eu estou com a quarta.',
               en: 'Three people say I left at 20:12 and did not return. One says I came back in the night and sat at my desk until dawn. The three agree. I am the fourth.' },
   j3_drawerd:{ cat: 'clue', pt: 'A gaveta do D existe, e é minha: HENRY, D. Uma pasta por ano. Contei sete. Contei de novo e deu oito. Não abri a oitava.',
               en: 'Drawer D exists, and it is mine: HENRY, D. One folder per year. I counted seven. I counted again and got eight. I did not open the eighth.' },
-  j3_carlos:{ cat: 'people', pt: 'Carlos está a duzentos quilômetros daqui há sete anos, segundo Michael, e está sentado no xadrez do subsolo, segundo os meus olhos. Não ameaçou, não negou e não confirmou nada. Sabia da varanda.',
-              en: 'Carlos has been two hundred kilometres away for seven years, according to Michael, and is sitting in the basement cell, according to my eyes. He did not threaten, deny or confirm anything. He knew about the porch.' },
+  j3_carlos:{ cat: 'people', pt: 'Carlos está a duzentos quilômetros daqui há sete anos, segundo Michael, e está sentado no xadrez do subsolo, segundo os meus olhos. Não ameaçou nem uma vez. Sabia da varanda, sabia do cigarro, e não tinha como saber de nenhum dos dois.',
+              en: 'Carlos has been two hundred kilometres away for seven years, according to Michael, and is sitting in the basement cell, according to my eyes. He never threatened me once. He knew about the porch, he knew about the cigarette, and he had no way of knowing either.' },
   j3_book:  { cat: 'clue', pt: 'O livro de visitas da custódia tem uma linha por noite, sete anos de linhas, e a assinatura é a minha em todas. A caneta está presa por um barbante ao lado. O barbante está gasto no meio.',
               en: 'The holding visitor book has one line per night, seven years of lines, and the signature is mine on every one. The pen is tied beside it with string. The string is worn through in the middle.' },
   // A pagina do incendio. Ela e o centro do capitulo: as duas coisas que o
@@ -3023,15 +2853,15 @@ export const JOURNAL = {
 export const INTERROGATORIO = {
   abertura: [{
     d: { pt: 'Carlos.', en: 'Carlos.' },
-    c: { pt: '(ele levanta a cabeça devagar, e sorri) Demorou sete anos.',
-         en: '(he lifts his head slowly, and smiles) Took you seven years.' },
+    c: { pt: '(ele levanta a cabeça devagar, e sorri) Entrou. Olha só, entrou mesmo.',
+         en: '(he lifts his head slowly, and smiles) You came in. Look at that, you actually came in.' },
     d2: { pt: 'Eu tenho a noite inteira.', en: 'I have got all night.' },
-    c2: { pt: 'Eu também, doutor. Eu tenho é só isso.',
-          en: 'So have I, boss. It is all I have got.' },
+    c2: { pt: 'Eu também. É a única coisa que eu tenho.',
+          en: 'So do I. It is the only thing I have got.' },
   }],
   retomo: [{
     d: { pt: 'Onde a gente parou.', en: 'Where were we.' },
-    c: { pt: 'No senhor fingindo que veio trabalhar.',
+    c: { pt: 'Em você fingindo que veio trabalhar.',
          en: 'At you pretending you came here to work.' },
   }],
 
@@ -3042,31 +2872,31 @@ export const INTERROGATORIO = {
       c: { pt: 'Duas pessoas. Nenhuma delas eu.',
            en: 'Two people. Neither one was me.' } },
     { d: { pt: 'Você mandou.', en: 'You ordered it.' },
-      c: { pt: 'Eu estava algemado num banco de concreto igual a este. Pelo senhor.',
-           en: 'I was cuffed to a concrete bench just like this one. By you.' },
+      c: { pt: 'Eu estava algemado num banco igual a esse. Por sua causa.',
+           en: 'I was cuffed to a bench just like this one. Because of you.' },
       d2: { pt: 'Isso não é um álibi, é um horário.',
             en: 'That is not an alibi, that is a timestamp.' },
-      c2: { pt: 'É o horário que o senhor mesmo assinou.',
-            en: 'It is the timestamp you signed yourself.' } },
+      c2: { pt: 'É o horário que você assinou.',
+            en: 'It is the timestamp you signed.' } },
     { d: { pt: 'Alguém abriu a porta pra eles. De fora.',
            en: 'Somebody opened that door for them. From outside.' },
-      c: { pt: '(ele coça o pulso) Agora o senhor está trabalhando.',
+      c: { pt: '(ele coça o pulso) Agora você está trabalhando.',
            en: '(he scratches his wrist) Now you are working.' } },
     { d: { pt: 'Por que às duas e quatorze?', en: 'Why two fourteen?' },
-      c: { pt: 'Porque foi a hora que o senhor saiu de dentro de casa.',
-           en: 'Because that is when you stepped outside your own house.' },
+      c: { pt: 'Porque foi a hora que você saiu de dentro de casa.',
+           en: 'Because that is when you stepped out of your own house.' },
       d2: { pt: 'Como é que alguém sabia disso?',
             en: 'How would anybody know that?' },
-      c2: { pt: 'Alguém não sabia. Alguém marcou.',
+      c2: { pt: 'Ninguém sabia. Alguém marcou.',
             en: 'Nobody knew. Somebody arranged it.' } },
-    { d: { pt: 'Você teve sete anos pra dizer isso a alguém.',
+    { d: { pt: 'Você teve sete anos pra contar isso a alguém.',
            en: 'You had seven years to tell somebody this.' },
       c: { pt: 'Tive. E ninguém sentou aqui.', en: 'I did. And nobody sat down.' },
-      d2: { pt: 'Eu estou sentado.', en: 'I am sitting down.' },
-      c2: { pt: 'Está. Por isso hoje é hoje.', en: 'You are. That is why tonight is tonight.' } },
+      d2: { pt: 'Eu sentei.', en: 'I am sitting.' },
+      c2: { pt: 'Sentou. Por isso hoje é hoje.', en: 'You did. That is why tonight is tonight.' } },
     { d: { pt: 'Fala.', en: 'Talk.' },
-      c: { pt: 'O senhor ainda está perguntando bonito, doutor.',
-           en: 'You are still asking politely, boss.' } },
+      c: { pt: 'Você ainda está pedindo com licença.',
+           en: 'You are still asking nicely.' } },
   ],
 
   // -------- PRESSIONAR: anda de verdade, e é o David escolhendo. --------
@@ -3082,38 +2912,38 @@ export const INTERROGATORIO = {
       c2: { pt: 'De descer. Falta pouco.', en: 'Coming down. You are almost here.' } },
     { d: { pt: 'Amanhã de manhã você entra num camburão e some.',
            en: 'Tomorrow morning you get in a van and disappear.' },
-      c: { pt: 'E o senhor volta pra cá amanhã à noite. Como todas as noites.',
+      c: { pt: 'E você volta aqui amanhã à noite. Como todas as noites.',
            en: 'And you come back here tomorrow night. Like every night.' } },
     { d: { pt: 'Você não faz ideia do que eu virei, seu filho da puta.',
            en: 'You have no idea what I turned into, you son of a bitch.' },
-      c: { pt: 'Faço sim. O senhor virou eu, só que sem coragem de assinar.',
+      c: { pt: 'Faço sim. Você virou eu, só que sem coragem de assinar.',
            en: 'I do. You turned into me, only without the guts to sign your name to it.' } },
     { d: { pt: 'Fala o nome. Fala a porra do nome dele.',
            en: 'Say the name. Say his fucking name.' },
-      c: { pt: '(ele se inclina para frente) Ah. Então o senhor sabe que tem um nome.',
+      c: { pt: '(ele se inclina para frente) Ah. Então você sabe que tem um nome.',
            en: '(he leans forward) Ah. So you know there is a name.' } },
-    { d: { pt: 'Eu vou ficar aqui a noite inteira, e você vai falar.',
-           en: 'I am going to be here all night, and you are going to talk.' },
+    { d: { pt: 'Eu não vou embora, Carlos. Eu não tenho pra onde ir.',
+           en: 'I am not leaving, Carlos. I have got nowhere to go.' },
       c: { pt: 'Eu sei. Essa é a parte boa.', en: 'I know. That is the good part.' } },
   ],
 
   // -------- BATER: anda muito, custa caro, e ele cala a boca. --------
   bater: [
-    { d: { pt: '(David enfia o braço pela grade e acerta ele)',
-           en: '(David reaches through the bars and hits him)' },
+    { d: { pt: '(David acerta ele com as costas da mão, sem se anunciar)',
+           en: '(David backhands him, without announcing it)' },
       c: { pt: '(ele cospe no chão) Isso é do manual ou é seu?',
            en: '(he spits on the floor) Is that from the manual or is that yours?' } },
     { d: { pt: '(ele bate de novo, e desta vez segura o homem pela camisa)',
            en: '(he hits him again, and this time holds the man by the shirt)' },
-      c: { pt: 'Bate mais. Bate até virar do lado de cá da grade.',
-           en: 'Hit me more. Hit me until you are on this side of the bars.' } },
+      c: { pt: 'Bate mais. Bate até a gente ficar igual.',
+           en: 'Hit me more. Hit me until the two of us are the same.' } },
     { d: { pt: 'Você vai me dizer o nome dele nem que eu tenha que arrancar.',
            en: 'You are going to give me his name even if I have to tear it out.' },
       c: { pt: '(rindo, com a boca sangrando) Arranca, então. Arranca.',
            en: '(laughing, mouth bleeding) Tear it out, then. Go on.' } },
     { d: { pt: '(nenhuma fala. Ele só bate.)', en: '(no words. He just hits him.)' },
       c: { pt: '...', en: '...' },
-      c2: { pt: 'Pronto. Agora o senhor está pronto pra ouvir.',
+      c2: { pt: 'Pronto. Agora você está pronto pra ouvir.',
             en: 'There. Now you are ready to hear it.' } },
   ],
 
@@ -3139,37 +2969,54 @@ export const INTERROGATORIO = {
     { c: { pt: 'Não foi gente minha que entrou. Gente minha estava toda presa ou toda ouvida.',
            en: 'It was not my people who went in. My people were all locked up or all questioned.' },
       d: { pt: 'Então quem?', en: 'Then who?' },
-      c2: { pt: 'Alguém que sabia a que horas o senhor chegava em casa.',
+      c2: { pt: 'Alguém que sabia a que horas você chegava em casa.',
             en: 'Somebody who knew what time you got home.' } },
-    { c: { pt: 'O telefone da sua casa tocou às duas e quatorze. Isso o senhor sabe.',
+    { c: { pt: 'O telefone da sua casa tocou às duas e quatorze. Isso você sabe.',
            en: 'Your home phone rang at two fourteen. That much you know.' },
       d: { pt: 'Eu sei.', en: 'I know.' },
-      c2: { pt: 'Ele saiu de dentro da delegacia, doutor. Do ramal da sala grande.',
-            en: 'It came from inside the station, boss. From the extension in the big room.' } },
+      c2: { pt: 'A ligação saiu de dentro da delegacia. Do ramal da sala grande.',
+            en: 'That call went out from inside the station. From the extension in the big room.' } },
     { c: { pt: 'Era um dos seus. Distintivo, cadeira, cafezinho.',
            en: 'It was one of yours. Badge, desk, coffee break.' },
       d: { pt: 'Você está mentindo.', en: 'You are lying.' },
-      c2: { pt: 'Estou. E o senhor não acredita nisso nem por um segundo.',
+      c2: { pt: 'Estou. E você não acredita nisso nem por um segundo.',
             en: 'I am. And you do not believe that for one second.' } },
   ],
 
   // -------- A CONFISSÃO --------
   //
-  // ⚠ Ela não é uma vitória. O David gastou a cena inteira virando outra
-  // coisa para chegar aqui, e o que ele ganha é a palavra de um homem que
-  // ele acabou de espancar. NADA disso é confirmado depois. Nunca.
+  // ⚠ Não é uma vitória. O David gastou a cena inteira virando outra coisa
+  // para chegar aqui, e o que ele ganha é a palavra de um homem que ele
+  // acabou de espancar. NADA disso é confirmado depois. Nunca.
   quebra: [{
     c: { pt: '(ele encosta a cabeça na parede e fala como quem já ensaiou isso mil vezes)',
          en: '(he rests his head against the wall and speaks like a man who has rehearsed this a thousand times)' },
     d: { pt: 'Fala.', en: 'Talk.' },
-    c2: { pt: 'Fui eu, doutor. Foi tudo eu.\nEu paguei, eu marquei a hora e eu mandei entrar. Porque o senhor me prendeu, e porque eu podia.\nSua mulher morreu por sua causa, e o senhor estava a seis metros dela, na varanda, com um cigarro na mão.\nE a menina eu mandei deixar viva. Viva, doutor. Pra ter o que o senhor procurar pelo resto da porra da sua vida.\nFoi o melhor dinheiro que eu já gastei.\nAgora pergunta quem abriu a porta pra eles. Anda. Pergunta.',
-          en: 'It was me, boss. All of it was me.\nI paid, I set the hour and I sent them in. Because you arrested me, and because I could.\nYour wife died because of you, and you were twenty feet away on that porch with a cigarette in your hand.\nAnd the girl I had them leave alive. Alive, boss. So you would have something to look for the rest of your goddamn life.\nBest money I ever spent.\nNow ask me who opened the door for them. Go on. Ask.' },
+    c2: { pt: 'Fui eu. Foi tudo eu.\nEu paguei, eu marquei a hora e eu mandei entrar. Porque você me prendeu, e porque eu podia.\nSua mulher morreu por sua causa, e você estava a seis metros dela, na varanda, com um cigarro na mão.\nE a menina eu mandei deixar viva. Viva. Pra você ter o que procurar pelo resto da porra da sua vida.\nFoi o melhor dinheiro que eu já gastei.\nAgora pergunta quem abriu a porta pra eles. Anda. Pergunta.',
+          en: 'It was me. All of it was me.\nI paid, I set the hour and I sent them in. Because you arrested me, and because I could.\nYour wife died because of you, and you were twenty feet away on that porch with a cigarette in your hand.\nAnd the girl I had them leave alive. Alive. So you would have something to look for the rest of your goddamn life.\nBest money I ever spent.\nNow ask me who opened the door for them. Go on. Ask.' },
     // ⚠ O NOME. É a única coisa nova que sai desta cela, e o que assusta
-    // não é ouvir: é o David não perguntar quem é. Ele não pede a patente,
-    // não pede a lotação, não pergunta se ainda trabalha aqui. Ele só para.
+    // não é ouvir: é o David não perguntar quem é. Ele não pede patente,
+    // não pede lotação, não pergunta se ainda trabalha ali. Ele só para.
     d3: { pt: 'Quem abriu a porta.', en: 'Who opened the door.' },
-    c3: { pt: 'ANDRADE.\n(pausa)\nMas isso o senhor já sabe, não sabe.',
+    c3: { pt: 'ANDRADE.\n(pausa)\nMas isso você já sabe, não sabe.',
           en: 'ANDRADE.\n(a pause)\nBut you already know that, do you not.' },
+  }],
+
+  // -------- E O CIGARRO. O DEGRAU 4. --------
+  //
+  // ⚠ Ele acontece AQUI, no fim, com os dois homens já destruídos — um que
+  // acabou de confessar e um que acabou de bater num preso. O jogo NÃO
+  // pergunta nada ao jogador: não tem escolha, não tem botão, não tem
+  // prompt. Ele simplesmente faz. Se virasse escolha, viraria vitória.
+  cigarro: [{
+    c: { pt: 'Me dá um cigarro.', en: 'Give me a cigarette.' },
+    d: { pt: '(David tira dois do maço, põe um na boca dele e acende com o próprio isqueiro)',
+         en: '(David takes two from the pack, puts one in the man is mouth and lights it with his own lighter)' },
+    c2: { pt: '(o homem fecha os olhos e traga)', en: '(the man closes his eyes and draws on it)' },
+    d2: { pt: '(depois ele acende o outro, no automático, sem pensar)',
+          en: '(then he lights the other one, automatically, without thinking)' },
+    d3: { pt: '...\nSete anos.\nSete anos sem.', en: '...\nSeven years.\nSeven years without.' },
+    c3: { pt: 'Bem-vindo de volta.', en: 'Welcome back.' },
   }],
 };
 

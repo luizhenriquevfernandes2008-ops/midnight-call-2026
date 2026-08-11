@@ -334,6 +334,117 @@ ainda precisam de teste humano para ajuste fino de dificuldade.
 
 ---
 
+## SESSÃO 23 — 10/08/2026 · Claude · o David entra na cela
+
+Sessão inteira de correção em cima do que o Luiz jogou. Ele encontrou um
+capítulo que **não terminava** e um interrogatório em que o David era educado
+demais com o homem que mandou matar a família dele.
+
+### 1. 🔥 O capítulo não acabava — corrigido
+
+Fazer tudo e não acontecer nada. A causa: `ch3_pronto` exigia
+`flags.cig_livre` **e** o fim de uma conversa com o Carlos que, depois da
+sessão 22, deixou de existir. O jogador ficava rodando a delegacia para
+sempre.
+
+Agora o gatilho é a própria cena: quebrar o Carlos → o cigarro → *"Eu preciso
+sair daqui. Agora."* → e a saída pela portaria pede o nome. O capítulo tem
+fim de novo, e o fim é o que sempre foi previsto.
+
+### 2. 🔥 O David ENTRA na cela
+
+A porta que "nunca esteve trancada" deixou de ser só uma frase: agora ela
+**abre**. E quando ele atravessa a grade, **a delegacia sai da tela**.
+
+Setor novo **`ch3_dentro`**: 300px, o menor do jogo por muita distância. Não
+tem corredor, não tem profundidade e não tem saída no quadro — só concreto,
+uma lâmpada e outro homem. A grade fica **atrás** do David, em primeiro plano
+1:1, para o jogador ver as barras entre a câmera e o próprio personagem e
+entender quem entrou na jaula.
+
+A distância entre os dois é o número mais importante da sala: **46px**. A
+88px que eu tinha posto primeiro, o soco acertava o ar — e um soco que não
+alcança ninguém não é um soco, é um gesto.
+
+### 3. 🎬 As animações — a parte mais trabalhada até agora
+
+Três animações novas para o David, e a escada está no corpo: cada uma é mais
+baixa e mais fechada que a anterior.
+
+| | O que o corpo diz |
+|---|---|
+| **`intAsk`** | peso na perna de trás, braço cruzado, cabeça inclinada. Distância profissional — ele ainda é um detetive |
+| **`intPush`** | um passo à frente, o dedo subindo, o tronco entrando no espaço do outro homem. Ainda é conversa, mas já não é educada |
+| **`intHit`** | não é o `punch1` de briga: é um gancho **de cima para baixo em alguém sentado**, com recuo longo e uma **parada de três quadros no impacto** — é a parada que dá peso |
+
+E duas para o Carlos, porque `hurt` é um recuo de quem está **em pé** e um
+homem sentado tocando `hurt` parece ter levantado da cadeira para apanhar:
+
+- **`sitHurt`** — as pernas não se mexem. O que recua é o tronco, e a cabeça
+  volta devagar demais, como cabeça de quem apanhou de verdade.
+- **`sitFlinch`** — a reação ao PRESSIONAR. Nada bate nele; ele só fica menor.
+
+### 4. O Carlos perdeu a árvore de conversa, e o "senhor"
+
+Removida inteira. Tudo o que ele diz agora está na cena jogável — **inclusive
+o cigarro**, que era um nó daquela árvore e virou o fim do interrogatório: ele
+pede, o David acende um para ele e outro para si, no automático. O degrau 4
+acontece com os dois homens já destruídos, que é onde ele sempre devia ter
+acontecido.
+
+E ele parou de chamar o David de senhor. Ele não tem medo, não tem respeito e
+não tem nada a perder — tratar por você **é** o personagem. O teste agora
+reprova qualquer "senhor" na boca dele.
+
+### 5. O resto do "ele mesmo ligou" saiu
+
+Tinha sobrado bastante, e o Luiz reparou. Varridas e reescritas:
+
+- **Michael** agora diz que a companhia **confirmou** a chamada — origem:
+  aquela sala, onze segundos — e que ninguém assumiu o telefone.
+- **Elaine** tem a linha do livro: 02h13, do ramal daquela sala para a casa
+  do David, e **o campo de quem discou está em branco**. É a única linha em
+  branco em sete anos de livro. Foi por isso que ninguém quis assinar.
+- A **transcrição** do Capítulo 2 dizia "Chamador: D." — agora é
+  **"Chamador: A—[inaudível]"**, comida do mesmo jeito que os documentos
+  comem o nome da filha.
+- A página `j3_michael` do caderno foi reescrita junto.
+
+### 6. A doze é pegável
+
+Item de inventário **4x1** — ela ocupa o cinto inteiro, e é pra ocupar: é uma
+arma de cano longo dentro de um sobretudo. Não vira arma jogável no Capítulo 3
+(a regra da portaria continua de pé); ela só viaja com ele.
+
+### 7. O incêndio: ele chuta a porta e ENTRA
+
+Antes o estouro do ar jogava ele para trás — ou seja, o jogo decidia por ele
+que não dava. Agora ele corre, **chuta a porta** (a animação `kick` que estava
+guardada no rig desde a sessão 13), a porta cede, ele cai junto com ela, se
+levanta e **atravessa a soleira**. A tela apaga com ele entrando.
+
+A diferença não é de encenação, é de personagem: um homem jogado para trás é
+uma vítima do incêndio; um homem que arrombou a própria porta e entrou é
+alguém que passou sete anos sabendo que entrou — e que mesmo assim não
+adiantou nada.
+
+**E continua sem mostrar nada de dentro.**
+
+### 8. O flashback acontece uma vez só
+
+Abrir a gaveta D de novo não devolve ao passado: *"Já abri essa pasta hoje.
+Uma vez foi mais do que suficiente."*
+
+### 9. 🐛 B-62 — a luz da cela não chegava no chão
+
+A lâmpada nova tinha raio 168 pendurada em y=30, e o chão está em 214: a luz
+morria **40 pixels antes** de chegar nos dois homens. A sala inteira ficava
+preta com duas manchas dentro. É o **B-23 pela quinta vez** no projeto, e
+desta vez em uma sala de 300px. Raio para 250, mais uma poça própria na altura
+do peito e um contraluz frio na grade.
+
+---
+
 ## SESSÃO 22 — 10/08/2026 · Claude · o interrogatório, e a ligação ganha dono
 
 ### 1. 🔥 O sistema de interrogatório — `js/systems/interrogatorio.js`
@@ -1188,7 +1299,9 @@ salva texto diferente**.
 | Flashback: a casa, o quarto e o fogo | 🟡 sessão 21, **nada disso foi jogado por uma pessoa** |
 | Roupa de sete anos atrás | 🟢 medida na tela, com o colete escurecido para separar da camisa |
 | Diálogos do Capítulo 3 | 🟡 aprofundados na 21; só leitura humana diz se prendem |
-| **Interrogatório (3 verbos + pressão)** | 🟡 sessão 22, 1085 checagens verdes, **falta mão humana** |
+| **Interrogatório (3 verbos + pressão)** | 🟡 sessão 22/23, dentro da cela, com animação própria por verbo. **Falta mão humana** |
+| Entrar na cela (`ch3_dentro`) | 🟢 setor novo de 300px, medido na tela |
+| Animações do interrogatório | 🟢 três para o David, duas para o preso apanhar sentado |
 | Câmera fechando (`gfx.aproximar`) | 🟢 1,35x, medida na tela. Resolve a D-10 |
 | A figura negra na sala de espera | 🟢 desenhada e medida em pixel (B-60) |
 | Música da casa e da delegacia | 🟡 sintetizadas; falta ouvir jogando |
@@ -1330,6 +1443,8 @@ salva texto diferente**.
 | B-54 | Memória de conversa vinha vazia quando o objeto cruzava janelas | `opts.memory instanceof Set` dá **falso** quando o `Set` foi criado em outro realm (página de teste × iframe do jogo). O código caía no ramo da cópia, a conversa funcionava, e quem chamou ficava sem registro nenhum do que foi perguntado | `asSet()` por *duck typing* (`typeof x.add === 'function'`) em vez de `instanceof`. Vale para qualquer código que receba objeto de outra janela | 18 |
 | B-55 | 🔥 **A cela do Capítulo 3 era um beco sem saída** | O Arquivo Morto não tinha porta para a custódia: a cela só era alcançável pela volta do flashback. Sair dela uma vez trancava o jogador **fora do Carlos**, que é obrigatório para o cigarro e para o fim do capítulo. Nenhuma verificação de estrutura pegava isso porque todas checavam "a porta aponta para uma fase que existe", nunca "dá para voltar" | Porta da custódia no fim do corredor do arquivo. E o teste passou a exigir ida **e volta** entre todos os setores da rota, mais "nenhum setor pode ter zero saídas" | 19 |
 | B-57 | 🔥 **As pessoas do Capítulo 3 eram invisíveis** | Duas metades do mesmo descuido: o laço que **desenha** NPC estava dentro do `if (cap2)`, e o laço que **insere o gancho de interação** ficava depois de um `return` seco em `entrouCh2()` para setores fora do Capítulo 2. Resultado: conversa escrita, caixa de colisão pendurada à mão, e ninguém na tela | Desenho para fora do `if (cap2)`, inserção extraída para `_porGenteNaFase()` e chamada pelos dois caminhos, e oito personagens desenhados de verdade em `creatures.js`. O teste agora mede **pixel na tela**, não a existência do objeto | 20 |
+| B-62 | 🔥 **O Capítulo 3 não terminava** | `ch3_pronto` exigia o fim de uma conversa com o Carlos que deixou de existir na sessão 22, quando falar com ele passou a abrir o interrogatório. O jogador fazia tudo — o flashback, a confissão, o cigarro — e ficava rodando a delegacia para sempre. Achado pelo Luiz jogando | O gatilho virou a própria cena: quebrar o Carlos marca `ch3_pronto`, o David diz que precisa sair, e a portaria pede o nome. O teste agora confere a flag no fim do interrogatório | 23 |
+| B-63 | 🔥 **A luz da cela nova não chegava no chão** | Lâmpada de raio 168 pendurada em y=30, chão em y=214: a luz morria 40px antes dos dois homens e a sala ficava preta com duas manchas dentro. **É o B-23 pela quinta vez**, e desta vez numa sala de 300px — o erro não é de sensibilidade, é de nunca conferir o alcance contra a altura do chão | Raio para 250, poça própria na altura do peito e contraluz frio na grade. O teste passou a exigir que exista lâmpada forte cujo raio **alcance o chão** | 23 |
 | B-60 | 🔥 **A sala de espera estava vazia** | O painel de senha contava, a fala dizia "ele está esperando a vez" e **não havia ninguém desenhado na cadeira**. Achado pelo Luiz jogando. É a mesma família do B-57 — objeto existe, pessoa não — e nenhum teste pegou porque todos conferiam o painel, que funcionava | A **figura negra do Capítulo 1** sentada ali, como silhueta (`silhouette` no rig, sem peça nenhuma e sem luz de contorno). O teste agora mede pixel na cadeira | 22 |
 | B-61 | 🔥 **O preso aparecia na frente da própria cela** | As grades eram pintadas na camada de fundo, e as pessoas são desenhadas **depois** das camadas: o Carlos ficava por cima das barras e o David em pé dentro da cela. Passou dois anos-sessão despercebido porque a câmera nunca chegava perto o bastante para denunciar — e a câmera fechando no interrogatório denunciou na primeira captura | Grade movida para camada de primeiro plano em paralaxe 1:1 (`cellBack` no fundo, `cellBarsOnly` na frente), e o David ganhou marca fixa do lado de fora. É o terceiro bug desta família | 22 |
 | B-58 | **Três objetos da casa do flashback abriam caixa de diálogo VAZIA** | `c3_home_tv`, `c3_home_table` e `c3_home_photos` eram citados pelos interagíveis da sala desde a sessão 20 e os textos nunca foram escritos. Na única sala quente do jogo, examinar a televisão, a mesa posta ou os porta-retratos não dizia nada. Nenhum teste pegava: todos conferiam que o interagível EXISTE, nenhum que ele FALA — é o M-07 outra vez, com outra roupa | Os três textos escritos em PT e EN, e o teste passou a exigir texto não-vazio para todo `lines` da casa e do quarto | 21 |
@@ -1345,6 +1460,8 @@ salva texto diferente**.
 | M-03 | **Deixei o servidor de captura na porta 8137**, a mesma do `ABRIR_JOGO.bat`, e derrubei o jogo do jogador no meio de uma sessão. Usar 8140 |
 | M-04 | **Repeti o B-23 inteiro** (sessão 09): construí o corredor de carga com luz calibrada para uma sala, num espaço 3× maior. A lição já estava escrita neste documento e eu não a apliquei. **A regra agora é numérica, não é sensibilidade:** lâmpada forte a cada ~400px e preenchimento fraco a cada ~200px na altura do chão, em qualquer fase maior que 800px |
 | M-05 | **Escrevi números de sanidade sem medir** (sessão 09). Trinta segundos de jogo levavam o medidor de 100 a 16. Números de ritmo têm que ser medidos rodando, e não escolhidos porque "parecem certos" — é o mesmo erro do M-02 com outra roupa |
+| M-13 | **Reaproveitei uma animação de "levar pancada" num personagem sentado** (sessão 23). `hurt` mexe as pernas, porque é o recuo de quem está em pé. Num homem sentado o resultado é que ele parece ter levantado da cadeira para apanhar — cômico exatamente onde não pode ser. **Animação não é intercambiável entre posturas:** quem está sentado precisa de uma versão em que as pernas não se mexem |
+| M-14 | **Escrevi um teste que media a reação DEPOIS de ela acabar** (sessão 23). A checagem do soco olhava a animação do Carlos no fim da troca de falas, quando ele já tinha voltado a sentar, e reprovava algo que estava certo. **Medição de animação tem que acontecer no instante do evento**, não no fim do turno de jogo |
 | M-11 | **Declarei duas variáveis com o nome de duas que já existiam** (sessão 22). O `gfx` já tinha `tmp` e `tmp2`; eu acrescentei outro `tmp` e reusei `this.t2`, que era o buffer do pós-processamento. O jogo inteiro parou de carregar com um `SyntaxError` de uma linha. **Antes de acrescentar campo em classe grande, procurar o nome primeiro** — e desconfiar de nome genérico (`tmp`, `t`, `buf`): quem já usou um provavelmente usou dois |
 | M-12 | **Testei a cor de um personagem sem olhar o que passou na frente dele** (sessão 22). A medição do macacão do Carlos era média simples de uma faixa; quando a grade foi para o primeiro plano, a média passou a incluir barra de aço e reprovou a COR por causa da ENCENAÇÃO. Medição de imagem tem que saber o que está no caminho — a correção foi medir o quarto mais quente dos pixels, que é o que passa entre as barras |
 | M-10 | **Escrevi uma máquina de estados que nunca saía do último estado** (sessão 21). O avanço de fase do incêndio fazia `idx = min(idx + 1, última)` e zerava o cronômetro; na última fase a condição de avanço continuava verdadeira e o cronômetro voltava a zero **antes** de a condição de fim ser lida. A cena queimava em loop e prendia o jogador. O padrão é o mesmo de sempre: **um `min()` que satura não é uma condição de parada** — quem termina tem que ser um ramo próprio, e o teste tem que perguntar "acabou?", não "chegou na última fase?" |
@@ -1389,6 +1506,8 @@ salva texto diferente**.
 | R-29 | 🔥 **O interrogatório nunca foi jogado por uma pessoa** | Script alterna verbos sem sentir nada. O que só a sua mão mede: se o Carlos é insuportável na medida certa, se alternar os três verbos continua interessante depois de três voltas, e se encher a barra até o fim **dá vergonha** — que é o efeito pretendido. Se der satisfação, o problema está no tom das falas do David, não na mecânica |
 | R-30 | **A confissão pode ser lida como a verdade do jogo** | Ela é a palavra de um homem espancado, e três coisas dizem isso (o caderno, o Michael e o próprio David admitindo que acredita mesmo assim). **Se na leitura humana ela soar como fato confirmado, é sinal de que o Capítulo 4 precisa desmentir alguma parte dela** — e é melhor decidir qual parte antes de escrever o 4 |
 | R-31 | **ANDRADE é nome provisório meu** | Aparece na confissão, na conversa do Michael e em duas páginas do caderno. Trocar é meia hora |
+| R-32 | **A cela por dentro nunca foi jogada** | Entrar pela grade, as três animações, o soco com peso, e sair com o capítulo terminando. Script não sente nada disso |
+| R-33 | **A doze agora viaja no casaco e não faz nada no Capítulo 3** | É proposital — ela é a promessa do 4. Mas se na sua mão o jogador ficar tentando usar e não conseguir, o certo é ela **não** ser pegável até o 4 começar. Isso é decisão sua depois de jogar |
 
 ### 13.3 — 🟡 Precisa de atenção, mas não urgente
 
@@ -1412,7 +1531,18 @@ salva texto diferente**.
 
 ## 14. ROADMAP — O QUE VEM AGORA
 
-### 📌 PRÓXIMO PASSO (sessão 22): **jogar o interrogatório**
+### 📌 PRÓXIMO PASSO (sessão 23): **jogar a cela inteira, do lado de dentro**
+
+> `MENU → CAPÍTULOS → 3` → subsolo → a porta da cela → **ENTRAR**.
+>
+> 1. Atravessar a grade e a delegacia sumir da tela **funciona**, ou parece
+>    só uma sala menor?
+> 2. As três animações se distinguem no meio da cena, ou viram a mesma
+>    coisa? O soco tem peso?
+> 3. Sair de lá com o capítulo terminando — o gatilho novo — chega na hora
+>    certa, ou você ainda fica rodando a delegacia sem saber o que fazer?
+
+### 📌 PASSO ANTERIOR (sessão 22): **jogar o interrogatório**
 
 > `MENU → CAPÍTULOS → 3`, descer até a cela e sentar na frente do Carlos.
 >
@@ -2354,6 +2484,9 @@ medidas dentro do pacote.
 | **A confissão** | O que o Carlos diz com a barra cheia. Foi arrancada na porrada e **não presta** — o caderno diz isso, o Michael diz isso, e o David acredita mesmo assim |
 | **Andrade** | O policial que ligou para a casa do David às 02h14. Nome provisório. O David ouve o nome e **não pergunta quem é** |
 | **`gfx.aproximar()`** | A câmera fechando, a 1,35x, chamada entre a luz e a interface — assim o mundo chega perto e o texto não vira letra de bloco |
+| **`ch3_dentro`** | Dentro da cela. 300px, o menor setor do jogo. Quando o David atravessa a grade, a delegacia sai da tela |
+| **`intAsk` · `intPush` · `intHit`** | Os três corpos do interrogatório. Cada um mais baixo e mais fechado que o anterior — a escada está no corpo, e ninguém comenta |
+| **`sitHurt` · `sitFlinch`** | Apanhar sentado. Existem porque `hurt` é um recuo de quem está em pé, e um homem sentado tocando `hurt` parece ter levantado da cadeira para apanhar |
 | **Conclusão** | A página que só existe se o jogador deduzir. Categoria própria no caderno |
 | **Insistir** | Perguntar de novo o que já foi respondido. Custa 5 de sanidade, só dá uma vez por assunto, e às vezes é o único caminho |
 | **`talkMem`** | O que ele já perguntou a cada pessoa, guardado nas flags do save em vez da sessão |
@@ -2366,7 +2499,20 @@ medidas dentro do pacote.
 
 ---
 
-> **Última atualização:** 10/08/2026 — Sessão 22 (Claude)
+> **Última atualização:** 10/08/2026 — Sessão 23 (Claude)
+> **O que mudou nela:** o David **entra na cela** (setor novo, a delegacia
+> sai da tela), três animações novas para os verbos e duas para o preso
+> apanhar sentado, o Carlos perdeu a árvore de conversa e o "senhor", o
+> cigarro virou o fim do interrogatório, o resto do "ele mesmo ligou" saiu,
+> a doze virou item, o incêndio acaba com ele **chutando a porta e
+> entrando**, e o flashback acontece uma vez só. Dois bugs: **B-62** (o
+> capítulo não terminava) e **B-63** (a luz da cela não chegava no chão).
+> **Próximo passo:** jogar a cela inteira — entrar, interrogar até o fim,
+> sair e terminar o capítulo.
+>
+> _(as notas abaixo são das sessões 21 e 22 e continuam valendo)_
+>
+> **Sessão 22:** o sistema de interrogatório
 > **O que mudou nela:** o **sistema de interrogatório** (três verbos, barra
 > de pressão, a câmera fechando), a ligação ganhou dono (**ANDRADE**, e
 > ninguém mais diz que o David ligou para si próprio), a **figura negra**

@@ -3689,6 +3689,82 @@ const ANIM = {
     ],
   },
 
+  // =====================================================================
+  // O INTERROGATORIO — tres animacoes, e elas sao a cena inteira
+  // =====================================================================
+  // Nao da para ver o rosto dele. Entao a atuacao e o CORPO, e o corpo tem
+  // que dizer tres coisas diferentes com o mesmo esqueleto:
+  //
+  //   intAsk ..... ele ainda e um detetive. Peso atras, braco cruzado,
+  //                cabeca inclinada. Distancia profissional.
+  //   intPush .... ele passou o peso para a frente e apontou o dedo. O
+  //                tronco entra no espaco do outro homem. Ainda e conversa,
+  //                mas ja nao e educada.
+  //   intHit ..... nao e o soco de briga (`punch1`). E um gancho de cima
+  //                para baixo em alguem SENTADO, com recuo longo e uma
+  //                PARADA de tres quadros no impacto. A parada e o que da
+  //                peso — sem ela o braco volta deslizando.
+  //
+  // A escada esta no corpo: cada uma dessas poses e mais baixa e mais
+  // fechada que a anterior. Quem estiver olhando vai ver o homem encolher
+  // enquanto a barra sobe, e ninguem vai dizer isso em voz alta.
+
+  intAsk: {
+    dur: 1.30, loop: false,
+    keys: [
+      { t: 0.00, p: pose({}) },
+      // peso na perna de tras, braco de tras cruzado sobre o corpo
+      { t: 0.26, p: pose({ torso: -6, head: 4, hx: -1.5, lBt: 8, lBs: -6, lFt: -7,
+                           aBu: 26, aBf: -74, aFu: -8, aFf: 16 }) },
+      { t: 0.55, p: pose({ torso: -7, head: 7, hx: -1.8, lBt: 9, lBs: -7, lFt: -8,
+                           aBu: 28, aBf: -78, aFu: -6, aFf: 14 }) },
+      { t: 0.78, p: pose({ torso: -5, head: 2, hx: -1.2, lBt: 7, lBs: -5, lFt: -6,
+                           aBu: 24, aBf: -72, aFu: -9, aFf: 17 }) },
+      { t: 1.00, p: pose({}) },
+    ],
+  },
+
+  intPush: {
+    dur: 1.05, loop: false, ease: 'linear',
+    keys: [
+      { t: 0.00, p: pose({}) },
+      // um passo a frente e o dedo subindo
+      { t: 0.22, p: pose({ torso: 9, head: -6, hx: 2.5, hy: -1, lFt: 22, lFs: -14,
+                           lBt: -12, lBs: -10, aFu: -46, aFf: 22, aBu: -14, aBf: 18 }) },
+      // o tronco entra no espaco do outro homem, e para la
+      { t: 0.44, p: pose({ torso: 17, head: -11, hx: 5, lFt: 26, lFs: -16,
+                           lBt: -16, lBs: -12, aFu: -74, aFf: 12, aBu: -20, aBf: 22 }) },
+      { t: 0.70, p: pose({ torso: 17, head: -11, hx: 5, lFt: 26, lFs: -16,
+                           lBt: -16, lBs: -12, aFu: -72, aFf: 10, aBu: -20, aBf: 22 }) },
+      { t: 1.00, p: pose({ torso: 4, head: -2, hx: 1.2, lFt: 8, lBt: -6,
+                           aFu: -18, aFf: 14, aBu: -6, aBf: 12 }) },
+    ],
+    events: [{ t: 0.24, ev: 'step' }],
+  },
+
+  intHit: {
+    dur: 0.74, loop: false, ease: 'linear',
+    keys: [
+      { t: 0.00, p: pose({ torso: 6, head: -4, hx: 1 }) },
+      // recuo longo: o braco sobe e vai para tras, o peso troca de perna
+      { t: 0.22, p: pose({ torso: -16, head: 10, hx: -4, hy: -1.5,
+                           aFu: -104, aFf: -30, aBu: 22, aBf: -30,
+                           lFt: -12, lFs: -8, lBt: 14, lBs: -10 }) },
+      // o gancho desce em cima de um homem sentado
+      { t: 0.42, p: pose({ torso: 22, head: -16, hx: 6.5, hy: 1,
+                           aFu: 108, aFf: -12, aBu: -22, aBf: 34,
+                           lFt: 16, lFs: -12, lBt: -14, lBs: -14 }) },
+      // A PARADA. Tres quadros no ponto do impacto — e ela que da peso.
+      { t: 0.56, p: pose({ torso: 22, head: -16, hx: 6.2, hy: 1,
+                           aFu: 106, aFf: -11, aBu: -21, aBf: 33,
+                           lFt: 16, lFs: -12, lBt: -14, lBs: -14 }) },
+      { t: 0.74, p: pose({ torso: 14, head: -9, hx: 3, aFu: 54, aFf: -20,
+                           aBu: -12, aBf: 26, lFt: 8, lBt: -8 }) },
+      { t: 1.00, p: pose({ torso: 6, head: -4, hx: 1 }) },
+    ],
+    events: [{ t: 0.24, ev: 'whoosh' }, { t: 0.44, ev: 'hit' }],
+  },
+
   // Levar uma pancada: o corpo recua, a cabeca vai junto, e ele volta.
   hurt: {
     dur: 0.44, loop: false, ease: 'linear',
@@ -4039,6 +4115,36 @@ const ANIM = {
     keys: [
       { t: 0.00, p: pose({ hy: 13, torso: -3, head: 3, lFt: 84, lFs: -86, lFf: 0, lBt: 78, lBs: -80, lBf: 0, aFu: 30, aFf: -58, aBu: 26, aBf: -54 }) },
       { t: 0.50, p: pose({ hy: 12.2, torso: -5, head: 4, lFt: 84, lFs: -86, lFf: 0, lBt: 78, lBs: -80, lBf: 0, aFu: 31, aFf: -59, aBu: 27, aBf: -55 }) },
+      { t: 1.00, p: pose({ hy: 13, torso: -3, head: 3, lFt: 84, lFs: -86, lFf: 0, lBt: 78, lBs: -80, lBf: 0, aFu: 30, aFf: -58, aBu: 26, aBf: -54 }) },
+    ],
+  },
+
+  // Levar uma pancada SENTADO. Existe porque `hurt` e um recuo de quem
+  // esta em pe: um homem sentado tocando `hurt` parece ter levantado da
+  // cadeira para apanhar, e o efeito e comico exatamente onde nao pode ser.
+  // Aqui as pernas nao se mexem — o que recua e o tronco, e a cabeca vai
+  // junto e volta devagar demais, como cabeca de quem apanhou de verdade.
+  sitHurt: {
+    dur: 1.10, loop: false, ease: 'linear',
+    keys: [
+      { t: 0.00, p: pose({ hy: 13, torso: -3, head: 3, lFt: 84, lFs: -86, lFf: 0, lBt: 78, lBs: -80, lBf: 0, aFu: 30, aFf: -58, aBu: 26, aBf: -54 }) },
+      // o impacto: tronco vira, cabeca joga para o lado, bracos sobem
+      { t: 0.14, p: pose({ hy: 13.5, torso: 20, head: -14, hx: -3.5, lFt: 84, lFs: -86, lFf: 0, lBt: 78, lBs: -80, lBf: 0, aFu: 8, aFf: -30, aBu: 4, aBf: -26 }) },
+      { t: 0.34, p: pose({ hy: 13.5, torso: 16, head: -10, hx: -2.5, lFt: 84, lFs: -86, lFf: 0, lBt: 78, lBs: -80, lBf: 0, aFu: 14, aFf: -38, aBu: 10, aBf: -34 }) },
+      // ele se recompoe devagar, e volta a mesma posicao de antes
+      { t: 0.70, p: pose({ hy: 13.2, torso: 4, head: -2, hx: -1, lFt: 84, lFs: -86, lFf: 0, lBt: 78, lBs: -80, lBf: 0, aFu: 24, aFf: -50, aBu: 20, aBf: -46 }) },
+      { t: 1.00, p: pose({ hy: 13, torso: -3, head: 3, lFt: 84, lFs: -86, lFf: 0, lBt: 78, lBs: -80, lBf: 0, aFu: 30, aFf: -58, aBu: 26, aBf: -54 }) },
+    ],
+  },
+
+  // Sentado, encolhendo: e a reacao ao PRESSIONAR, e a diferenca para o
+  // soco e que aqui nada bate nele. Ele so fica menor.
+  sitFlinch: {
+    dur: 0.95, loop: false,
+    keys: [
+      { t: 0.00, p: pose({ hy: 13, torso: -3, head: 3, lFt: 84, lFs: -86, lFf: 0, lBt: 78, lBs: -80, lBf: 0, aFu: 30, aFf: -58, aBu: 26, aBf: -54 }) },
+      { t: 0.30, p: pose({ hy: 13.4, torso: 8, head: -6, hx: -1.6, lFt: 84, lFs: -86, lFf: 0, lBt: 78, lBs: -80, lBf: 0, aFu: 20, aFf: -46, aBu: 16, aBf: -42 }) },
+      { t: 0.62, p: pose({ hy: 13.4, torso: 7, head: -5, hx: -1.4, lFt: 84, lFs: -86, lFf: 0, lBt: 78, lBs: -80, lBf: 0, aFu: 21, aFf: -47, aBu: 17, aBf: -43 }) },
       { t: 1.00, p: pose({ hy: 13, torso: -3, head: 3, lFt: 84, lFs: -86, lFf: 0, lBt: 78, lBs: -80, lBf: 0, aFu: 30, aFf: -58, aBu: 26, aBf: -54 }) },
     ],
   },
@@ -11468,9 +11574,12 @@ function buildCell() {
   // o cinzeiro em cima da mesa, com dois cigarros
   rect(g, CEL + 132, GY - 45, 12, 5, '#4a4640');
   // a porta da cela: destrancada. Nunca esteve trancada.
+  // A PORTA DA CELA. Ela nunca esteve trancada — e agora isso deixa de ser
+  // so uma frase: da para ENTRAR. Atravessar essa grade e o gesto que abre
+  // o interrogatorio, e e o jogador que executa.
   inter.push({
-    x: CEL + 176, y: GY - 118, w: 24, h: 118, prompt: 'prompt_look',
-    action: 'ch3_porta_cela', range: 26, id: 'porta_cela',
+    x: CEL + 168, y: GY - 118, w: 34, h: 118, prompt: 'prompt_use',
+    action: 'ch3_entrar_cela', range: 30, id: 'porta_cela', prio: 2,
   });
   lights.push({ x: CEL + 100, y: GY - 132, r: 148, color: '#d8a850', i: 0.66, flick: 'bulb', falloff: 0.95 });
   lights.push({ x: CEL + 100, y: GY - 132, r: 22, color: '#ffe0a0', i: 0.6 });
@@ -11537,6 +11646,140 @@ function buildCell() {
 }
 
 // ---------------------------------------------------------------------------
+// 6b — DENTRO DA CELA
+// ---------------------------------------------------------------------------
+// O jogo inteiro se passa em corredores de 700 a 1700 pixels. Esta sala tem
+// 300, e e a menor do jogo por muita distancia.
+//
+// Nao e economia: e a cena. Quando o David atravessa a grade, a delegacia
+// SAI DA TELA — some o corredor, some a profundidade, some a saida. Sobra
+// concreto, uma lampada e outro homem. E dai em diante nao existe mais para
+// onde a camera fugir.
+//
+// A grade fica ATRAS dele, do lado esquerdo, em primeiro plano: o jogador ve
+// as barras entre a camera e o proprio personagem, e e assim que ele entende
+// que quem entrou na jaula foi o David.
+
+function buildInsideCell() {
+  const W = 300;
+
+  const back = makeBuffer(Math.ceil(VW + (W - VW) * 0.5) + 8, VH);
+  {
+    const b = back.x;
+    rect(b, 0, 0, b.canvas.width, VH, '#05070a');
+  }
+
+  const main = makeBuffer(W, VH);
+  const g = main.x;
+
+  rect(g, 0, 0, W, VH, '#151a20');
+  M.brickWall(g, 0, 10, W, GY - 10, 9801, { hi: '#41413c', mid: '#2f2f2b', dk: '#1d1d1b' });
+  rect(g, 0, 0, W, 10, '#080a0d');
+  M.asphalt(g, 0, GY, W, VH - GY, 9811, { hi: '#37342c', mid: '#292620', dk: '#1b1a16' });
+  rect(g, 0, GY, W, 1, '#0a0908');
+
+  // manchas de umidade e as marcas de quem passou a noite aqui
+  grainRect(g, 0, 40, W, GY - 40, ['#4a4a44', '#22221f'], 0.03, 9821);
+  for (let i = 0; i < 5; i++) rect(g, 214 + (i % 2) * 3, 96 + i * 6, 9, 1, '#5a5a52');
+
+  const inter = [];
+  const lights = [];
+
+  // ---- o banco de concreto, e a mesa parafusada ----
+  rect(g, 150, GY - 40, 96, 8, '#3a3d42');
+  rect(g, 150, GY - 40, 96, 2, '#4c5057');
+  rect(g, 158, GY - 32, 9, 32, '#2e3136');
+  rect(g, 230, GY - 32, 9, 32, '#2e3136');
+  rect(g, 60, GY - 44, 54, 5, '#31353b');
+  rect(g, 60, GY - 44, 54, 1, '#454a51');
+  rect(g, 84, GY - 39, 7, 39, '#262a2f');
+  // o cinzeiro, que so ganha dois cigarros no fim
+  rect(g, 72, GY - 49, 14, 5, '#4a4640');
+  rect(g, 73, GY - 50, 12, 1, '#33302b');
+
+  // ---- a grade, ATRAS dele, do lado da porta ----
+  // (desenhada na camada de primeiro plano, mais abaixo)
+
+  // ---- a lampada: uma so, amarela, e ela e o teto inteiro ----
+  //
+  // ⚠ A primeira versao tinha raio 168 pendurada em y=30. O chao esta em
+  // 214: a luz morria 40 pixels antes de chegar nos dois homens, e a cena
+  // inteira ficava preta com duas manchas dentro. E o B-23 pela quinta vez.
+  // Aqui a lampada CHEGA NO CHAO, e ainda ha uma poca propria na altura em
+  // que a conversa acontece.
+  M.bareBulb(g, 150, 12, 16);
+  lights.push({ x: 150, y: 30, r: 250, color: '#e0b45c', i: 0.95, flick: 'bulb', falloff: 0.82 });
+  lights.push({ x: 150, y: 30, r: 26, color: '#fff0c0', i: 0.7 });
+  // a poca em cima dos dois, na altura do peito
+  lights.push({ x: 174, y: GY - 40, r: 176, color: '#d8a860', i: 0.62, falloff: 0.95 });
+  // e a grade pega um contraluz frio, para ela existir no quadro
+  lights.push({ x: 18, y: GY - 62, r: 132, color: '#7d90a8', i: 0.44, falloff: 1.1 });
+  preencher(lights, W, '#8a7a58', 0.26);
+
+  // ---- a saida: de volta para o corredor ----
+  // ⚠ A caixa da saida tem que ficar ao ALCANCE de onde o jogador consegue
+  // parar. Com `minX` em 74 e a porta centrada em 23, ele encostava na
+  // parede e o prompt nunca aparecia: dava para entrar na cela e nao dava
+  // para sair dela a pe.
+  inter.push({
+    x: 30, y: GY - 100, w: 48, h: 100, prompt: 'prompt_open',
+    action: 'goto', to: 'ch3_cell', tox: 300, tofacing: -1, range: 44, isDoor: true, prio: 1,
+    id: 'sair_cela',
+  });
+
+  const grade = makeBuffer(W, VH);
+  {
+    const q = grade.x;
+    // as barras vistas de DENTRO: mais proximas, mais grossas, e passando
+    // na frente do proprio personagem do jogador
+    for (let bx = 0; bx < 64; bx += 11) {
+      rect(q, bx, GY - 150, 4, 150, '#3d4650');
+      rect(q, bx, GY - 150, 1, 150, '#5a6674');
+      rect(q, bx + 3, GY - 150, 1, 150, '#252d36');
+    }
+    rect(q, 0, GY - 150, 64, 5, '#4f5a67');
+    rect(q, 0, GY - 6, 64, 6, '#3d4650');
+  }
+
+  const fore = makeBuffer(Math.ceil(VW + (W - VW) * 1.2) + 8, VH);
+  {
+    const f = fore.x;
+    rect(f, 0, 0, f.canvas.width, 10, '#030405');
+    rect(f, 0, VH - 6, f.canvas.width, 6, '#030405');
+  }
+
+  const lvl = new Level({
+    key: 'ch3_dentro',
+    nameKey: 'loc_inside',
+    width: W, groundY: GY,
+    ambient: '#22242c',
+    layers: [{ c: back.c, par: 0.5 }, { c: main.c, par: 1 }],
+    fores: [{ c: grade.c, par: 1 }, { c: fore.c, par: 1.2 }],
+    lightDefs: lights,
+    interactables: inter,
+    weather: 'none',
+    reflect: 0.04,
+    minX: 74, maxX: W - 40,
+    spawn: { x: 100, facing: 1 },
+    bloom: 0.4,
+    indoor: true,
+    material: 'concrete',
+    ambience: [{ n: 'roomtone', g: 0.12 }],
+    randomSfx: [],
+    maxInimigos: 0,
+    enterBarks: [],
+  });
+  lvl.props.cigarrosNoCinzeiro = false;
+  // Onde ele para, de frente para o homem sentado. ⚠ A distancia entre os
+  // dois e a coisa mais importante desta sala: a 88 pixels o soco acertava
+  // o AR, e um soco que nao alcanca ninguem nao e um soco, e um gesto. A
+  // 46 o braco esticado chega no outro homem, que e o comprimento real de
+  // um braco na escala do jogo.
+  lvl.props.marcaInt = 150;
+  return lvl;
+}
+
+// ---------------------------------------------------------------------------
 
 function buildChapter3() {
   return {
@@ -11548,6 +11791,7 @@ function buildChapter3() {
     ch3_home: buildHome(),
     ch3_room: buildKidsRoom(),
     ch3_cell: buildCell(),
+    ch3_dentro: buildInsideCell(),
   };
 }
 
@@ -11560,6 +11804,7 @@ function buildChapter3() {
   Object.defineProperty(__exp, "buildHome", { get: function(){ return buildHome; }, enumerable: true });
   Object.defineProperty(__exp, "buildKidsRoom", { get: function(){ return buildKidsRoom; }, enumerable: true });
   Object.defineProperty(__exp, "buildCell", { get: function(){ return buildCell; }, enumerable: true });
+  Object.defineProperty(__exp, "buildInsideCell", { get: function(){ return buildInsideCell; }, enumerable: true });
   Object.defineProperty(__exp, "buildChapter3", { get: function(){ return buildChapter3; }, enumerable: true });
 };
 __mods["world/levels-chase.js"] = function(__exp){
@@ -12008,6 +12253,7 @@ const STR = {
   // ⚠ O cartao do lugar nao pode dizer o nome dela. "O QUARTO" e o que o
   // jogo tem direito de escrever aqui.
   loc_room:       { pt: 'O QUARTO',             en: 'HER ROOM' },
+  loc_inside:     { pt: 'DENTRO',               en: 'INSIDE' },
   loc_cell:       { pt: 'CUSTODIA',             en: 'HOLDING' },
 
   loc_corridor:   { pt: 'CORREDOR DE CARGA',    en: 'LOADING CORRIDOR' },
@@ -12128,6 +12374,10 @@ const STR = {
   map_unknown:   { pt: 'SALA 0',      en: 'ROOM 0' },
 
   speaker_me:     { pt: 'DAVID',   en: 'DAVID' },
+  // O Carlos perdeu a arvore de conversa na sessao 23 e com ela o campo
+  // `speaker`. O nome dele passou a morar aqui, que e onde deveria estar
+  // desde sempre: quem fala numa cena nao depende de existir uma arvore.
+  speaker_carlos: { pt: 'CARLOS',  en: 'CARLOS' },
   talk_leave:     { pt: 'Deixa pra lá.', en: 'Never mind.' },
   prompt_take:    { pt: 'PEGAR',   en: 'TAKE' },
   prompt_read:    { pt: 'LER',     en: 'READ' },
@@ -12402,6 +12652,9 @@ const STR = {
   it_gun:         { pt: 'PISTOLA',            en: 'PISTOL' },
   it_gun_d:       { pt: 'Limpa demais pra um lugar assim.',
                     en: 'Too clean for a place like this.' },
+  it_shotgun:     { pt: 'CALIBRE DOZE',       en: 'TWELVE GAUGE' },
+  it_shotgun_d:   { pt: 'Do armario da minha mesa. Carregada, e ninguem deu baixa nela em sete anos.',
+                    en: 'From the cabinet in my desk. Loaded, and nobody signed it out in seven years.' },
   it_map:         { pt: 'MAPA DO GALPAO',     en: 'WAREHOUSE MAP' },
   it_map_d:       { pt: 'Planta baixa. Alguém marcou a doca 3 a lápis.',
                     en: 'Floor plan. Somebody pencilled a mark on dock 3.' },
@@ -12533,6 +12786,8 @@ const STR = {
                 en: 'A, B, C. E. Down here the D exists.' },
   b3_arq_volta:{ pt: 'Eu andei menos do que isso na ida.',
                 en: 'I walked less than this on the way in.' },
+  b3_arq_denovo:{ pt: 'Ja abri essa pasta hoje. Uma vez foi mais do que suficiente.',
+                en: 'I already opened that folder tonight. Once was more than enough.' },
 
   // ---------- falas soltas: sete anos atras ----------
   b3_past_1:  { pt: 'Boa noite pra terminar cedo.',
@@ -12579,11 +12834,13 @@ const STR = {
                 en: 'No—' },
   b3_fogo_2:  { pt: 'JULIE!',
                 en: 'JULIE!' },
-  b3_fogo_3:  { pt: '—',
+  b3_fogo_3:  { pt: 'ABRE—',
+                en: 'OPEN—' },
+  b3_fogo_4:  { pt: '—',
                 en: '—' },
-  b3_fogo_4:  { pt: 'Abre. Abre. ABRE—',
-                en: 'Open. Open. OPEN—' },
-  b3_fogo_5:  { pt: '...',
+  b3_fogo_5:  { pt: 'Sai da frente. SAI DA FRENTE—',
+                en: 'Get out of the way. GET OUT OF THE WAY—' },
+  b3_fogo_6:  { pt: '...',
                 en: '...' },
 
   // ---------- falas soltas: a cela ----------
@@ -12637,6 +12894,8 @@ const STR = {
                    en: '...' },
   b3_int_saida:  { pt: 'Eu nao vou conseguir desouvir isso.',
                    en: 'I am not going to be able to un-hear that.' },
+  b3_int_sair:   { pt: 'Eu preciso sair daqui. Agora.',
+                   en: 'I need to get out of here. Now.' },
 
   b3_cell_vazia:{ pt: 'Dois cigarros acesos. Da mesma marca.',
                 en: 'Two cigarettes burning. Same brand.' },
@@ -13610,12 +13869,15 @@ const TALKS = {
           { pt: 'Você prendeu o Carlos às oito e doze e foi pra casa feliz da vida.',
             en: 'You booked Carlos at eight twelve and went home happy as hell.' },
           { pt: 'ME|E depois?', en: 'ME|And then?' },
-          { pt: 'Depois o telefone daqui tocou, duas e quatorze, e era você.',
-            en: 'Then the phone here rang at two fourteen, and it was you.' },
+          { pt: 'Depois o telefone daqui tocou, duas e quatorze, e era você do outro lado.',
+            en: 'Then the phone here rang at two fourteen, and it was you on the other end.' },
           { pt: 'Você não conseguia falar. Só respirava.',
             en: 'You could not talk. You were just breathing.' },
-          { pt: 'E antes disso saiu uma chamada DAQUI pra sua casa. Um minuto antes.',
-            en: 'And a minute before that, a call went out from HERE to your house.' },
+          { pt: 'E um minuto ANTES disso saiu uma chamada daqui pra sua casa.',
+            en: 'And one minute BEFORE that, a call went out from here to your house.' },
+          { pt: 'ME|Daqui pra minha casa.', en: 'ME|From here to my house.' },
+          { pt: 'Do ramal desta sala. E ninguém nunca soube quem discou.',
+            en: 'From the extension in this room. And nobody ever knew who dialled.' },
           // ⚠ Michael conta o incendio ANTES de o jogador ver o incendio. E
           // proposital: o jogador desce para o arquivo sabendo que a casa
           // queimou, e ai joga a noite inteira dentro dela. Cada minuto do
@@ -13637,13 +13899,14 @@ const TALKS = {
           { pt: 'ME|Michael. Quem me ligou?',
             en: 'ME|Michael. Who called me?' },
           { pt: '(ele passa a mão na nuca)', en: '(he rubs the back of his neck)' },
-          { pt: 'A companhia disse que naquela madrugada não entrou chamada nenhuma no seu número.',
-            en: 'The phone company said no call came into your number that night.' },
-          { pt: 'ME|Eu atendi.', en: 'ME|I answered it.' },
-          { pt: 'Eu sei que você atendeu. Eu vi o telefone na sua mão.',
-            en: 'I know you did. I saw the phone in your hand.' },
-          { pt: 'Nunca conseguimos explicar isso, e eu parei de tentar.',
-            en: 'We never explained it, and I stopped trying.' },
+          { pt: 'A companhia confirmou a chamada. Origem: esta sala. Duração: onze segundos.',
+            en: 'The company confirmed the call. Origin: this room. Duration: eleven seconds.' },
+          { pt: 'ME|E quem estava nesta sala às duas e quatorze?',
+            en: 'ME|And who was in this room at two fourteen?' },
+          { pt: 'Meia dúzia de gente, e nenhuma delas assumiu o telefone.',
+            en: 'Half a dozen people, and not one of them owned up to the phone.' },
+          { pt: 'Nunca conseguimos fechar isso, e eu parei de tentar.',
+            en: 'We never closed that, and I stopped trying.' },
         ],
         back: 'a',
       },
@@ -13972,16 +14235,16 @@ const TALKS = {
       },
       ligacao2: {
         lines: [
-          { pt: 'ME|Você anotou de onde veio a chamada?',
-            en: 'ME|Did you log where the call came from?' },
+          { pt: 'ME|E teve alguma chamada SAINDO daqui naquela noite?',
+            en: 'ME|And did any call go OUT from here that night?' },
           { pt: '(ela para de datilografar)', en: '(she stops typing)' },
-          { pt: 'Anotei. Do ramal desta sala.',
-            en: 'I did. From the extension in this room.' },
-          { pt: 'ME|Como assim desta sala.', en: 'ME|What do you mean, this room.' },
-          { pt: 'A chamada entrou daqui de dentro, David.',
-            en: 'The call came from inside here, David.' },
-          { pt: 'Foi por isso que ninguém quis assinar aquele relatório.',
-            en: 'That is why nobody would sign that report.' },
+          { pt: 'Teve. Duas e treze. Do ramal desta sala pro seu número.',
+            en: 'There was. Two thirteen. From the extension in this room to your number.' },
+          { pt: 'ME|Quem discou?', en: 'ME|Who dialled?' },
+          { pt: 'O livro pede o nome de quem usa a linha. Aquela está em branco.',
+            en: 'The book asks for the name of whoever uses the line. That one is blank.' },
+          { pt: 'É a única linha em branco em sete anos de livro. Foi por isso que ninguém quis assinar o relatório.',
+            en: 'It is the only blank line in seven years of that book. That is why nobody would sign the report.' },
         ],
         back: 'a',
       },
@@ -14066,209 +14329,17 @@ const TALKS = {
   },
 
   // ---------------------------------------------------------------------
-  // CARLOS — a cela. O interrogatorio.
+  // ⚠ O CARLOS NAO TEM MAIS ARVORE DE CONVERSA.
   //
-  // REGRAS: nunca ameaca, nunca levanta a voz, nunca e "vilao". Nunca
-  // confirma nem nega o que fez. Responde perguntas sobre DAVID com
-  // precisao desconfortavel. E uma vez, uma vez so, diz algo que nao teria
-  // como saber — e segue falando como se nao tivesse dito.
+  // Ela existiu ate a sessao 22 e foi removida inteira na 23: falar com ele
+  // abria uma lista de assuntos e o David tratava BEM o homem que mandou
+  // matar a familia dele. Tudo o que ele diz agora esta em INTERROGATORIO,
+  // que e uma cena jogavel — inclusive o cigarro, que era o no `cigarro`
+  // desta arvore e virou o fim da cena.
   //
-  // O no `cigarro` e onde o DEGRAU 4 acontece. main.js escuta esse no.
+  // Ele tambem parou de chamar o David de "senhor". Ele nao tem medo, nao
+  // tem respeito e nao tem nada a perder; tratar por voce e o personagem.
   // ---------------------------------------------------------------------
-  carlos: {
-    speaker: { pt: 'CARLOS', en: 'CARLOS' },
-    start: 'a',
-    nodes: {
-      a: {
-        lines: [
-          { pt: '(ele está sentado no banco de concreto. Camiseta. Sem sapato.)',
-            en: '(he is sitting on the concrete bench. Undershirt. No shoes.)' },
-          { pt: 'Demorou sete anos.', en: 'Took you seven years.' },
-        ],
-        choices: [
-          { pt: 'Você mandou matar a minha mulher.',
-            en: 'You had my wife killed.', to: 'foi' },
-          { pt: 'Onde está a minha filha?', en: 'Where is my daughter?', to: 'menina' },
-          { pt: 'Por que você está aqui hoje?', en: 'Why are you here tonight?', to: 'hoje' },
-          { pt: 'Cigarro?', en: 'Cigarette?', to: 'cigarro' },
-          { pt: 'O que você faz com sete anos parado?',
-            en: 'What do you do with seven years of sitting still?', to: 'anos' },
-          { pt: 'Você lembra da minha mulher?', en: 'Do you remember my wife?', to: 'julie' },
-          { pt: 'Alguém escreveu no meu caderno.',
-            en: 'Somebody wrote in my notebook.', to: 'caderno', req: 'ded_letra' },
-          { pt: 'A casa pegou fogo depois.',
-            en: 'The house burned afterwards.', to: 'fogo', req: 'ded_fogo' },
-        ],
-      },
-      // O NUCLEO DA HISTORIA: o alibi dele e o registro da propria prisao.
-      // David o prendeu as 20h. A familia morreu as 02h14. Ele estava numa
-      // cela — e por isso a teoria da vinganca nunca fechou.
-      foi: {
-        lines: [
-          { pt: 'O senhor me algemou às oito e doze.',
-            en: 'You cuffed me at eight twelve.' },
-          { pt: 'ME|Eu sei a hora.', en: 'ME|I know the time.' },
-          { pt: 'Então o senhor sabe onde eu estava às duas e quatorze.',
-            en: 'Then you know where I was at two fourteen.' },
-          { pt: 'ME|Você tinha gente.', en: 'ME|You had people.' },
-          { pt: 'Tinha. E eles foram todos ouvidos, um por um, e todos tinham onde estar.',
-            en: 'I did. And every one of them was questioned, and every one of them was somewhere else.' },
-          { pt: 'O senhor mesmo assinou os depoimentos.',
-            en: 'You signed the statements yourself.' },
-        ],
-        press: 'foi2',
-        back: 'a',
-      },
-      foi2: {
-        lines: [
-          { pt: 'ME|Alguém entrou na minha casa.',
-            en: 'ME|Somebody came into my house.' },
-          { pt: 'Alguém entrou.', en: 'Somebody did.' },
-          { pt: 'ME|E não foi você.', en: 'ME|And it was not you.' },
-          { pt: '(ele não responde por um tempo)', en: '(he does not answer for a while)' },
-          { pt: 'O senhor estava na varanda.', en: 'You were out on the porch.' },
-          { pt: 'ME|Como você sabe da varanda?',
-            en: 'ME|How do you know about the porch?' },
-          { pt: 'No telefone. Com um cigarro na mão.',
-            en: 'On the phone. Cigarette in your hand.' },
-          { pt: '(ele muda de assunto sem pausa nenhuma)',
-            en: '(he changes the subject without a beat)' },
-          { pt: 'Aqui dentro não tem relógio. O senhor reparou?',
-            en: 'There is no clock in here. Did you notice?' },
-        ],
-        back: 'a',
-      },
-      menina: {
-        lines: [
-          { pt: 'Eu não sei.', en: 'I do not know.' },
-          { pt: 'ME|Você sabe.', en: 'ME|You know.' },
-          { pt: 'Se eu soubesse eu tinha trocado por alguma coisa. Faz sete anos que eu tenho o que trocar.',
-            en: 'If I knew I would have traded it for something. I have had seven years of things to trade.' },
-        ],
-        press: 'menina2',
-        back: 'a',
-      },
-      menina2: {
-        lines: [
-          { pt: 'ME|Nunca acharam ela.', en: 'ME|They never found her.' },
-          { pt: 'Morto fica onde caiu, senhor. É a graça de morto.',
-            en: 'The dead stay where they fell, sir. That is the thing about the dead.' },
-          { pt: 'ME|E ela?', en: 'ME|And her?' },
-          { pt: 'Ela o senhor procura até hoje.', en: 'Her you are still looking for.' },
-          { pt: '(pausa)', en: '(a pause)' },
-          { pt: 'Toda noite, senhor. O senhor procura toda noite.',
-            en: 'Every night, sir. You look for her every night.' },
-        ],
-        back: 'a',
-      },
-      // O motivo mundano de ele estar aqui. Sem isso a cela nao se sustenta.
-      hoje: {
-        lines: [
-          { pt: 'Transferência. Audiência de manhã.',
-            en: 'Transfer. Hearing in the morning.' },
-          { pt: 'Passo a noite aqui e sigo às sete.',
-            en: 'I spend the night here and move on at seven.' },
-          { pt: 'ME|Justo hoje.', en: 'ME|Tonight of all nights.' },
-          { pt: 'Justo hoje.', en: 'Tonight of all nights.' },
-        ],
-        back: 'a',
-      },
-      caderno: {
-        lines: [
-          { pt: 'Letra firme?', en: 'Steady hand?' },
-          { pt: 'ME|Firme.', en: 'ME|Steady.' },
-          { pt: 'Então é de antes.', en: 'Then it is from before.' },
-          { pt: 'ME|Antes de quê?', en: 'ME|Before what?' },
-          { pt: 'De o senhor ficar assim.', en: 'Before you got like this.' },
-        ],
-        back: 'a',
-      },
-      anos: {
-        lines: [
-          { pt: 'Conta.', en: 'You count.' },
-          { pt: 'ME|Conta o quê?', en: 'ME|Count what?' },
-          { pt: 'Tudo. Passo até a parede, azulejo do banho, quantas vezes a porta abre.',
-            en: 'Everything. Steps to the wall, tiles in the shower, how many times the door opens.' },
-          { pt: 'Um dia o número muda e o senhor descobre que contou errado a vida toda.',
-            en: 'One day the number changes and you find out you counted wrong your whole life.' },
-          { pt: 'ME|E aí?', en: 'ME|And then?' },
-          { pt: 'Aí conta de novo.', en: 'Then you count again.' },
-        ],
-        back: 'a',
-      },
-      julie: {
-        lines: [
-          { pt: 'Do nome eu lembro. Do resto não.',
-            en: 'I remember the name. Not the rest.' },
-          { pt: 'ME|Você nunca a viu.', en: 'ME|You never saw her.' },
-          { pt: 'Nunca. O senhor falava dela no interrogatório.',
-            en: 'Never. You talked about her in the interview room.' },
-          { pt: 'ME|Eu não falei da minha mulher com você.',
-            en: 'ME|I did not talk about my wife with you.' },
-          { pt: 'Falou sim. Sete horas naquela sala, senhor. Ninguém aguenta sete horas sem falar de casa.',
-            en: 'You did. Seven hours in that room, sir. Nobody lasts seven hours without talking about home.' },
-        ],
-        back: 'a',
-      },
-      // ---- so depois do flashback ----
-      // ⚠ Ele NAO confirma e NAO nega. E diz uma coisa que nao teria como
-      // saber, e segue como se nao tivesse dito — regra do personagem.
-      fogo: {
-        lines: [
-          { pt: '(ele assente devagar, como quem ja sabia)',
-            en: '(he nods slowly, like a man who already knew)' },
-          { pt: 'Pegou.', en: 'It did.' },
-          { pt: 'ME|Como você sabe disso?', en: 'ME|How do you know that?' },
-          { pt: 'O senhor mesmo me contou.', en: 'You told me yourself.' },
-          { pt: 'ME|Eu nunca falei com você depois daquela noite.',
-            en: 'ME|I never spoke to you after that night.' },
-          { pt: '(ele coça o pulso, onde fica a pulseira de papel)',
-            en: '(he scratches his wrist, where the paper band sits)' },
-          { pt: 'Fogo é limpo, senhor. É a única coisa que não deixa pergunta.',
-            en: 'Fire is clean, sir. It is the only thing that leaves no question.' },
-        ],
-        press: 'fogo2',
-        back: 'a',
-      },
-      fogo2: {
-        lines: [
-          { pt: 'ME|Deixa uma.', en: 'ME|It leaves one.' },
-          { pt: 'Deixa.', en: 'It does.' },
-          { pt: 'ME|Não tinha nada dela lá dentro. Nada.',
-            en: 'ME|There was nothing of hers in there. Nothing.' },
-          { pt: '(pausa)', en: '(a pause)' },
-          { pt: 'Então ela não estava lá dentro.', en: 'Then she was not in there.' },
-          { pt: 'ME|...', en: 'ME|...' },
-          { pt: 'O senhor já sabia disso. Faz sete anos que o senhor sabe.',
-            en: 'You already knew that. You have known for seven years.' },
-        ],
-        back: 'a',
-      },
-      // ---- DEGRAU 4 ----
-      // Ele acende um pro cara falar. E tecnica, e oficio, ele fez isso mil
-      // vezes. E ai acende um pra ele. No automatico. Sem pensar. Sem uma
-      // linha de dialogo antes. O JOGO NAO PERGUNTA NADA AO JOGADOR AQUI.
-      cigarro: {
-        lines: [
-          { pt: '(ele olha para o bolso do sobretudo)',
-            en: '(he looks at the coat pocket)' },
-          { pt: 'O senhor ainda carrega o maço.', en: 'You still carry the pack.' },
-          { pt: 'ME|Carrego.', en: 'ME|I do.' },
-          { pt: 'Me dá um.', en: 'Give me one.' },
-          { pt: '(David tira dois do maço, estende um pela grade e acende com o próprio isqueiro)',
-            en: '(David takes two from the pack, holds one through the bars and lights it with his own lighter)' },
-          { pt: '(depois acende o outro)', en: '(then he lights the other one)' },
-        ],
-        back: 'a',
-      },
-      fim: {
-        lines: [
-          { pt: 'Volta quando quiser. Eu não vou a lugar nenhum.',
-            en: 'Come back whenever. I am not going anywhere.' },
-        ],
-      },
-    },
-  },
 
   // =====================================================================
   // A CASA, SETE ANOS ATRAS
@@ -14702,8 +14773,12 @@ const JOURNAL = {
              en: 'SHIFT REPORT — fragment 1/3. “At 2:14 the supervisor ordered gate 3 kept shut. The emergency call was classified as duplicate. Signature removed.”' },
   d_caso: { cat: 'document', pt: 'FICHA DE EVIDÊNCIA — trecho 2/3. “Objeto pessoal recolhido: sobretudo escuro, cigarro da marca habitual, gravação sem fita. O responsável pela coleta recusou-se a identificar a vítima.”',
             en: 'EVIDENCE FORM — fragment 2/3. “Personal effects: dark overcoat, usual cigarette brand, recorder without tape. Collecting officer refused to identify the victim.”' },
-  d_voz: { cat: 'document', pt: 'TRANSCRIÇÃO — trecho 3/3. “Chamador: D. [inaudível]. Operadora: senhor, esta linha vem de dentro. Chamador: eu sei. Não abra a porta quando eu pedir.” O restante foi apagado.',
-           en: 'TRANSCRIPT — fragment 3/3. “Caller: D. [inaudible]. Operator: sir, this line comes from inside. Caller: I know. Do not open the door when I ask.” The remainder was erased.' },
+  // ⚠ MUDOU na sessao 23. A transcricao dizia "Chamador: D." e apontava o
+  // proprio David como quem ligou — o canon velho. Agora o nome esta
+  // comido pelo mesmo jeito que come o nome da filha nos documentos: o
+  // jogador quer ler e nao consegue. E a inicial e outra.
+  d_voz: { cat: 'document', pt: 'TRANSCRIÇÃO — trecho 3/3. “Chamador: A—[inaudível]. Operadora: senhor, esta linha vem de dentro. Chamador: eu sei. Não abra a porta quando eu pedir.” O restante foi apagado.',
+           en: 'TRANSCRIPT — fragment 3/3. “Caller: A—[inaudible]. Operator: sir, this line comes from inside. Caller: I know. Do not open the door when I ask.” The remainder was erased.' },
   d_code: { cat: 'document', pt: 'PAPEL DO ZELADOR. Quatro números escritos dentro de um círculo: 0 — 2 — 1 — 4. Embaixo: “A hora nunca mudou. Você é que continua chegando tarde.”',
             en: 'CARETAKER’S PAPER. Four numbers inside a circle: 0 — 2 — 1 — 4. Below: “The hour never changed. You are the one who keeps arriving late.”' },
   d_safe: { cat: 'document', pt: 'NOTA DO COFRE. “A CULPA PRECISA DE UM ROSTO. SABIA QUE TU FARIA ISSO.” A segunda frase está na minha letra. A primeira não está em letra nenhuma que eu reconheça.',
@@ -14752,14 +14827,14 @@ const JOURNAL = {
               en: 'The ashtray on my desk is full. I quit seven years ago and nobody uses that desk. I counted eleven butts. All eleven are my brand.' },
   j3_drawer:{ cat: 'self', pt: 'A gaveta de baixo está cheia de cartazes novos. Papel recente, tinta recente. Eu não lembro de ter mandado imprimir. Fechei a gaveta.',
               en: 'The bottom drawer is full of new posters. Fresh paper, fresh ink. I do not remember ordering them. I closed the drawer.' },
-  j3_michael:{ cat: 'people', pt: 'Michael conta aquela noite sem hesitar em nenhuma parte, e o que ele conta bate com o livro. Diz que eu liguei para cá às 02h14 e que eu não conseguia falar. A plaquinha na mesa dele tem o meu nome.',
-              en: 'Michael tells that night without hesitating anywhere, and what he says matches the book. He says I called in at 2:14 and could not speak. The nameplate on his desk has my name on it.' },
+  j3_michael:{ cat: 'people', pt: 'Michael conta aquela noite sem hesitar em nenhuma parte, e o que ele conta bate com o livro. Uma chamada saiu do ramal daquela sala para a minha casa às 02h13, e a linha do livro que diz quem discou está em branco. É a única em branco em sete anos. A plaquinha na mesa dele tem o meu nome.',
+              en: 'Michael tells that night without hesitating anywhere, and what he says matches the book. A call went out from that room to my house at 2:13, and the line in the book that says who dialled is blank. It is the only blank one in seven years. The nameplate on his desk has my name on it.' },
   j3_shift: { cat: 'people', pt: 'Três pessoas dizem que eu saí às 20h12 e não voltei. Uma diz que eu voltei de madrugada e fiquei sentado na minha mesa até clarear. As três estão de acordo. Eu estou com a quarta.',
               en: 'Three people say I left at 20:12 and did not return. One says I came back in the night and sat at my desk until dawn. The three agree. I am the fourth.' },
   j3_drawerd:{ cat: 'clue', pt: 'A gaveta do D existe, e é minha: HENRY, D. Uma pasta por ano. Contei sete. Contei de novo e deu oito. Não abri a oitava.',
               en: 'Drawer D exists, and it is mine: HENRY, D. One folder per year. I counted seven. I counted again and got eight. I did not open the eighth.' },
-  j3_carlos:{ cat: 'people', pt: 'Carlos está a duzentos quilômetros daqui há sete anos, segundo Michael, e está sentado no xadrez do subsolo, segundo os meus olhos. Não ameaçou, não negou e não confirmou nada. Sabia da varanda.',
-              en: 'Carlos has been two hundred kilometres away for seven years, according to Michael, and is sitting in the basement cell, according to my eyes. He did not threaten, deny or confirm anything. He knew about the porch.' },
+  j3_carlos:{ cat: 'people', pt: 'Carlos está a duzentos quilômetros daqui há sete anos, segundo Michael, e está sentado no xadrez do subsolo, segundo os meus olhos. Não ameaçou nem uma vez. Sabia da varanda, sabia do cigarro, e não tinha como saber de nenhum dos dois.',
+              en: 'Carlos has been two hundred kilometres away for seven years, according to Michael, and is sitting in the basement cell, according to my eyes. He never threatened me once. He knew about the porch, he knew about the cigarette, and he had no way of knowing either.' },
   j3_book:  { cat: 'clue', pt: 'O livro de visitas da custódia tem uma linha por noite, sete anos de linhas, e a assinatura é a minha em todas. A caneta está presa por um barbante ao lado. O barbante está gasto no meio.',
               en: 'The holding visitor book has one line per night, seven years of lines, and the signature is mine on every one. The pen is tied beside it with string. The string is worn through in the middle.' },
   // A pagina do incendio. Ela e o centro do capitulo: as duas coisas que o
@@ -14835,15 +14910,15 @@ const JOURNAL = {
 const INTERROGATORIO = {
   abertura: [{
     d: { pt: 'Carlos.', en: 'Carlos.' },
-    c: { pt: '(ele levanta a cabeça devagar, e sorri) Demorou sete anos.',
-         en: '(he lifts his head slowly, and smiles) Took you seven years.' },
+    c: { pt: '(ele levanta a cabeça devagar, e sorri) Entrou. Olha só, entrou mesmo.',
+         en: '(he lifts his head slowly, and smiles) You came in. Look at that, you actually came in.' },
     d2: { pt: 'Eu tenho a noite inteira.', en: 'I have got all night.' },
-    c2: { pt: 'Eu também, doutor. Eu tenho é só isso.',
-          en: 'So have I, boss. It is all I have got.' },
+    c2: { pt: 'Eu também. É a única coisa que eu tenho.',
+          en: 'So do I. It is the only thing I have got.' },
   }],
   retomo: [{
     d: { pt: 'Onde a gente parou.', en: 'Where were we.' },
-    c: { pt: 'No senhor fingindo que veio trabalhar.',
+    c: { pt: 'Em você fingindo que veio trabalhar.',
          en: 'At you pretending you came here to work.' },
   }],
 
@@ -14854,31 +14929,31 @@ const INTERROGATORIO = {
       c: { pt: 'Duas pessoas. Nenhuma delas eu.',
            en: 'Two people. Neither one was me.' } },
     { d: { pt: 'Você mandou.', en: 'You ordered it.' },
-      c: { pt: 'Eu estava algemado num banco de concreto igual a este. Pelo senhor.',
-           en: 'I was cuffed to a concrete bench just like this one. By you.' },
+      c: { pt: 'Eu estava algemado num banco igual a esse. Por sua causa.',
+           en: 'I was cuffed to a bench just like this one. Because of you.' },
       d2: { pt: 'Isso não é um álibi, é um horário.',
             en: 'That is not an alibi, that is a timestamp.' },
-      c2: { pt: 'É o horário que o senhor mesmo assinou.',
-            en: 'It is the timestamp you signed yourself.' } },
+      c2: { pt: 'É o horário que você assinou.',
+            en: 'It is the timestamp you signed.' } },
     { d: { pt: 'Alguém abriu a porta pra eles. De fora.',
            en: 'Somebody opened that door for them. From outside.' },
-      c: { pt: '(ele coça o pulso) Agora o senhor está trabalhando.',
+      c: { pt: '(ele coça o pulso) Agora você está trabalhando.',
            en: '(he scratches his wrist) Now you are working.' } },
     { d: { pt: 'Por que às duas e quatorze?', en: 'Why two fourteen?' },
-      c: { pt: 'Porque foi a hora que o senhor saiu de dentro de casa.',
-           en: 'Because that is when you stepped outside your own house.' },
+      c: { pt: 'Porque foi a hora que você saiu de dentro de casa.',
+           en: 'Because that is when you stepped out of your own house.' },
       d2: { pt: 'Como é que alguém sabia disso?',
             en: 'How would anybody know that?' },
-      c2: { pt: 'Alguém não sabia. Alguém marcou.',
+      c2: { pt: 'Ninguém sabia. Alguém marcou.',
             en: 'Nobody knew. Somebody arranged it.' } },
-    { d: { pt: 'Você teve sete anos pra dizer isso a alguém.',
+    { d: { pt: 'Você teve sete anos pra contar isso a alguém.',
            en: 'You had seven years to tell somebody this.' },
       c: { pt: 'Tive. E ninguém sentou aqui.', en: 'I did. And nobody sat down.' },
-      d2: { pt: 'Eu estou sentado.', en: 'I am sitting down.' },
-      c2: { pt: 'Está. Por isso hoje é hoje.', en: 'You are. That is why tonight is tonight.' } },
+      d2: { pt: 'Eu sentei.', en: 'I am sitting.' },
+      c2: { pt: 'Sentou. Por isso hoje é hoje.', en: 'You did. That is why tonight is tonight.' } },
     { d: { pt: 'Fala.', en: 'Talk.' },
-      c: { pt: 'O senhor ainda está perguntando bonito, doutor.',
-           en: 'You are still asking politely, boss.' } },
+      c: { pt: 'Você ainda está pedindo com licença.',
+           en: 'You are still asking nicely.' } },
   ],
 
   // -------- PRESSIONAR: anda de verdade, e é o David escolhendo. --------
@@ -14894,38 +14969,38 @@ const INTERROGATORIO = {
       c2: { pt: 'De descer. Falta pouco.', en: 'Coming down. You are almost here.' } },
     { d: { pt: 'Amanhã de manhã você entra num camburão e some.',
            en: 'Tomorrow morning you get in a van and disappear.' },
-      c: { pt: 'E o senhor volta pra cá amanhã à noite. Como todas as noites.',
+      c: { pt: 'E você volta aqui amanhã à noite. Como todas as noites.',
            en: 'And you come back here tomorrow night. Like every night.' } },
     { d: { pt: 'Você não faz ideia do que eu virei, seu filho da puta.',
            en: 'You have no idea what I turned into, you son of a bitch.' },
-      c: { pt: 'Faço sim. O senhor virou eu, só que sem coragem de assinar.',
+      c: { pt: 'Faço sim. Você virou eu, só que sem coragem de assinar.',
            en: 'I do. You turned into me, only without the guts to sign your name to it.' } },
     { d: { pt: 'Fala o nome. Fala a porra do nome dele.',
            en: 'Say the name. Say his fucking name.' },
-      c: { pt: '(ele se inclina para frente) Ah. Então o senhor sabe que tem um nome.',
+      c: { pt: '(ele se inclina para frente) Ah. Então você sabe que tem um nome.',
            en: '(he leans forward) Ah. So you know there is a name.' } },
-    { d: { pt: 'Eu vou ficar aqui a noite inteira, e você vai falar.',
-           en: 'I am going to be here all night, and you are going to talk.' },
+    { d: { pt: 'Eu não vou embora, Carlos. Eu não tenho pra onde ir.',
+           en: 'I am not leaving, Carlos. I have got nowhere to go.' },
       c: { pt: 'Eu sei. Essa é a parte boa.', en: 'I know. That is the good part.' } },
   ],
 
   // -------- BATER: anda muito, custa caro, e ele cala a boca. --------
   bater: [
-    { d: { pt: '(David enfia o braço pela grade e acerta ele)',
-           en: '(David reaches through the bars and hits him)' },
+    { d: { pt: '(David acerta ele com as costas da mão, sem se anunciar)',
+           en: '(David backhands him, without announcing it)' },
       c: { pt: '(ele cospe no chão) Isso é do manual ou é seu?',
            en: '(he spits on the floor) Is that from the manual or is that yours?' } },
     { d: { pt: '(ele bate de novo, e desta vez segura o homem pela camisa)',
            en: '(he hits him again, and this time holds the man by the shirt)' },
-      c: { pt: 'Bate mais. Bate até virar do lado de cá da grade.',
-           en: 'Hit me more. Hit me until you are on this side of the bars.' } },
+      c: { pt: 'Bate mais. Bate até a gente ficar igual.',
+           en: 'Hit me more. Hit me until the two of us are the same.' } },
     { d: { pt: 'Você vai me dizer o nome dele nem que eu tenha que arrancar.',
            en: 'You are going to give me his name even if I have to tear it out.' },
       c: { pt: '(rindo, com a boca sangrando) Arranca, então. Arranca.',
            en: '(laughing, mouth bleeding) Tear it out, then. Go on.' } },
     { d: { pt: '(nenhuma fala. Ele só bate.)', en: '(no words. He just hits him.)' },
       c: { pt: '...', en: '...' },
-      c2: { pt: 'Pronto. Agora o senhor está pronto pra ouvir.',
+      c2: { pt: 'Pronto. Agora você está pronto pra ouvir.',
             en: 'There. Now you are ready to hear it.' } },
   ],
 
@@ -14951,37 +15026,54 @@ const INTERROGATORIO = {
     { c: { pt: 'Não foi gente minha que entrou. Gente minha estava toda presa ou toda ouvida.',
            en: 'It was not my people who went in. My people were all locked up or all questioned.' },
       d: { pt: 'Então quem?', en: 'Then who?' },
-      c2: { pt: 'Alguém que sabia a que horas o senhor chegava em casa.',
+      c2: { pt: 'Alguém que sabia a que horas você chegava em casa.',
             en: 'Somebody who knew what time you got home.' } },
-    { c: { pt: 'O telefone da sua casa tocou às duas e quatorze. Isso o senhor sabe.',
+    { c: { pt: 'O telefone da sua casa tocou às duas e quatorze. Isso você sabe.',
            en: 'Your home phone rang at two fourteen. That much you know.' },
       d: { pt: 'Eu sei.', en: 'I know.' },
-      c2: { pt: 'Ele saiu de dentro da delegacia, doutor. Do ramal da sala grande.',
-            en: 'It came from inside the station, boss. From the extension in the big room.' } },
+      c2: { pt: 'A ligação saiu de dentro da delegacia. Do ramal da sala grande.',
+            en: 'That call went out from inside the station. From the extension in the big room.' } },
     { c: { pt: 'Era um dos seus. Distintivo, cadeira, cafezinho.',
            en: 'It was one of yours. Badge, desk, coffee break.' },
       d: { pt: 'Você está mentindo.', en: 'You are lying.' },
-      c2: { pt: 'Estou. E o senhor não acredita nisso nem por um segundo.',
+      c2: { pt: 'Estou. E você não acredita nisso nem por um segundo.',
             en: 'I am. And you do not believe that for one second.' } },
   ],
 
   // -------- A CONFISSÃO --------
   //
-  // ⚠ Ela não é uma vitória. O David gastou a cena inteira virando outra
-  // coisa para chegar aqui, e o que ele ganha é a palavra de um homem que
-  // ele acabou de espancar. NADA disso é confirmado depois. Nunca.
+  // ⚠ Não é uma vitória. O David gastou a cena inteira virando outra coisa
+  // para chegar aqui, e o que ele ganha é a palavra de um homem que ele
+  // acabou de espancar. NADA disso é confirmado depois. Nunca.
   quebra: [{
     c: { pt: '(ele encosta a cabeça na parede e fala como quem já ensaiou isso mil vezes)',
          en: '(he rests his head against the wall and speaks like a man who has rehearsed this a thousand times)' },
     d: { pt: 'Fala.', en: 'Talk.' },
-    c2: { pt: 'Fui eu, doutor. Foi tudo eu.\nEu paguei, eu marquei a hora e eu mandei entrar. Porque o senhor me prendeu, e porque eu podia.\nSua mulher morreu por sua causa, e o senhor estava a seis metros dela, na varanda, com um cigarro na mão.\nE a menina eu mandei deixar viva. Viva, doutor. Pra ter o que o senhor procurar pelo resto da porra da sua vida.\nFoi o melhor dinheiro que eu já gastei.\nAgora pergunta quem abriu a porta pra eles. Anda. Pergunta.',
-          en: 'It was me, boss. All of it was me.\nI paid, I set the hour and I sent them in. Because you arrested me, and because I could.\nYour wife died because of you, and you were twenty feet away on that porch with a cigarette in your hand.\nAnd the girl I had them leave alive. Alive, boss. So you would have something to look for the rest of your goddamn life.\nBest money I ever spent.\nNow ask me who opened the door for them. Go on. Ask.' },
+    c2: { pt: 'Fui eu. Foi tudo eu.\nEu paguei, eu marquei a hora e eu mandei entrar. Porque você me prendeu, e porque eu podia.\nSua mulher morreu por sua causa, e você estava a seis metros dela, na varanda, com um cigarro na mão.\nE a menina eu mandei deixar viva. Viva. Pra você ter o que procurar pelo resto da porra da sua vida.\nFoi o melhor dinheiro que eu já gastei.\nAgora pergunta quem abriu a porta pra eles. Anda. Pergunta.',
+          en: 'It was me. All of it was me.\nI paid, I set the hour and I sent them in. Because you arrested me, and because I could.\nYour wife died because of you, and you were twenty feet away on that porch with a cigarette in your hand.\nAnd the girl I had them leave alive. Alive. So you would have something to look for the rest of your goddamn life.\nBest money I ever spent.\nNow ask me who opened the door for them. Go on. Ask.' },
     // ⚠ O NOME. É a única coisa nova que sai desta cela, e o que assusta
-    // não é ouvir: é o David não perguntar quem é. Ele não pede a patente,
-    // não pede a lotação, não pergunta se ainda trabalha aqui. Ele só para.
+    // não é ouvir: é o David não perguntar quem é. Ele não pede patente,
+    // não pede lotação, não pergunta se ainda trabalha ali. Ele só para.
     d3: { pt: 'Quem abriu a porta.', en: 'Who opened the door.' },
-    c3: { pt: 'ANDRADE.\n(pausa)\nMas isso o senhor já sabe, não sabe.',
+    c3: { pt: 'ANDRADE.\n(pausa)\nMas isso você já sabe, não sabe.',
           en: 'ANDRADE.\n(a pause)\nBut you already know that, do you not.' },
+  }],
+
+  // -------- E O CIGARRO. O DEGRAU 4. --------
+  //
+  // ⚠ Ele acontece AQUI, no fim, com os dois homens já destruídos — um que
+  // acabou de confessar e um que acabou de bater num preso. O jogo NÃO
+  // pergunta nada ao jogador: não tem escolha, não tem botão, não tem
+  // prompt. Ele simplesmente faz. Se virasse escolha, viraria vitória.
+  cigarro: [{
+    c: { pt: 'Me dá um cigarro.', en: 'Give me a cigarette.' },
+    d: { pt: '(David tira dois do maço, põe um na boca dele e acende com o próprio isqueiro)',
+         en: '(David takes two from the pack, puts one in the man is mouth and lights it with his own lighter)' },
+    c2: { pt: '(o homem fecha os olhos e traga)', en: '(the man closes his eyes and draws on it)' },
+    d2: { pt: '(depois ele acende o outro, no automático, sem pensar)',
+          en: '(then he lights the other one, automatically, without thinking)' },
+    d3: { pt: '...\nSete anos.\nSete anos sem.', en: '...\nSeven years.\nSeven years without.' },
+    c3: { pt: 'Bem-vindo de volta.', en: 'Welcome back.' },
   }],
 };
 
@@ -15334,13 +15426,25 @@ function sairFlashback(game) {
 // prometer que da para salvar alguem.
 // ---------------------------------------------------------------------------
 
+// ⚠ O FIM MUDOU na sessao 23. Antes ele batia na porta e o estouro do ar
+// jogava ele para tras — ou seja, o jogo decidia por ele que nao dava. Agora
+// ele CHUTA a porta, ela cede, ele cai, se levanta e ENTRA. A cena acaba com
+// ele atravessando a soleira.
+//
+// A diferenca nao e de encenacao, e de personagem: um homem que foi jogado
+// para tras e uma vitima do incendio. Um homem que arrombou a propria porta
+// e entrou e alguem que passou sete anos sabendo que entrou — e que mesmo
+// assim nao adiantou nada. A segunda versao dele e a que sobra no Capitulo 3.
+//
+// E continua sem mostrar nada de dentro: a tela apaga na soleira.
 const FASES = [
   ['brasa', 2.0],     // clarao crescendo atras das janelas, ainda sem chama
   ['estouro', 1.4],   // o vidro cede e a chama sai
-  ['porta', 3.4],     // ele corre e bate na porta
-  ['baque', 1.5],     // o ar estoura e joga ele para tras
-  ['levanta', 3.6],   // ele se levanta e fica olhando
-  ['fim', 2.6],
+  ['porta', 2.6],     // ele corre ate a porta
+  ['chute', 1.5],     // e chuta
+  ['queda', 1.6],     // a porta cede e ele cai junto com ela
+  ['entra', 2.2],     // ele levanta e atravessa a soleira
+  ['fim', 1.2],
 ];
 
 class Fogo {
@@ -15404,6 +15508,7 @@ class Fogo {
     if (this.faseT >= FASES[this.idx][1]) {
       if (this.idx >= FASES.length - 1) {
         this.ativo = false;
+        game.player.det.alpha = 1;
         const cb = this.onEnd;
         this.onEnd = null;
         if (cb) cb();
@@ -15415,20 +15520,32 @@ class Fogo {
       this._entrarFase(game, p);
     }
 
-    // Ele corre para a porta. Nao chega: o vao ja esta cheio de fogo.
+    // Ele CORRE para a porta. Correr e a animacao que este homem nao usa em
+    // mais nenhum lugar do capitulo — e e por isso que ela diz alguma coisa.
     if (this.fase === 'porta' && alvo !== null) {
-      const parada = alvo + 26;
+      const parada = alvo + 22;
       if (p.x > parada + 2) {
-        p.x -= 96 * dt;
+        p.x -= 118 * dt;
         p.det.setFacing(-1);
         if (p.det.anim !== 'run') p.det.play('run', { blend: 0.12 });
-      } else if (p.det.anim !== 'interact') {
-        p.det.play('interact', { restart: true, blend: 0.1 });
+      } else if (p.det.anim !== 'idle') {
+        p.det.play('idle', { blend: 0.14 });
       }
     }
-    if (this.fase === 'baque') {
-      // jogado para tras pelo estouro do ar
-      p.x += 44 * dt * clamp(1 - this.faseT * 1.2, 0, 1);
+    // O chute joga ele meio pixel para a frente a cada quadro: o corpo vai
+    // junto com a perna, que e o que separa chutar de encostar o pe.
+    if (this.fase === 'chute' && this.faseT > 0.18 && this.faseT < 0.42) {
+      p.x -= 26 * dt;
+    }
+    // A porta cede e ele cai PARA DENTRO, nao para tras.
+    if (this.fase === 'queda' && this.faseT < 0.5) {
+      p.x -= 34 * dt;
+    }
+    // E ele atravessa a soleira.
+    if (this.fase === 'entra' && this.faseT > 0.85 && alvo !== null) {
+      p.x -= 46 * dt;
+      if (p.det.anim !== 'walk') p.det.play('walk', { blend: 0.16 });
+      p.det.alpha = clamp(1 - (this.faseT - 0.85) * 0.55, 0.35, 1);
     }
     p.det.update(dt);
   }
@@ -15446,19 +15563,28 @@ class Fogo {
       p.say('b3_fogo_1', 2.0, true);
     } else if (f === 'porta') {
       p.say('b3_fogo_2', 2.2, true);
-    } else if (f === 'baque') {
-      audio.fireBurst(1.0);
-      gfx.shake(5.2);
-      gfx.flashColor = '#ffd0a0'; gfx.flash = 0.42;
+    } else if (f === 'chute') {
+      // ELE CHUTA A PORTA. A animacao ja existia no rig desde a sessao 13,
+      // guardada para o Credor — e e a mesma coisa aqui: um homem pondo o
+      // corpo inteiro atras de um pe.
+      p.det.play('kick', { restart: true, blend: 0.06 });
+      p.say('b3_fogo_3', 2.0, true);
+      audio.doorSlam ? audio.doorSlam(0.7) : audio.thud(0.9);
+      gfx.shake(3.0);
+    } else if (f === 'queda') {
+      // a porta cede, e ele vai junto
+      audio.doorSlam ? audio.doorSlam(1.0) : audio.thud(1);
+      audio.fireBurst(0.9);
+      gfx.shake(5.4);
+      gfx.flashColor = '#ffd0a0'; gfx.flash = 0.38;
       p.det.play('collapse', { restart: true, blend: 0.05 });
-      p.say('b3_fogo_3', 2.2, true);
-    } else if (f === 'levanta') {
+      p.say('b3_fogo_4', 2.0, true);
+    } else if (f === 'entra') {
       p.det.play('standUp', { restart: true, blend: 0.14 });
-      p.say('b3_fogo_4', 2.6, true);
+      p.say('b3_fogo_5', 2.4, true);
     } else if (f === 'fim') {
-      p.det.play('idle', { blend: 0.3 });
       p.det.setFacing(-1);
-      p.say('b3_fogo_5', 3.0, true);
+      p.say('b3_fogo_6', 2.4, true);
     }
   }
 
@@ -15741,7 +15867,7 @@ const { text, measure } = __req("core/text.js");
 const { PAL } = __req("art/palette.js");
 const { input } = __req("core/input.js");
 const { audio } = __req("core/audio.js");
-const { t: T, tx, INTERROGATORIO: SCRIPT, TALKS } = __req("i18n.js");
+const { t: T, tx, INTERROGATORIO: SCRIPT } = __req("i18n.js");
 
 const VERBOS = ['perguntar', 'pressionar', 'bater'];
 
@@ -15768,6 +15894,7 @@ class Interrogatorio {
     this.usos = { perguntar: 0, pressionar: 0, bater: 0 };
     this.ultimo = null;
     this.travado = false;     // levou um soco: a proxima pergunta nao anda
+    this.carlosT = 0;
     this.vazou = 0;
     this.onEnd = null;
     this.runId = -1;
@@ -15808,7 +15935,7 @@ class Interrogatorio {
     if (!arr.length) return false;
     const e = arr[Math.min(idx, arr.length - 1)];
     const eu = T('speaker_me');
-    const ele = tx(TALKS.carlos.speaker);
+    const ele = T('speaker_carlos');
     const linhas = [];
     for (const [campo, quem] of [['d', eu], ['c', ele], ['d2', eu], ['c2', ele],
                                  ['d3', eu], ['c3', ele]]) {
@@ -15830,10 +15957,28 @@ class Interrogatorio {
     return 0;
   }
 
+  // A ATUACAO. Nao da para ver o rosto de ninguem aqui, entao cada verbo
+  // tem um corpo proprio: o David muda de pose e o outro homem responde
+  // com o corpo dele. Sem isto os tres botoes seriam o mesmo botao.
+  _encenar(game, verbo) {
+    const p = game.player;
+    const ca = game.npcs.carlos;
+    if (verbo === 'perguntar') {
+      p.det.play('intAsk', { restart: true, blend: 0.16 });
+    } else if (verbo === 'pressionar') {
+      p.det.play('intPush', { restart: true, blend: 0.1 });
+      if (ca) { ca.det.play('sitFlinch', { restart: true, blend: 0.18 }); this.carlosT = 1.0; }
+    } else if (verbo === 'bater') {
+      p.det.play('intHit', { restart: true, blend: 0.05 });
+      if (ca) { ca.det.play('sitHurt', { restart: true, blend: 0.04 }); this.carlosT = 1.2; }
+    }
+  }
+
   escolher(game, verbo) {
     const p = PESO[verbo];
     const idx = this.usos[verbo];
     this.usos[verbo]++;
+    this._encenar(game, verbo);
 
     // Bater duas vezes seguidas: ele fecha a cara e a barra CAI.
     if (verbo === 'bater' && this.ultimo === 'bater') {
@@ -15883,12 +16028,31 @@ class Interrogatorio {
     // a camera fecha nos dois e nao volta mais ate acabar
     this.zoom = lerp(this.zoom, this.quebrou ? 1.5 : 1.35, 1 - Math.exp(-2.2 * dt));
 
+    // Depois de apanhar ele volta a sentar. Nao ha animacao de "sentar
+    // machucado": o que diz que ele apanhou e ele continuar sentado igual.
+    if (this.carlosT > 0) {
+      this.carlosT -= dt;
+      if (this.carlosT <= 0) {
+        const ca = game.npcs.carlos;
+        if (ca) ca.det.play('sitChair', { blend: 0.3 });
+      }
+    }
+
     // Enquanto a caixa de dialogo estiver falando, quem manda e ela.
-    if (this.fase === 'fala' || this.fase === 'vazamento' || this.fase === 'quebra') {
+    if (this.fase === 'fala' || this.fase === 'vazamento' || this.fase === 'quebra'
+        || this.fase === 'cigarro') {
       if (game.dialogue.active) return;
 
-      // A confissao era a ultima coisa: acabou o interrogatorio.
-      if (this.fase === 'quebra') { this.encerrar(game); return; }
+      // Depois da confissao vem o CIGARRO — o degrau 4 — e so entao a cena
+      // acaba. O jogo nao pergunta nada ao jogador aqui: nao tem escolha,
+      // nao tem botao. Se virasse escolha, viraria vitoria.
+      if (this.fase === 'quebra') {
+        this.fase = 'cigarro';
+        this._falar(game, 'cigarro', 0);
+        if (this.onCigarro) this.onCigarro();
+        return;
+      }
+      if (this.fase === 'cigarro') { this.encerrar(game); return; }
 
       // Cruzou um degrau? Ele vaza um pedaco antes de devolver o menu.
       if (this.fase === 'fala' && this.vazou < LIMIARES.length
@@ -15983,26 +16147,41 @@ class Interrogatorio {
     if (this.fase !== 'menu') return;
 
     // ---- os tres verbos ----
+    const LX = 322;
     const ops = [
       { k: 'int_perguntar', custo: 0 },
       { k: 'int_pressionar', custo: PESO.pressionar.sanidade },
       { k: 'int_bater', custo: PESO.bater.sanidade },
     ];
     const y0 = VH - 66;
+    // Painel proprio atras dos verbos. Sem ele a lista disputa leitura com
+    // as pernas do personagem, e o jogador le "PERGUNTAR" em cima de um
+    // homem — o que e uma piada que a cena nao pode pagar.
+    // ⚠ A lista fica na DIREITA. Os dois homens ocupam o centro-esquerda da
+    // tela depois que a camera fecha, e a versao anterior escrevia
+    // "PERGUNTAR" em cima das pernas do personagem.
+    ctx.save();
+    ctx.globalAlpha = 0.82;
+    ctx.fillStyle = '#07090c';
+    ctx.fillRect(LX - 20, y0 - 9, 152, 45);
+    ctx.globalAlpha = 0.5;
+    ctx.fillStyle = '#2a323c';
+    ctx.fillRect(LX - 20, y0 - 9, 1, 45);
+    ctx.restore();
     for (let i = 0; i < 3; i++) {
       const sel = i === this.sel;
       const y = y0 + i * 15;
       if (sel) {
-        text(ctx, '>', 46, y, { size: 10, font: 'ui', weight: 'bold', color: PAL.uiAccent });
+        text(ctx, '>', LX - 12, y, { size: 10, font: 'ui', weight: 'bold', color: PAL.uiAccent });
       }
       const nome = T(ops[i].k);
-      text(ctx, nome, 58, y, {
+      text(ctx, nome, LX, y, {
         size: 10, font: 'ui', weight: sel ? 'bold' : 'normal',
         color: sel ? PAL.uiAccent : PAL.uiDim, track: 0,
       });
       if (ops[i].custo) {
         const w = measure(nome, { size: 10, font: 'ui', weight: sel ? 'bold' : 'normal' }).w;
-        text(ctx, T('int_custo').replace('%d', ops[i].custo), 58 + w + 10, y + 1, {
+        text(ctx, T('int_custo').replace('%d', ops[i].custo), LX + w + 8, y + 1, {
           size: 8, font: 'ui', weight: 'normal', color: sel ? '#8a5a52' : '#5a4a46',
         });
       }
@@ -18741,6 +18920,10 @@ const ITEMS = {
   note:    { w: 1, h: 1, name: 'it_note',    desc: 'it_note_d',    color: '#b3ac97', edge: '#8b1a14' },
   medkit:  { w: 2, h: 2, name: 'it_medkit',  desc: 'it_medkit_d',  color: '#aaa799', edge: '#8b211b', usable: true },
   sedative:{ w: 1, h: 2, name: 'it_sedative',desc: 'it_sedative_d',color: '#688ca0', edge: '#d8d2c2', usable: true },
+  // A CALIBRE DOZE da mesa dele. 4x1 — ela nao cabe em bolso nenhum a nao
+  // ser o cinto, e ocupa o cinto inteiro. Carregar ela custa espaco, e e
+  // pra custar: e uma arma de cano longo dentro de um sobretudo.
+  shotgun: { w: 4, h: 1, name: 'it_shotgun', desc: 'it_shotgun_d', color: '#4a3a26', edge: '#8f959e' },
   relay_hand: { w: 1, h: 1, name: 'it_relay_hand', desc: 'it_relay_hand_d', color: '#7c6232', edge: '#d0b368', quest: true },
   relay_eye:  { w: 1, h: 1, name: 'it_relay_eye',  desc: 'it_relay_eye_d',  color: '#6c5730', edge: '#caa95f', quest: true },
   relay_voice:{ w: 1, h: 1, name: 'it_relay_voice',desc: 'it_relay_voice_d',color: '#72572e', edge: '#d3ad5d', quest: true },
@@ -20545,10 +20728,19 @@ const NPCS = {
     anim: 'sitChair', arte: 'betinho',
     talk: 'colega_c', prompt: 'prompt_talk',
   },
-  carlos: {
+  // O HOMEM VISTO DE FORA, atras das barras. Nao conversa: olhar para ele
+  // so oferece a mesma coisa que a porta oferece — entrar.
+  preso: {
     level: 'ch3_cell', x: 400, facing: -1,
     anim: 'sitChair', arte: 'carlos',
-    talk: 'carlos', prompt: 'prompt_talk',
+    talk: null, prompt: 'prompt_use', acao: 'ch3_entrar_cela',
+  },
+  // E o mesmo homem, DENTRO da cela, quando o David atravessa a grade. E
+  // este que o interrogatorio usa.
+  carlos: {
+    level: 'ch3_dentro', x: 196, facing: -1,
+    anim: 'sitChair', arte: 'carlos',
+    talk: null, prompt: 'prompt_talk', acao: 'ch3_interrogar',
   },
 
   // ---- a casa, sete anos atras ----
@@ -20654,6 +20846,9 @@ class Npc {
       prompt: this.cfg.prompt,
       npc: this.id, range: 34, prio: 2,
     };
+    // Acao propria, quando o NPC tem uma. E como o homem atras das barras
+    // oferece ENTRAR em vez de conversa.
+    if (this.cfg.acao) { base.action = this.cfg.acao; return base; }
     // Quem nao tem conversa nao abre conversa. A figura negra e olhada, e
     // ela nao responde — nem aqui, nem no Capitulo 1, nem nunca.
     if (!this.cfg.talk) { base.action = 'ch3_figura'; base.prio = 1; return base; }
@@ -25018,29 +25213,6 @@ class Game {
     switch (it.action) {
       // ---- a conversa, com memoria e com os assuntos travados ----
       case 'talk3': {
-        // ---- O INTERROGATORIO ----
-        //
-        // Sentar na frente do Carlos nao abre uma arvore de conversa: abre a
-        // unica coisa jogavel do capitulo. A conversa normal com ele so
-        // existe DEPOIS que ele quebra — e e nela que o cigarro acontece,
-        // com os dois homens ja destruidos, que e onde o degrau 4 sempre
-        // devia ter acontecido.
-        if (it.npc === 'carlos' && !this.interrog.quebrou) {
-          this.cam.offsetY = 28;
-          this.interrog.comecar(this, (quebrou) => {
-            this.cam.offsetY = 0;
-            if (!quebrou) return;
-            this.anotar('j3_conf');
-            this.anotar('j3_andrade');
-            this.journal.add('j3_x3');       // a que ele nao escreveu
-            this.sanity.drain(14);
-            const p = this.player;
-            p.say('b3_int_fim', 2.2, true);
-            p.say('b3_int_fim2', 2.6);
-            this.flags.npc3_carlos = true;
-          });
-          return true;
-        }
         const t = TALKS[it.npc];
         if (!t) return true;
         const mem = this._talkMem(it.npc);
@@ -25093,6 +25265,26 @@ class Game {
         return true;
       }
 
+      // ---- ATRAVESSAR A GRADE ----
+      //
+      // A porta da cela nunca esteve trancada, e agora isso deixa de ser uma
+      // frase: da para entrar. A delegacia SAI DA TELA — o jogo troca de
+      // setor para um cubiculo de 300px onde nao ha corredor, nao ha
+      // profundidade e nao ha saida no quadro. E o jogador que executa.
+      case 'ch3_entrar_cela': {
+        if (this.interrog.quebrou) { p.say('b3_cell_vazia', 2.6, true); return true; }
+        this.fadeTo(() => {
+          this.enterLevel('ch3_dentro', null, 1, true);
+          this.state = 'play';
+          this.abrirInterrogatorio();
+        }, 1.1, 0.9);
+        return true;
+      }
+
+      case 'ch3_interrogar':
+        this.abrirInterrogatorio();
+        return true;
+
       // A calibre doze no armario da mesa dele. Ele NAO pega: a arma fica
       // na portaria e a regra do capitulo nao tem excecao. Ela fica ali.
       case 'ch3_shotgun': {
@@ -25100,6 +25292,15 @@ class Game {
           this.flags.viu_shotgun = true;
           this.anotar('j3_shotgun');
         }
+        // ELA E PEGAVEL, e vai no cinto. A regra da portaria continua de pe
+        // — o escaninho 214 e a porta de ENTRADA, e ele nao vai passar por
+        // ela de novo hoje. Isto aqui e a arma do Capitulo 4, e ele guarda
+        // sabendo disso.
+        if (this.inv.has('shotgun')) { p.say('c3_shotgun_3', 2.6, true); return true; }
+        if (!this.pegar('shotgun')) return true;
+        it.disabled = true;
+        if (this.level && this.level.pego) this.level.pego.shotgun = true;
+        audio.leather ? audio.leather(0.8) : audio.uiConfirm();
         p.sayAll(['c3_shotgun_1', 'c3_shotgun_2', 'c3_shotgun_3'], true);
         return true;
       }
@@ -25157,8 +25358,10 @@ class Game {
           // O corredor fica mais longo na volta. Sem barulho, sem susto.
           esticarCorredor(this.level, this);
         }
-        // Abrir a pasta e o flashback. A transicao nao e um corte: a luz
-        // muda no meio do movimento dele.
+        // Abrir a pasta e o flashback — UMA VEZ SO. Depois de voltar de la,
+        // a gaveta continua abrindo e a pasta continua na mao dele, mas o
+        // passado nao se revisita: ele ja viveu aquilo duas vezes.
+        if (this.flags.viu_passado) { p.say('b3_arq_denovo', 3.0, true); return true; }
         this.fadeTo(() => this.entrarFlashback(), 1.6, 1.8);
         return true;
       }
@@ -25324,8 +25527,38 @@ class Game {
     }, 10600);
   }
 
+  // O interrogatorio, e o que acontece quando ele acaba. O cigarro mora
+  // AQUI agora: o Carlos nao tem mais arvore de conversa nenhuma, e o
+  // degrau 4 acontece no fim da cena, com os dois homens ja destruidos.
+  abrirInterrogatorio() {
+    if (this.interrog.quebrou) return false;
+    this.cam.offsetY = 24;
+    // O degrau 4 acontece no meio da cena, entre a confissao e a saida.
+    this.interrog.onCigarro = () => {
+      liberarCigarro(this);
+      if (this.level) this.level.props.cigarrosNoCinzeiro = true;
+      audio.lighterFlick();
+    };
+    return this.interrog.comecar(this, (quebrou) => {
+      this.cam.offsetY = 0;
+      if (!quebrou) return;
+      this.anotar('j3_conf');
+      this.anotar('j3_andrade');
+      this.journal.add('j3_x3');       // a que ele nao escreveu
+      this.sanity.drain(14);
+      this.flags.npc3_carlos = true;
+      const p = this.player;
+      p.say('b3_int_fim', 2.4);
+      p.say('b3_int_fim2', 2.4);
+      // E a partir daqui ele tem que sair. O capitulo passa a ter fim.
+      this.flags.ch3_pronto = true;
+      p.say('b3_int_sair', 3.2);
+    });
+  }
+
   voltarDoFlashback() {
     sairFlashback(this);
+    this.flags.viu_passado = true;   // e nao se entra la de novo
     this.fogo.parar();
     this.fogo.reset();
     this.fx.clear();

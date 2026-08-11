@@ -1697,29 +1697,6 @@ class Game {
     switch (it.action) {
       // ---- a conversa, com memoria e com os assuntos travados ----
       case 'talk3': {
-        // ---- O INTERROGATORIO ----
-        //
-        // Sentar na frente do Carlos nao abre uma arvore de conversa: abre a
-        // unica coisa jogavel do capitulo. A conversa normal com ele so
-        // existe DEPOIS que ele quebra — e e nela que o cigarro acontece,
-        // com os dois homens ja destruidos, que e onde o degrau 4 sempre
-        // devia ter acontecido.
-        if (it.npc === 'carlos' && !this.interrog.quebrou) {
-          this.cam.offsetY = 28;
-          this.interrog.comecar(this, (quebrou) => {
-            this.cam.offsetY = 0;
-            if (!quebrou) return;
-            this.anotar('j3_conf');
-            this.anotar('j3_andrade');
-            this.journal.add('j3_x3');       // a que ele nao escreveu
-            this.sanity.drain(14);
-            const p = this.player;
-            p.say('b3_int_fim', 2.2, true);
-            p.say('b3_int_fim2', 2.6);
-            this.flags.npc3_carlos = true;
-          });
-          return true;
-        }
         const t = TALKS[it.npc];
         if (!t) return true;
         const mem = this._talkMem(it.npc);
@@ -1772,6 +1749,26 @@ class Game {
         return true;
       }
 
+      // ---- ATRAVESSAR A GRADE ----
+      //
+      // A porta da cela nunca esteve trancada, e agora isso deixa de ser uma
+      // frase: da para entrar. A delegacia SAI DA TELA — o jogo troca de
+      // setor para um cubiculo de 300px onde nao ha corredor, nao ha
+      // profundidade e nao ha saida no quadro. E o jogador que executa.
+      case 'ch3_entrar_cela': {
+        if (this.interrog.quebrou) { p.say('b3_cell_vazia', 2.6, true); return true; }
+        this.fadeTo(() => {
+          this.enterLevel('ch3_dentro', null, 1, true);
+          this.state = 'play';
+          this.abrirInterrogatorio();
+        }, 1.1, 0.9);
+        return true;
+      }
+
+      case 'ch3_interrogar':
+        this.abrirInterrogatorio();
+        return true;
+
       // A calibre doze no armario da mesa dele. Ele NAO pega: a arma fica
       // na portaria e a regra do capitulo nao tem excecao. Ela fica ali.
       case 'ch3_shotgun': {
@@ -1779,6 +1776,15 @@ class Game {
           this.flags.viu_shotgun = true;
           this.anotar('j3_shotgun');
         }
+        // ELA E PEGAVEL, e vai no cinto. A regra da portaria continua de pe
+        // — o escaninho 214 e a porta de ENTRADA, e ele nao vai passar por
+        // ela de novo hoje. Isto aqui e a arma do Capitulo 4, e ele guarda
+        // sabendo disso.
+        if (this.inv.has('shotgun')) { p.say('c3_shotgun_3', 2.6, true); return true; }
+        if (!this.pegar('shotgun')) return true;
+        it.disabled = true;
+        if (this.level && this.level.pego) this.level.pego.shotgun = true;
+        audio.leather ? audio.leather(0.8) : audio.uiConfirm();
         p.sayAll(['c3_shotgun_1', 'c3_shotgun_2', 'c3_shotgun_3'], true);
         return true;
       }
@@ -1836,8 +1842,10 @@ class Game {
           // O corredor fica mais longo na volta. Sem barulho, sem susto.
           esticarCorredor(this.level, this);
         }
-        // Abrir a pasta e o flashback. A transicao nao e um corte: a luz
-        // muda no meio do movimento dele.
+        // Abrir a pasta e o flashback — UMA VEZ SO. Depois de voltar de la,
+        // a gaveta continua abrindo e a pasta continua na mao dele, mas o
+        // passado nao se revisita: ele ja viveu aquilo duas vezes.
+        if (this.flags.viu_passado) { p.say('b3_arq_denovo', 3.0, true); return true; }
         this.fadeTo(() => this.entrarFlashback(), 1.6, 1.8);
         return true;
       }
@@ -2003,8 +2011,38 @@ class Game {
     }, 10600);
   }
 
+  // O interrogatorio, e o que acontece quando ele acaba. O cigarro mora
+  // AQUI agora: o Carlos nao tem mais arvore de conversa nenhuma, e o
+  // degrau 4 acontece no fim da cena, com os dois homens ja destruidos.
+  abrirInterrogatorio() {
+    if (this.interrog.quebrou) return false;
+    this.cam.offsetY = 24;
+    // O degrau 4 acontece no meio da cena, entre a confissao e a saida.
+    this.interrog.onCigarro = () => {
+      liberarCigarro(this);
+      if (this.level) this.level.props.cigarrosNoCinzeiro = true;
+      audio.lighterFlick();
+    };
+    return this.interrog.comecar(this, (quebrou) => {
+      this.cam.offsetY = 0;
+      if (!quebrou) return;
+      this.anotar('j3_conf');
+      this.anotar('j3_andrade');
+      this.journal.add('j3_x3');       // a que ele nao escreveu
+      this.sanity.drain(14);
+      this.flags.npc3_carlos = true;
+      const p = this.player;
+      p.say('b3_int_fim', 2.4);
+      p.say('b3_int_fim2', 2.4);
+      // E a partir daqui ele tem que sair. O capitulo passa a ter fim.
+      this.flags.ch3_pronto = true;
+      p.say('b3_int_sair', 3.2);
+    });
+  }
+
   voltarDoFlashback() {
     sairFlashback(this);
+    this.flags.viu_passado = true;   // e nao se entra la de novo
     this.fogo.parar();
     this.fogo.reset();
     this.fx.clear();

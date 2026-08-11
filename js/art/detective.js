@@ -638,6 +638,82 @@ export const ANIM = {
     ],
   },
 
+  // =====================================================================
+  // O INTERROGATORIO — tres animacoes, e elas sao a cena inteira
+  // =====================================================================
+  // Nao da para ver o rosto dele. Entao a atuacao e o CORPO, e o corpo tem
+  // que dizer tres coisas diferentes com o mesmo esqueleto:
+  //
+  //   intAsk ..... ele ainda e um detetive. Peso atras, braco cruzado,
+  //                cabeca inclinada. Distancia profissional.
+  //   intPush .... ele passou o peso para a frente e apontou o dedo. O
+  //                tronco entra no espaco do outro homem. Ainda e conversa,
+  //                mas ja nao e educada.
+  //   intHit ..... nao e o soco de briga (`punch1`). E um gancho de cima
+  //                para baixo em alguem SENTADO, com recuo longo e uma
+  //                PARADA de tres quadros no impacto. A parada e o que da
+  //                peso — sem ela o braco volta deslizando.
+  //
+  // A escada esta no corpo: cada uma dessas poses e mais baixa e mais
+  // fechada que a anterior. Quem estiver olhando vai ver o homem encolher
+  // enquanto a barra sobe, e ninguem vai dizer isso em voz alta.
+
+  intAsk: {
+    dur: 1.30, loop: false,
+    keys: [
+      { t: 0.00, p: pose({}) },
+      // peso na perna de tras, braco de tras cruzado sobre o corpo
+      { t: 0.26, p: pose({ torso: -6, head: 4, hx: -1.5, lBt: 8, lBs: -6, lFt: -7,
+                           aBu: 26, aBf: -74, aFu: -8, aFf: 16 }) },
+      { t: 0.55, p: pose({ torso: -7, head: 7, hx: -1.8, lBt: 9, lBs: -7, lFt: -8,
+                           aBu: 28, aBf: -78, aFu: -6, aFf: 14 }) },
+      { t: 0.78, p: pose({ torso: -5, head: 2, hx: -1.2, lBt: 7, lBs: -5, lFt: -6,
+                           aBu: 24, aBf: -72, aFu: -9, aFf: 17 }) },
+      { t: 1.00, p: pose({}) },
+    ],
+  },
+
+  intPush: {
+    dur: 1.05, loop: false, ease: 'linear',
+    keys: [
+      { t: 0.00, p: pose({}) },
+      // um passo a frente e o dedo subindo
+      { t: 0.22, p: pose({ torso: 9, head: -6, hx: 2.5, hy: -1, lFt: 22, lFs: -14,
+                           lBt: -12, lBs: -10, aFu: -46, aFf: 22, aBu: -14, aBf: 18 }) },
+      // o tronco entra no espaco do outro homem, e para la
+      { t: 0.44, p: pose({ torso: 17, head: -11, hx: 5, lFt: 26, lFs: -16,
+                           lBt: -16, lBs: -12, aFu: -74, aFf: 12, aBu: -20, aBf: 22 }) },
+      { t: 0.70, p: pose({ torso: 17, head: -11, hx: 5, lFt: 26, lFs: -16,
+                           lBt: -16, lBs: -12, aFu: -72, aFf: 10, aBu: -20, aBf: 22 }) },
+      { t: 1.00, p: pose({ torso: 4, head: -2, hx: 1.2, lFt: 8, lBt: -6,
+                           aFu: -18, aFf: 14, aBu: -6, aBf: 12 }) },
+    ],
+    events: [{ t: 0.24, ev: 'step' }],
+  },
+
+  intHit: {
+    dur: 0.74, loop: false, ease: 'linear',
+    keys: [
+      { t: 0.00, p: pose({ torso: 6, head: -4, hx: 1 }) },
+      // recuo longo: o braco sobe e vai para tras, o peso troca de perna
+      { t: 0.22, p: pose({ torso: -16, head: 10, hx: -4, hy: -1.5,
+                           aFu: -104, aFf: -30, aBu: 22, aBf: -30,
+                           lFt: -12, lFs: -8, lBt: 14, lBs: -10 }) },
+      // o gancho desce em cima de um homem sentado
+      { t: 0.42, p: pose({ torso: 22, head: -16, hx: 6.5, hy: 1,
+                           aFu: 108, aFf: -12, aBu: -22, aBf: 34,
+                           lFt: 16, lFs: -12, lBt: -14, lBs: -14 }) },
+      // A PARADA. Tres quadros no ponto do impacto — e ela que da peso.
+      { t: 0.56, p: pose({ torso: 22, head: -16, hx: 6.2, hy: 1,
+                           aFu: 106, aFf: -11, aBu: -21, aBf: 33,
+                           lFt: 16, lFs: -12, lBt: -14, lBs: -14 }) },
+      { t: 0.74, p: pose({ torso: 14, head: -9, hx: 3, aFu: 54, aFf: -20,
+                           aBu: -12, aBf: 26, lFt: 8, lBt: -8 }) },
+      { t: 1.00, p: pose({ torso: 6, head: -4, hx: 1 }) },
+    ],
+    events: [{ t: 0.24, ev: 'whoosh' }, { t: 0.44, ev: 'hit' }],
+  },
+
   // Levar uma pancada: o corpo recua, a cabeca vai junto, e ele volta.
   hurt: {
     dur: 0.44, loop: false, ease: 'linear',
@@ -988,6 +1064,36 @@ export const ANIM = {
     keys: [
       { t: 0.00, p: pose({ hy: 13, torso: -3, head: 3, lFt: 84, lFs: -86, lFf: 0, lBt: 78, lBs: -80, lBf: 0, aFu: 30, aFf: -58, aBu: 26, aBf: -54 }) },
       { t: 0.50, p: pose({ hy: 12.2, torso: -5, head: 4, lFt: 84, lFs: -86, lFf: 0, lBt: 78, lBs: -80, lBf: 0, aFu: 31, aFf: -59, aBu: 27, aBf: -55 }) },
+      { t: 1.00, p: pose({ hy: 13, torso: -3, head: 3, lFt: 84, lFs: -86, lFf: 0, lBt: 78, lBs: -80, lBf: 0, aFu: 30, aFf: -58, aBu: 26, aBf: -54 }) },
+    ],
+  },
+
+  // Levar uma pancada SENTADO. Existe porque `hurt` e um recuo de quem
+  // esta em pe: um homem sentado tocando `hurt` parece ter levantado da
+  // cadeira para apanhar, e o efeito e comico exatamente onde nao pode ser.
+  // Aqui as pernas nao se mexem — o que recua e o tronco, e a cabeca vai
+  // junto e volta devagar demais, como cabeca de quem apanhou de verdade.
+  sitHurt: {
+    dur: 1.10, loop: false, ease: 'linear',
+    keys: [
+      { t: 0.00, p: pose({ hy: 13, torso: -3, head: 3, lFt: 84, lFs: -86, lFf: 0, lBt: 78, lBs: -80, lBf: 0, aFu: 30, aFf: -58, aBu: 26, aBf: -54 }) },
+      // o impacto: tronco vira, cabeca joga para o lado, bracos sobem
+      { t: 0.14, p: pose({ hy: 13.5, torso: 20, head: -14, hx: -3.5, lFt: 84, lFs: -86, lFf: 0, lBt: 78, lBs: -80, lBf: 0, aFu: 8, aFf: -30, aBu: 4, aBf: -26 }) },
+      { t: 0.34, p: pose({ hy: 13.5, torso: 16, head: -10, hx: -2.5, lFt: 84, lFs: -86, lFf: 0, lBt: 78, lBs: -80, lBf: 0, aFu: 14, aFf: -38, aBu: 10, aBf: -34 }) },
+      // ele se recompoe devagar, e volta a mesma posicao de antes
+      { t: 0.70, p: pose({ hy: 13.2, torso: 4, head: -2, hx: -1, lFt: 84, lFs: -86, lFf: 0, lBt: 78, lBs: -80, lBf: 0, aFu: 24, aFf: -50, aBu: 20, aBf: -46 }) },
+      { t: 1.00, p: pose({ hy: 13, torso: -3, head: 3, lFt: 84, lFs: -86, lFf: 0, lBt: 78, lBs: -80, lBf: 0, aFu: 30, aFf: -58, aBu: 26, aBf: -54 }) },
+    ],
+  },
+
+  // Sentado, encolhendo: e a reacao ao PRESSIONAR, e a diferenca para o
+  // soco e que aqui nada bate nele. Ele so fica menor.
+  sitFlinch: {
+    dur: 0.95, loop: false,
+    keys: [
+      { t: 0.00, p: pose({ hy: 13, torso: -3, head: 3, lFt: 84, lFs: -86, lFf: 0, lBt: 78, lBs: -80, lBf: 0, aFu: 30, aFf: -58, aBu: 26, aBf: -54 }) },
+      { t: 0.30, p: pose({ hy: 13.4, torso: 8, head: -6, hx: -1.6, lFt: 84, lFs: -86, lFf: 0, lBt: 78, lBs: -80, lBf: 0, aFu: 20, aFf: -46, aBu: 16, aBf: -42 }) },
+      { t: 0.62, p: pose({ hy: 13.4, torso: 7, head: -5, hx: -1.4, lFt: 84, lFs: -86, lFf: 0, lBt: 78, lBs: -80, lBf: 0, aFu: 21, aFf: -47, aBu: 17, aBf: -43 }) },
       { t: 1.00, p: pose({ hy: 13, torso: -3, head: 3, lFt: 84, lFs: -86, lFf: 0, lBt: 78, lBs: -80, lBf: 0, aFu: 30, aFf: -58, aBu: 26, aBf: -54 }) },
     ],
   },

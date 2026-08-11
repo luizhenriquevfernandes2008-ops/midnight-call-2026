@@ -257,13 +257,25 @@ export function sairFlashback(game) {
 // prometer que da para salvar alguem.
 // ---------------------------------------------------------------------------
 
+// ⚠ O FIM MUDOU na sessao 23. Antes ele batia na porta e o estouro do ar
+// jogava ele para tras — ou seja, o jogo decidia por ele que nao dava. Agora
+// ele CHUTA a porta, ela cede, ele cai, se levanta e ENTRA. A cena acaba com
+// ele atravessando a soleira.
+//
+// A diferenca nao e de encenacao, e de personagem: um homem que foi jogado
+// para tras e uma vitima do incendio. Um homem que arrombou a propria porta
+// e entrou e alguem que passou sete anos sabendo que entrou — e que mesmo
+// assim nao adiantou nada. A segunda versao dele e a que sobra no Capitulo 3.
+//
+// E continua sem mostrar nada de dentro: a tela apaga na soleira.
 const FASES = [
   ['brasa', 2.0],     // clarao crescendo atras das janelas, ainda sem chama
   ['estouro', 1.4],   // o vidro cede e a chama sai
-  ['porta', 3.4],     // ele corre e bate na porta
-  ['baque', 1.5],     // o ar estoura e joga ele para tras
-  ['levanta', 3.6],   // ele se levanta e fica olhando
-  ['fim', 2.6],
+  ['porta', 2.6],     // ele corre ate a porta
+  ['chute', 1.5],     // e chuta
+  ['queda', 1.6],     // a porta cede e ele cai junto com ela
+  ['entra', 2.2],     // ele levanta e atravessa a soleira
+  ['fim', 1.2],
 ];
 
 export class Fogo {
@@ -327,6 +339,7 @@ export class Fogo {
     if (this.faseT >= FASES[this.idx][1]) {
       if (this.idx >= FASES.length - 1) {
         this.ativo = false;
+        game.player.det.alpha = 1;
         const cb = this.onEnd;
         this.onEnd = null;
         if (cb) cb();
@@ -338,20 +351,32 @@ export class Fogo {
       this._entrarFase(game, p);
     }
 
-    // Ele corre para a porta. Nao chega: o vao ja esta cheio de fogo.
+    // Ele CORRE para a porta. Correr e a animacao que este homem nao usa em
+    // mais nenhum lugar do capitulo — e e por isso que ela diz alguma coisa.
     if (this.fase === 'porta' && alvo !== null) {
-      const parada = alvo + 26;
+      const parada = alvo + 22;
       if (p.x > parada + 2) {
-        p.x -= 96 * dt;
+        p.x -= 118 * dt;
         p.det.setFacing(-1);
         if (p.det.anim !== 'run') p.det.play('run', { blend: 0.12 });
-      } else if (p.det.anim !== 'interact') {
-        p.det.play('interact', { restart: true, blend: 0.1 });
+      } else if (p.det.anim !== 'idle') {
+        p.det.play('idle', { blend: 0.14 });
       }
     }
-    if (this.fase === 'baque') {
-      // jogado para tras pelo estouro do ar
-      p.x += 44 * dt * clamp(1 - this.faseT * 1.2, 0, 1);
+    // O chute joga ele meio pixel para a frente a cada quadro: o corpo vai
+    // junto com a perna, que e o que separa chutar de encostar o pe.
+    if (this.fase === 'chute' && this.faseT > 0.18 && this.faseT < 0.42) {
+      p.x -= 26 * dt;
+    }
+    // A porta cede e ele cai PARA DENTRO, nao para tras.
+    if (this.fase === 'queda' && this.faseT < 0.5) {
+      p.x -= 34 * dt;
+    }
+    // E ele atravessa a soleira.
+    if (this.fase === 'entra' && this.faseT > 0.85 && alvo !== null) {
+      p.x -= 46 * dt;
+      if (p.det.anim !== 'walk') p.det.play('walk', { blend: 0.16 });
+      p.det.alpha = clamp(1 - (this.faseT - 0.85) * 0.55, 0.35, 1);
     }
     p.det.update(dt);
   }
@@ -369,19 +394,28 @@ export class Fogo {
       p.say('b3_fogo_1', 2.0, true);
     } else if (f === 'porta') {
       p.say('b3_fogo_2', 2.2, true);
-    } else if (f === 'baque') {
-      audio.fireBurst(1.0);
-      gfx.shake(5.2);
-      gfx.flashColor = '#ffd0a0'; gfx.flash = 0.42;
+    } else if (f === 'chute') {
+      // ELE CHUTA A PORTA. A animacao ja existia no rig desde a sessao 13,
+      // guardada para o Credor — e e a mesma coisa aqui: um homem pondo o
+      // corpo inteiro atras de um pe.
+      p.det.play('kick', { restart: true, blend: 0.06 });
+      p.say('b3_fogo_3', 2.0, true);
+      audio.doorSlam ? audio.doorSlam(0.7) : audio.thud(0.9);
+      gfx.shake(3.0);
+    } else if (f === 'queda') {
+      // a porta cede, e ele vai junto
+      audio.doorSlam ? audio.doorSlam(1.0) : audio.thud(1);
+      audio.fireBurst(0.9);
+      gfx.shake(5.4);
+      gfx.flashColor = '#ffd0a0'; gfx.flash = 0.38;
       p.det.play('collapse', { restart: true, blend: 0.05 });
-      p.say('b3_fogo_3', 2.2, true);
-    } else if (f === 'levanta') {
+      p.say('b3_fogo_4', 2.0, true);
+    } else if (f === 'entra') {
       p.det.play('standUp', { restart: true, blend: 0.14 });
-      p.say('b3_fogo_4', 2.6, true);
+      p.say('b3_fogo_5', 2.4, true);
     } else if (f === 'fim') {
-      p.det.play('idle', { blend: 0.3 });
       p.det.setFacing(-1);
-      p.say('b3_fogo_5', 3.0, true);
+      p.say('b3_fogo_6', 2.4, true);
     }
   }
 
