@@ -14,3 +14,21 @@ assets/reference/
 
 # arte conceitual de terceiros usada so como referencia de desenvolvimento.
 # NAO vai para repositorio publico (ressalva R-05 do documento mestre).
+
+# ---------------------------------------------------------------------------
+# TRILHA VINDA DE FORA — nao versionada, e por dois motivos
+# ---------------------------------------------------------------------------
+# 1. TAMANHO. `musica-casa.mp3` tem 110 MB (48 minutos a 320 kbps). O GitHub
+#    RECUSA arquivo acima de 100 MB: com ele dentro, o push nao passa. Mesmo
+#    abaixo disso, um binario desse tamanho num repositorio publico fica no
+#    historico para sempre.
+# 2. DIREITOS. E uma faixa de terceiros baixada do YouTube. Vale a mesma
+#    ressalva de `assets/reference/` (R-05): antes de o jogo sair, ou ela e
+#    licenciada, ou e substituida por algo proprio.
+#
+# O JOGO NAO DEPENDE DELA. Se o arquivo nao estiver aqui, o piano
+# sintetizado toca no lugar e nada quebra — foi assim que o jogo continuou
+# rodando com dois cliques em qualquer maquina.
+assets/audio/musica-casa.*
+assets/audio/grito.*
+assets/audio/gritos.*

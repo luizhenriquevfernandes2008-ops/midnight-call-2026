@@ -356,6 +356,11 @@ export function buildReception() {
   inter.push({
     x: ex.x, y: ex.y, w: ex.w, h: ex.h, prompt: 'prompt_open',
     action: 'goto', to: 'ch3_plantao', tox: 70, tofacing: 1, range: 30, isDoor: true, prio: 1,
+    // ⚠ SEM ENTREGAR OS PERTENCES ELE NAO PASSA. Nao e confisco de roteiro,
+    // e a porta — e e a segunda vez na vida dele que ele entrega uma arma
+    // naquele balcao. A regra ele conhece: foi ele que aplicou essa regra a
+    // vida inteira, no mesmo lugar.
+    precisa: 'arma_guardada', semChave: 'b3_rec_barrado', aviso: 'aviso_barrado',
   });
   lights.push({ x: W - 70, y: GY - 90, r: 150, color: '#c8a06a', i: 0.5, falloff: 1.1 });
 
@@ -415,6 +420,10 @@ export function buildReception() {
 
   const lvl = new Level({
     key: 'ch3_reception',
+    // O corredor passa NA FRENTE deste movel: o primeiro plano entra
+    // antes do jogador para o preso/plantonista continuarem atras da
+    // grade e do vidro, e o David passar na frente dos dois.
+    playerSobreFore: true,
     nameKey: 'loc_reception',
     width: W, groundY: GY,
     ambient: '#333d4c',
@@ -1444,6 +1453,10 @@ export function buildCell() {
 
   const lvl = new Level({
     key: 'ch3_cell',
+    // O corredor passa NA FRENTE deste movel: o primeiro plano entra
+    // antes do jogador para o preso/plantonista continuarem atras da
+    // grade e do vidro, e o David passar na frente dos dois.
+    playerSobreFore: true,
     nameKey: 'loc_cell',
     width: W, groundY: GY,
     ambient: '#2a3040',

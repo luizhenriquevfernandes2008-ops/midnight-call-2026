@@ -170,6 +170,10 @@ class Game {
 
     set('procurando a narracao...');
     this.narrationUrl = await audio.findNarration();
+    // Musica da casa e gritos vindos de arquivo, se existirem. Sao os dois
+    // unicos sons do jogo que podem vir de fora — e os dois sao OPCIONAIS:
+    // sem eles o sintetizado entra no lugar e nada quebra.
+    await audio.procurarTrilha();
 
     set('afinando o titulo...');
     await frame();
@@ -363,6 +367,7 @@ class Game {
     this.runId++;   // invalida qualquer cena roteirizada ainda no relogio
     this.fogo.parar(); this.fogo.reset();
     this.interrog.reset();
+    audio.pararMusicaArquivo(0.6);
     this.state = 'menu';
     this.scene = null;
     if (this.menuSlots) this.menuSlots.open = false;
@@ -585,9 +590,18 @@ class Game {
     //   delegacia . um bordao grave com um tritom quase inaudivel por cima.
     //               Nao e tema; e o predio.
     if (this.flags.cap3) {
-      if (lv.key === 'ch3_home' || lv.key === 'ch3_room') audio.startMusic('casa');
-      else if (lv.key === 'ch3_past') audio.stopMusic(2.2);
-      else audio.startMusic('delegacia');
+      if (lv.key === 'ch3_home' || lv.key === 'ch3_room') {
+        // Se houver gravacao, ela e a musica da casa. Se nao houver, o
+        // piano sintetizado faz o mesmo papel.
+        audio.stopMusic(1.2);
+        if (!audio.tocarMusicaArquivo(0.18)) audio.startMusic('casa');
+      } else if (lv.key === 'ch3_past') {
+        audio.pararMusicaArquivo(2.4);
+        audio.stopMusic(2.2);
+      } else {
+        audio.pararMusicaArquivo(1.6);
+        audio.startMusic('delegacia');
+      }
     }
     if (this.chase && this.chase.ativo) {
       audio.startLoop('serra', { gain: 0.035, fade: 0.35 });
@@ -707,6 +721,7 @@ class Game {
       this.player.update(sim, lv, canControl);
       if (cap2) this.updateCh2(sim, lv, prendendo);
       if (this.flags.cap3) this.updateCh3(sim, lv);
+    if (this.avisoT > 0) this.avisoT -= sim;
       // Numa conversa a camera sobe. A caixa de dialogo ocupa o terco de
       // baixo da tela, e sem isso quem esta falando com voce fica escondido
       // atras da propria fala.
@@ -754,13 +769,31 @@ class Game {
       this.chase.draw(gfx.s, cam, lv.key);
       if (this.credorParado) this.drawCredorParado(gfx.s, cam);
     }
+    // 🐛 O JOGADOR ATRAVESSANDO A CELA E O BALCAO.
+    //
+    // Nao era colisao: era ORDEM DE DESENHO. A grade da custodia e a frente
+    // da guarita sao camadas de primeiro plano em paralaxe 1:1 — elas
+    // existem para o PRESO ficar atras das barras e o PLANTONISTA ficar
+    // atras do vidro. So que a camada e desenhada depois de todo mundo, e o
+    // David ia junto: parado no corredor ele aparecia por tras da grade, ou
+    // seja, DENTRO da cela; parado na recepcao ele aparecia por tras do
+    // balcao, ou seja, dentro da guarita.
+    //
+    // Colisao nao resolveria isso e ainda partiria as duas salas ao meio: o
+    // corredor passa NA FRENTE da cela, e bloquear o vao da cela deixaria o
+    // livro de visitas inalcancavel. O que estava errado era so quem vem
+    // por cima de quem.
+    //
+    // Nestes setores o primeiro plano entra ANTES do jogador: os outros
+    // continuam atras das barras, e ele passa na frente delas.
+    if (lv.playerSobreFore) lv.drawFore(gfx.s, cam);
     this.player.draw(gfx.s, cam);
     if (this.scene) this.scene.draw(gfx.s, cam);
     this.fx.draw(gfx.s, cam.ix, cam.iy);
     if (lv.indoor) this.dust.draw(gfx.s);
     else this.fog.draw(gfx.s);
     if (lv.weather === 'rain') this.rain.draw(gfx.s);
-    lv.drawFore(gfx.s, cam);
+    if (!lv.playerSobreFore) lv.drawFore(gfx.s, cam);
     if (cap2) this.chaseSequence.drawFore(gfx.s, cam, this, lv);
 
     gfx.beginLights(lv.ambient);
@@ -806,9 +839,14 @@ class Game {
     // O balao fica acima da CABECA do detetive, nao acima do objeto: quase
     // sempre ele esta colado no objeto, e em cima do objeto o balao tapava
     // justamente o personagem.
+    // 🐛 O balao de interacao aparecia DURANTE as cenas do Capitulo 3: com a
+    // casa pegando fogo e o jogador sem controle nenhum, a porta continuava
+    // oferecendo "ABRIR". Prompt so existe quando ha o que apertar.
     const near = (!this.dialogue.active && !paused && !this.scene && !this.qte
       && !this.grab && !this.chaseSetpieces.action && !this.chaseSequence.action
-      && !this.finishers.action && !uiAberta && !this.escondido)
+      && !this.finishers.action && !uiAberta && !this.escondido
+      && !this.fogo.ativo && !this.interrog.ativo && !this.namePrompt.ativo
+      && this.player.controllable)
       ? lv.nearest(this.player.x) : null;
     this.promptA = lerp(this.promptA || 0, near ? 1 : 0, 1 - Math.exp(-14 * dt));
     if (this.promptA > 0.02 && near) {
@@ -848,6 +886,14 @@ class Game {
     if (this.flags && this.flags.combat_lab) this.drawCombatLabUI(gfx.s);
     if (!paused && !this.scene && !this.qte && !uiAberta) this.drawGunUI(gfx.s, cam);
     if (cap2 && !this.scene) this.drawCh2UI(gfx.s);
+    // 🐛 O aviso de "peguei alguma coisa" morava dentro do HUD do Capitulo
+    // 2. No 3 ele nunca aparecia: pegar a calibre doze nao dizia nada, e o
+    // jogador ficava sem saber se tinha pegado.
+    if (this.flags.cap3 && !this.scene) {
+      this.journal.drawToast(gfx.s);
+      this.inv.drawToast(gfx.s);
+    }
+    if (!this.scene) this.drawAviso(gfx.s);
     // O painel de senha e um LED: e desenhado DEPOIS da luz, senao a
     // multiplicacao apaga o digito. O numero muda, entao ele nao pode viver
     // na camada pintada da fase.
@@ -1017,6 +1063,8 @@ class Game {
         audio.doorSlam(0.4);
         gfx.shake(1.4, 0.18);
         this.player.say(it.semChave || 'b2_trancado', 0, true);
+        // Porta que recusa por causa de um pertence explica O QUE falta.
+        if (it.aviso) this.aviso(it.aviso, 0);
         return;
       }
       audio.doorCreak(it.sfx === 'heavy' ? 0.5 : 0.9);
@@ -1734,18 +1782,49 @@ class Game {
       // ---- a arma no escaninho 214 ----
       // Nao e confisco de roteiro, e a porta. E e a segunda vez na vida dele
       // que ele entrega uma arma nesse balcao.
+      // ---- O ESCANINHO 214 ----
+      //
+      // Nao e confisco de roteiro, e a porta: SEM DEIXAR AS COISAS AQUI ele
+      // nao entra na delegacia. E na saida ele pega tudo de volta — e as
+      // duas acoes avisam o que aconteceu, porque um jogo que tira coisas do
+      // seu inventario sem dizer nada e um jogo que perdeu a sua confianca.
+      //
+      // O que fica no escaninho: a arma, a doze (se ele ja tiver pegado) e
+      // o isqueiro. O maco e o caderno ficam com ele — sao pessoais, e o
+      // capitulo inteiro depende dos dois.
       case 'ch3_escaninho': {
+        // ---- na saida: pegar de volta ----
+        if (this.flags.ch3_pronto && this.flags.arma_guardada) {
+          this.flags.arma_guardada = false;
+          p.hasGun = true;
+          p.det.props.gun = 'holstered';
+          for (const k of (this.flags.escaninho || [])) this.inv.add(k);
+          const n = 1 + (this.flags.escaninho || []).length;
+          this.flags.escaninho = [];
+          audio.leather ? audio.leather(0.8) : audio.uiConfirm();
+          this.aviso('aviso_retirou', n);
+          p.say('b3_rec_volta', 3.0, true);
+          return true;
+        }
         if (this.flags.arma_guardada) {
           p.say('b3_rec_214', 2.6, true);
           return true;
         }
+        // ---- na entrada: entregar ----
         this.flags.arma_guardada = true;
         p.hasGun = false;
         p.gun = 'holstered';
         p.det.props.gun = null;
+        // tudo que e metal e fogo fica aqui
+        const guardados = [];
+        for (const k of ['shotgun', 'lighter']) {
+          if (this.inv.has(k)) { this.inv.remove(k); guardados.push(k); }
+        }
+        this.flags.escaninho = guardados;
         p.say('b3_rec_gun', 3.0, true);
         p.say('b3_rec_214', 2.6);
         audio.leather ? audio.leather(0.7) : audio.uiConfirm();
+        this.aviso('aviso_guardou', 1 + guardados.length);
         return true;
       }
 
@@ -1949,6 +2028,7 @@ class Game {
     // A musica da casa morre AQUI, no instante em que ele atende. O resto
     // da cena acontece sem tema nenhum: o que vem depois nao tem trilha.
     audio.stopMusic(1.6);
+    audio.pararMusicaArquivo(1.6);
     // O que a ligacao diz: NADA que de para ouvir. Se o jogador entender uma
     // palavra que seja, o Capitulo 4 perde a revelacao.
     p.det.play('interact', { restart: true });
@@ -2034,6 +2114,22 @@ class Game {
       const p = this.player;
       p.say('b3_int_fim', 2.4);
       p.say('b3_int_fim2', 2.4);
+
+      // ---- A VIRADA ----
+      //
+      // Aqui o Capitulo 3 deixa de ser sobre o passado. O David junta a
+      // unica coisa acionavel que saiu daquela cela — "mandei deixar a
+      // menina viva" — e faz o que um detetive faz: para de lamentar e vai
+      // atras da ponta. E ele acabou de descobrir, na propria mao, do que
+      // ele e capaz para conseguir uma resposta.
+      //
+      // ⚠ A REGRA DE OURO CONTINUA: ele nao especula sobre estar louco e
+      // nao junta migalha nenhuma em voz alta. Ele so decide.
+      this.anotar('j3_caca');
+      this.flags.vai_atras = true;
+      for (const k of ['b3_vira_1', 'b3_vira_2', 'b3_vira_3',
+                       'b3_vira_4', 'b3_vira_5', 'b3_vira_6']) p.say(k, 3.0);
+
       // E a partir daqui ele tem que sair. O capitulo passa a ter fim.
       this.flags.ch3_pronto = true;
       p.say('b3_int_sair', 3.2);
@@ -2076,6 +2172,41 @@ class Game {
     if (this.inv.add(key)) return true;
     this.player.say('inv_full', 2.2, true);
     return false;
+  }
+
+  // ---- AVISO ----
+  //
+  // Uma faixa curta no alto da tela quando o jogo TIRA ou DEVOLVE alguma
+  // coisa. E diferente do aviso de item pego, que e discreto de proposito:
+  // este existe para as trocas que o jogador nao fez com as proprias maos —
+  // entregar os pertences na portaria e pegar de volta na saida. Um jogo
+  // que mexe no inventario sem dizer nada perde a confianca de quem joga.
+  aviso(key, n) {
+    this.avisoKey = key;
+    this.avisoN = n || 0;
+    this.avisoT = 3.4;
+  }
+
+  drawAviso(ctx) {
+    if (!(this.avisoT > 0) || !this.avisoKey) return;
+    const a = clamp(Math.min(this.avisoT, 3.4 - this.avisoT + 2.6), 0, 1);
+    let txt = T(this.avisoKey);
+    if (txt.indexOf('%d') >= 0) txt = txt.replace('%d', String(this.avisoN));
+    const est = { size: 9, font: 'ui', weight: 'bold' };
+    const w = measure(txt, est).w + 22;
+    const x = Math.round((VW - w) / 2), y = 20;
+    ctx.save();
+    ctx.globalAlpha = a * 0.86;
+    ctx.fillStyle = '#08090c';
+    ctx.fillRect(x, y, w, 17);
+    ctx.fillStyle = '#3a4450';
+    ctx.fillRect(x, y, w, 1);
+    ctx.fillRect(x, y + 16, w, 1);
+    ctx.restore();
+    text(ctx, txt, VW / 2, y + 5, {
+      size: 9, font: 'ui', weight: 'bold', align: 'center', track: 1,
+      color: PAL.uiAccent, alpha: a, shadow: true,
+    });
   }
 
   anotar(key) {

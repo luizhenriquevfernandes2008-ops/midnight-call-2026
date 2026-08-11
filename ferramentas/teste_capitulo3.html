@@ -96,6 +96,20 @@ document.getElementById('rodar').onclick = async () => {
       ok(`${k} tem pelo menos uma saida`, saidas.length > 0, String(saidas.length));
     }
 
+    // 🐛 O JOGADOR ATRAVESSANDO A CELA E O BALCAO.
+    //
+    // Nao era colisao: era ordem de desenho. A grade e a guarita sao
+    // camadas de primeiro plano 1:1, desenhadas depois de todo mundo — e o
+    // David ia junto, aparecendo POR TRAS delas, ou seja, dentro da cela e
+    // dentro da guarita. Nestes dois setores o primeiro plano entra antes
+    // dele.
+    for (const k of ['ch3_cell', 'ch3_reception']) {
+      ok(`${k} desenha o jogador na FRENTE do primeiro plano`,
+        g.levels[k].playerSobreFore === true);
+      ok(`${k} tem primeiro plano em paralaxe 1:1`,
+        (g.levels[k].fores || []).some(f => f.par === 1));
+    }
+
     // A REGRA NUMERICA DE LUZ (erro M-04). Setor acima de 800px precisa de
     // lampada forte a cada ~400px. Isso ja custou dois capitulos pretos.
     const { auditarLuz } = await import('../js/world/levels-ch3.js');
@@ -168,11 +182,20 @@ document.getElementById('rodar').onclick = async () => {
         const sx = Math.round((wx - g.cam.ix) * esc), sy = Math.round((wy - g.cam.iy) * esc);
         return ctx2.getImageData(sx, sy, Math.round(bw * esc), Math.round(bh * esc)).data;
       };
+      // ⚠ E A POEIRA TAMBEM. Depois que o primeiro plano passou a ser
+      // desenhado antes do jogador (B-64), as particulas de interior caem
+      // POR CIMA do balcao — e uma medicao que exige zero pixel de
+      // diferenca vira ruido puro. Mesma licao do M-09: quem mede imagem
+      // desliga tudo que se mexe sozinho.
+      const semPoeira = () => { if (g.dust && g.dust.list) g.dust.list.length = 0; };
       const medir = (npc, wx, wy, bw, bh) => {
+        semPoeira();
         for (let i = 0; i < 4; i++) d.step(1 / 60);
+        semPoeira();
         const A = bandaM(wx, wy, bw, bh);
         const lv = npc.cfg.level; npc.cfg.level = '__oculto__';
         for (let i = 0; i < 4; i++) d.step(1 / 60);
+        semPoeira();
         const B = bandaM(wx, wy, bw, bh);
         npc.cfg.level = lv;
         for (let i = 0; i < 4; i++) d.step(1 / 60);
@@ -494,9 +517,10 @@ document.getElementById('rodar').onclick = async () => {
     // janelas, pela porta e pelo telhado, e a camera fica na varanda.
     // =================================================================
     {
+      const d = w.__dev;
       g.startChapter(3); g.state = 'play';
       c3.entrarFlashback(g);
-      w.__dev.ir('ch3_past', 700, 1);
+      d.ir('ch3_past', 700, 1);
       const F = g.levels.ch3_past.props.fogo;
       ok('a fase declara onde a casa queima', !!F);
       ok('o fogo sai pelas duas janelas', !!F && F.janelas.length === 2);
@@ -527,6 +551,33 @@ document.getElementById('rodar').onclick = async () => {
       // queimando em loop. Esta checagem existe por causa disso.
       ok('o fogo TERMINA sozinho', acabou === true, g.fogo.fase);
 
+      // ⚠ O CHUTE TEM QUE ACERTAR A PORTA. A primeira versao trocava de
+      // fase por relogio: se a corrida nao tivesse acabado, ele chutava o
+      // ar no meio do quintal e atravessava uma porta fechada.
+      {
+        g.fogo.reset();
+        d.ir('ch3_past', 780, -1);
+        g.player.controllable = false; g.player.frozen = true;
+        g.fogo.comecar(g);
+        const portaX = g.levels.ch3_past.props.portaX;
+        let chuteX = null, animChute = null;
+        for (let i = 0; i < 900; i++) {
+          d.step(1 / 60);
+          if (g.fogo.chutou && chuteX === null) {
+            chuteX = g.player.x; animChute = g.player.det.anim;
+          }
+          if (!g.fogo.ativo) break;
+        }
+        ok('ele chuta A PORTA, nao o ar',
+          chuteX !== null && Math.abs(chuteX - portaX) < 40,
+          chuteX === null ? 'nao chutou' : `x=${Math.round(chuteX)} porta=${Math.round(portaX)}`);
+        ok('e chuta com a animacao de chute', animChute === 'kick', String(animChute));
+        ok('a porta ABRE depois do chute', g.fogo.portaAberta === true);
+        ok('e ele atravessa a soleira',
+          g.player.x < portaX + 6, `x=${Math.round(g.player.x)} porta=${Math.round(portaX)}`);
+        c3.sairFlashback(g);
+      }
+
       // A cena e ENCENADA: o jogador nao tem controle enquanto a casa queima.
       g.fogo.reset();
       g.fogo.comecar(g);
@@ -550,6 +601,58 @@ document.getElementById('rodar').onclick = async () => {
       // esta secao entrou no passado na mao; sai dele antes de seguir
       c3.sairFlashback(g);
       ok('sair do passado devolve a roupa de hoje', g.player.det.parts === null);
+    }
+
+    // =================================================================
+    sec('A PORTARIA: ENTREGAR E RETIRAR');
+    //
+    // A arma no escaninho deixou de ser um botao opcional: SEM ENTREGAR ele
+    // nao entra. E na saida ele pega tudo de volta. As duas acoes avisam —
+    // um jogo que mexe no inventario sem dizer nada perde a confianca de
+    // quem joga.
+    // =================================================================
+    {
+      const d = w.__dev;
+      const passo = n => { for (let i = 0; i < n; i++) d.step(1 / 60); };
+      g.startChapter(3); g.state = 'play';
+      d.ir('ch3_reception', 900, 1); passo(12);
+
+      const porta = g.level.interactables.find(x => x.to === 'ch3_plantao');
+      ok('a porta do plantao pede os pertences', porta.precisa === 'arma_guardada');
+      ok('e ela tem aviso proprio', !!porta.aviso);
+
+      // ---- barrado ----
+      g.doInteract(porta); passo(20);
+      ok('sem entregar ele NAO entra', g.level.key === 'ch3_reception', g.level.key);
+      ok('e o jogo diz o motivo', g.avisoKey === 'aviso_barrado', String(g.avisoKey));
+
+      // ---- entregar ----
+      const esc = g.level.interactables.find(x => x.action === 'ch3_escaninho');
+      ok('o escaninho 214 existe', !!esc);
+      g.inv.add('shotgun');
+      g.doInteract(esc); passo(8);
+      ok('a arma fica no escaninho', g.player.hasGun === false);
+      ok('a doze tambem fica', g.inv.has('shotgun') === false);
+      ok('e o jogo avisa o que guardou', g.avisoKey === 'aviso_guardou', String(g.avisoKey));
+      ok('o que ficou la fica registrado',
+        Array.isArray(g.flags.escaninho) && g.flags.escaninho.indexOf('shotgun') >= 0,
+        JSON.stringify(g.flags.escaninho));
+
+      // ---- e agora ele entra ----
+      g.doInteract(porta);
+      for (let i = 0; i < 200 && g.level.key !== 'ch3_plantao'; i++) d.step(1 / 60);
+      ok('com os pertences entregues ele entra', g.level.key === 'ch3_plantao', g.level.key);
+
+      // ---- retirar, na saida ----
+      d.ir('ch3_reception', 900, 1); passo(10);
+      g.flags.ch3_pronto = true;
+      const esc2 = g.level.interactables.find(x => x.action === 'ch3_escaninho');
+      g.doInteract(esc2); passo(8);
+      ok('na saida ele pega a arma de volta', g.player.hasGun === true);
+      ok('e a doze volta para o casaco', g.inv.has('shotgun') === true);
+      ok('e o jogo avisa a devolucao', g.avisoKey === 'aviso_retirou', String(g.avisoKey));
+      ok('e o escaninho fica vazio',
+        Array.isArray(g.flags.escaninho) && g.flags.escaninho.length === 0);
     }
 
     // =================================================================
@@ -718,6 +821,16 @@ document.getElementById('rodar').onclick = async () => {
       // ⚠ E O CAPITULO PASSA A TER FIM. Antes disto dava para fazer tudo e
       // nao acontecer nada.
       ok('o capitulo fica pronto para acabar', g.flags.ch3_pronto === true);
+      // ⚠ A VIRADA. E o motivo de o capitulo existir: ele para de reagir e
+      // decide ir atras do homem que abriu a porta.
+      ok('ele decide ir atras do Andrade', g.flags.vai_atras === true);
+      ok('a decisao vira pagina do caderno', g.journal.has('j3_caca'));
+      for (const k of ['b3_vira_1', 'b3_vira_2', 'b3_vira_3', 'b3_vira_4',
+                       'b3_vira_5', 'b3_vira_6']) {
+        ok(`a fala ${k} existe em PT e EN`, T(k)[0] !== '[');
+      }
+      ok('e a decisao NAO diz o nome dela',
+        !/jenna/i.test(JOURNAL.j3_caca.pt + JOURNAL.j3_caca.en));
 
       // ⚠ E ELE NAO CHAMA O DAVID DE SENHOR EM LUGAR NENHUM.
       {
@@ -795,6 +908,12 @@ document.getElementById('rodar').onclick = async () => {
       ok('a doze vira pagina do caderno', g.journal.has('j3_shotgun'));
       ok('e ela ocupa espaco de verdade no casaco',
         !!ITEMS.shotgun && ITEMS.shotgun.w >= 3, JSON.stringify(ITEMS.shotgun));
+      // 🐛 E ELA AVISA QUE FOI PEGA. O aviso de item morava dentro do HUD do
+      // Capitulo 2 e nunca era desenhado no 3: pegar a doze nao dizia nada.
+      ok('pegar a doze acende o aviso de item', g.inv.toast > 0, String(g.inv.toast));
+      ok('e o aviso e da doze', g.inv.toastKey === 'shotgun', String(g.inv.toastKey));
+      ok('a doze tem desenho proprio no casaco',
+        typeof g.inv._drawItemShape === 'function');
 
       // ---- O CANON DA LIGACAO ----
       // Ninguem mais afirma que ele ligou para si proprio. A telefonista
@@ -1167,6 +1286,12 @@ document.getElementById('rodar').onclick = async () => {
       }
       ok('[fluxo] o Carlos quebra', g.interrog.quebrou === true);
       ok('[fluxo] e a confissao fica registrada', g.flags.carlos_quebrou === true);
+      // ⚠ Depois da confissao ainda vem o NOME e o CIGARRO. A cena so acaba
+      // depois deles — avancar uma vez so parava no meio.
+      {
+        const avancar2 = () => { for (let n = 0; n < 24 && g.dialogue.active; n++) { d.key('KeyE'); passo(8); } };
+        for (let n = 0; n < 12 && g.interrog.ativo; n++) { avancar2(); passo(8); }
+      }
       ok('[fluxo] o interrogatorio devolve o controle', g.player.controllable === true);
 
       // ⚠ E O CAPITULO PASSA A TER FIM SOZINHO. Antes disto o jogador podia

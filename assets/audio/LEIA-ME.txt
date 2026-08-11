@@ -80,3 +80,37 @@ OUTROS SONS
 Todo o resto do som do jogo (chuva, vento, passo, soco, porta, isqueiro,
 musica do menu) e sintetizado em tempo real em js/core/audio.js. Nao ha
 arquivos de audio para esses.
+
+===========================================================================
+MUSICA DA CASA E GRITOS  (adicionado em 11/08/2026)
+===========================================================================
+
+O jogo procura DOIS arquivos opcionais aqui dentro:
+
+  musica-casa.mp3   o tema que toca na casa e no quarto, no flashback.
+                    Entra BAIXO (0.18) e em loop, e morre no instante em
+                    que o David atende o telefone.
+
+  grito.mp3         os gritos que vem de dentro da casa depois da ligacao.
+                    Entra MEDIO (0.55) e passa por um filtro que e a
+                    parede entre ele e o que esta acontecendo.
+
+Os dois sao OPCIONAIS. Sem eles o jogo usa o piano sintetizado e os gritos
+sintetizados, e nada quebra. Essa regra nao muda: o jogo tem que continuar
+rodando com dois cliques numa maquina que so tem o HTML.
+
+Aceita .mp3, .ogg, .m4a (musica) e .mp3, .ogg, .wav (grito).
+
+---------------------------------------------------------------------------
+DUAS RESSALVAS SOBRE O ARQUIVO QUE ESTA AQUI HOJE
+---------------------------------------------------------------------------
+
+1. TAMANHO. O `musica-casa.mp3` atual tem 110 MB — sao 48 minutos a
+   320 kbps, ou seja, uma playlist inteira, nao uma faixa. O GitHub RECUSA
+   arquivo acima de 100 MB, entao ele NAO vai para o repositorio (esta no
+   .gitignore). Para versionar, o certo e cortar um trecho de 1 a 3 minutos
+   que feche em loop e exportar em 128 kbps: isso da uns 2 MB.
+
+2. DIREITOS. A faixa veio do YouTube. Vale a mesma ressalva de
+   `assets/reference/`: antes de o jogo sair, ou ela e licenciada, ou e
+   trocada por algo proprio.

@@ -334,6 +334,102 @@ ainda precisam de teste humano para ajuste fino de dificuldade.
 
 ---
 
+## SESSÃO 24 — 11/08/2026 · Claude · a portaria, o chute e a virada
+
+Oito coisas apontadas pelo Luiz jogando. Todas procedentes.
+
+### 1. 🔥 A VIRADA — o Capítulo 3 deixou de ser sobre o passado
+
+Era a reclamação mais importante da lista: *"está muito raso"*. E estava —
+o David ouvia a confissão, ganhava o nome, e ia embora como se nada tivesse
+mudado.
+
+Agora, no fim do interrogatório, ele **decide**:
+
+> "Ela tá viva."
+> "Eu procurei sete anos um corpo que nunca existiu."
+> "Andrade abriu a porta. Andrade sabe pra onde ela foi."
+> "Então eu acho o Andrade."
+> "E ele me diz. De um jeito ou de outro, ele me diz."
+> "Depois disso eu vejo o que sobra de mim."
+
+São as **únicas seis linhas do jogo inteiro em que o David decide alguma
+coisa em voz alta**. Ele passou três capítulos reagindo; aqui ele para. E a
+regra de ouro continua de pé: ele não junta migalha em voz alta e não
+especula sobre estar louco — ele faz o que um detetive faz, que é pegar o
+único fato acionável que tem e ir atrás dele.
+
+A página `j3_caca` fecha com a frase que devolve o preço: *"e eu já sei o
+que eu sou capaz de fazer com um homem algemado."*
+
+### 2. 🐛 B-64 — o David atravessava a cela e a recepção
+
+**Não era colisão, era ordem de desenho.** A grade da custódia e a frente da
+guarita são camadas de primeiro plano em paralaxe 1:1 — existem para o preso
+ficar atrás das barras e o plantonista atrás do vidro. Só que a camada é
+desenhada **depois de todo mundo**, e o David ia junto: parado no corredor
+ele aparecia por trás da grade (= dentro da cela), e na recepção por trás do
+balcão (= dentro da guarita).
+
+Colisão não resolveria e ainda partiria as duas salas ao meio: o corredor
+passa **na frente** da cela, e bloquear aquele vão deixaria o livro de
+visitas inalcançável. Nesses dois setores o primeiro plano passou a ser
+desenhado **antes** do jogador (`playerSobreFore`).
+
+### 3. 🐛 B-65 — a doze não avisava nada
+
+O aviso de "peguei alguma coisa" existia desde a sessão 09 e era desenhado
+dentro de `drawCh2UI()` — **só no Capítulo 2**. No 3 ele nunca aparecia.
+Agora é desenhado nos dois, e existe um **aviso próprio** (`aviso()`), uma
+faixa no alto da tela, para as trocas que o jogador **não** fez com as
+próprias mãos.
+
+### 4. A portaria: entregar para entrar, retirar na saída
+
+O escaninho 214 deixou de ser botão opcional. **Sem entregar, a porta do
+plantão não abre** — e a recusa diz o motivo, na fala e no aviso. Ficam lá a
+arma, a doze e o isqueiro; o maço e o caderno continuam com ele, porque são
+pessoais e o capítulo depende dos dois.
+
+Na saída, com o capítulo pronto, o mesmo escaninho devolve tudo e avisa
+quantos itens voltaram.
+
+### 5. O chute na porta agora acerta a porta
+
+Ele chutava o ar. A troca de fase era por **relógio**: se a corrida não
+tivesse acabado, o pé saía no meio do quintal e ele atravessava uma porta
+fechada. Agora a corrida continua dentro da fase do chute até ele estar ao
+alcance, ele **vira de frente** e só então chuta — e a porta **abre**: o vão
+é desenhado por cima do cenário, com o batente lascado e o clarão saindo de
+dentro.
+
+### 6. 🐛 O balão de interação aparecia no meio das cenas
+
+Com a casa pegando fogo e o jogador sem controle nenhum, a porta continuava
+oferecendo "ABRIR". Prompt só existe quando há o que apertar.
+
+### 7. Música e gritos podem vir de arquivo
+
+Dois slots opcionais em `assets/audio/`: `musica-casa.mp3` (baixa, em loop,
+morre no instante em que ele atende o telefone) e `grito.mp3` (média, com o
+passa-baixa que é a parede). **Os dois são opcionais** — sem eles o
+sintetizado entra no lugar e nada quebra. Essa regra não muda: o jogo tem
+que continuar rodando com dois cliques numa máquina que só tem o HTML.
+
+> ⚠ **O `musica-casa.mp3` que está aí tem 110 MB** (48 minutos a 320 kbps —
+> é uma playlist, não uma faixa). **O GitHub recusa arquivo acima de 100 MB**,
+> então ele está no `.gitignore` e não vai para o repositório. Para
+> versionar: cortar 1 a 3 minutos que fechem em loop e exportar a 128 kbps
+> (≈2 MB). E vale a ressalva de direitos de `assets/reference/` — a faixa é
+> de terceiros.
+
+### 8. A doze ganhou desenho no casaco
+
+Silhueta própria: cano duplo, bloco da culatra, guarda-mato e **coronha de
+madeira** na ponta. Sem a coronha, uma peça 4x1 vira um cano de ferro.
+
+---
+
 ## SESSÃO 23 — 10/08/2026 · Claude · o David entra na cela
 
 Sessão inteira de correção em cima do que o Luiz jogou. Ele encontrou um
@@ -1305,7 +1401,10 @@ salva texto diferente**.
 | Câmera fechando (`gfx.aproximar`) | 🟢 1,35x, medida na tela. Resolve a D-10 |
 | A figura negra na sala de espera | 🟢 desenhada e medida em pixel (B-60) |
 | Música da casa e da delegacia | 🟡 sintetizadas; falta ouvir jogando |
-| Gritos do incêndio | 🟡 refeitos com formantes e quebra de voz; **falta ouvir** |
+| Gritos do incêndio | 🟡 refeitos com formantes e quebra de voz; **falta ouvir**. Aceitam gravação em `assets/audio/grito.mp3` |
+| Música vinda de arquivo | 🟢 sistema pronto; o mp3 atual **não vai para o repositório** (110 MB) |
+| A virada (ele decide caçar o Andrade) | 🟡 escrita e ligada; **falta ler jogando** |
+| A portaria obrigatória | 🟢 entrega, recusa e devolução, com aviso nas três |
 | Sanidade (4 estados, sem barra) | 🟡 recalibrada na 09, **falta sentir jogando** |
 | Caderno / diário | 🟡 |
 | Inventário (o sobretudo) | 🟡 arrastar com o mouse, **falta mão humana** |
@@ -1443,6 +1542,9 @@ salva texto diferente**.
 | B-54 | Memória de conversa vinha vazia quando o objeto cruzava janelas | `opts.memory instanceof Set` dá **falso** quando o `Set` foi criado em outro realm (página de teste × iframe do jogo). O código caía no ramo da cópia, a conversa funcionava, e quem chamou ficava sem registro nenhum do que foi perguntado | `asSet()` por *duck typing* (`typeof x.add === 'function'`) em vez de `instanceof`. Vale para qualquer código que receba objeto de outra janela | 18 |
 | B-55 | 🔥 **A cela do Capítulo 3 era um beco sem saída** | O Arquivo Morto não tinha porta para a custódia: a cela só era alcançável pela volta do flashback. Sair dela uma vez trancava o jogador **fora do Carlos**, que é obrigatório para o cigarro e para o fim do capítulo. Nenhuma verificação de estrutura pegava isso porque todas checavam "a porta aponta para uma fase que existe", nunca "dá para voltar" | Porta da custódia no fim do corredor do arquivo. E o teste passou a exigir ida **e volta** entre todos os setores da rota, mais "nenhum setor pode ter zero saídas" | 19 |
 | B-57 | 🔥 **As pessoas do Capítulo 3 eram invisíveis** | Duas metades do mesmo descuido: o laço que **desenha** NPC estava dentro do `if (cap2)`, e o laço que **insere o gancho de interação** ficava depois de um `return` seco em `entrouCh2()` para setores fora do Capítulo 2. Resultado: conversa escrita, caixa de colisão pendurada à mão, e ninguém na tela | Desenho para fora do `if (cap2)`, inserção extraída para `_porGenteNaFase()` e chamada pelos dois caminhos, e oito personagens desenhados de verdade em `creatures.js`. O teste agora mede **pixel na tela**, não a existência do objeto | 20 |
+| B-64 | 🔥 **O jogador atravessava a cela e a guarita** | As camadas de primeiro plano em paralaxe 1:1 (a grade da custódia, a frente do balcão) são desenhadas **depois de todo mundo** — e o David ia junto. Parado no corredor ele aparecia por trás da grade, ou seja, **dentro da cela**; na recepção, dentro da guarita. Parecia falta de colisão e não era: era ordem de desenho, e colisão teria partido as duas salas ao meio | `playerSobreFore` nos dois setores: o primeiro plano entra **antes** do jogador. Os outros continuam atrás das barras e do vidro; ele passa na frente | 24 |
+| B-65 | **Pegar item não avisava nada no Capítulo 3** | O aviso de item era desenhado dentro de `drawCh2UI()`, que só roda no Capítulo 2. Pegar a calibre doze não dizia absolutamente nada — o jogador ficava sem saber se tinha pegado | Os avisos passaram a ser desenhados nos dois capítulos, mais um `aviso()` próprio para as trocas que o jogador não fez com as próprias mãos (a portaria) | 24 |
+| B-66 | **O balão de interação aparecia no meio das cenas** | Com a casa pegando fogo e o jogador sem controle nenhum, a porta continuava oferecendo "ABRIR" na tela | O prompt só aparece quando o jogador realmente controla alguém: fora durante fogo, interrogatório e a pergunta do nome | 24 |
 | B-62 | 🔥 **O Capítulo 3 não terminava** | `ch3_pronto` exigia o fim de uma conversa com o Carlos que deixou de existir na sessão 22, quando falar com ele passou a abrir o interrogatório. O jogador fazia tudo — o flashback, a confissão, o cigarro — e ficava rodando a delegacia para sempre. Achado pelo Luiz jogando | O gatilho virou a própria cena: quebrar o Carlos marca `ch3_pronto`, o David diz que precisa sair, e a portaria pede o nome. O teste agora confere a flag no fim do interrogatório | 23 |
 | B-63 | 🔥 **A luz da cela nova não chegava no chão** | Lâmpada de raio 168 pendurada em y=30, chão em y=214: a luz morria 40px antes dos dois homens e a sala ficava preta com duas manchas dentro. **É o B-23 pela quinta vez**, e desta vez numa sala de 300px — o erro não é de sensibilidade, é de nunca conferir o alcance contra a altura do chão | Raio para 250, poça própria na altura do peito e contraluz frio na grade. O teste passou a exigir que exista lâmpada forte cujo raio **alcance o chão** | 23 |
 | B-60 | 🔥 **A sala de espera estava vazia** | O painel de senha contava, a fala dizia "ele está esperando a vez" e **não havia ninguém desenhado na cadeira**. Achado pelo Luiz jogando. É a mesma família do B-57 — objeto existe, pessoa não — e nenhum teste pegou porque todos conferiam o painel, que funcionava | A **figura negra do Capítulo 1** sentada ali, como silhueta (`silhouette` no rig, sem peça nenhuma e sem luz de contorno). O teste agora mede pixel na cadeira | 22 |
@@ -1460,6 +1562,7 @@ salva texto diferente**.
 | M-03 | **Deixei o servidor de captura na porta 8137**, a mesma do `ABRIR_JOGO.bat`, e derrubei o jogo do jogador no meio de uma sessão. Usar 8140 |
 | M-04 | **Repeti o B-23 inteiro** (sessão 09): construí o corredor de carga com luz calibrada para uma sala, num espaço 3× maior. A lição já estava escrita neste documento e eu não a apliquei. **A regra agora é numérica, não é sensibilidade:** lâmpada forte a cada ~400px e preenchimento fraco a cada ~200px na altura do chão, em qualquer fase maior que 800px |
 | M-05 | **Escrevi números de sanidade sem medir** (sessão 09). Trinta segundos de jogo levavam o medidor de 100 a 16. Números de ritmo têm que ser medidos rodando, e não escolhidos porque "parecem certos" — é o mesmo erro do M-02 com outra roupa |
+| M-15 | **Li "colisão" onde o defeito era ordem de desenho** (sessão 24). O Luiz disse que o David atravessava a cela e a recepção "como se estivessem abaixo dele na hierarquia de colisão", e a descrição estava certa mas o diagnóstico era outro: o jogo não tem colisão por objeto, e o que fazia ele parecer dentro da cela era a camada de primeiro plano vindo por cima dele. **Se eu tivesse implementado colisão, teria partido as duas salas ao meio e o bug continuaria lá.** Reproduzir antes de consertar — a captura de tela respondeu em trinta segundos o que o código não respondia |
 | M-13 | **Reaproveitei uma animação de "levar pancada" num personagem sentado** (sessão 23). `hurt` mexe as pernas, porque é o recuo de quem está em pé. Num homem sentado o resultado é que ele parece ter levantado da cadeira para apanhar — cômico exatamente onde não pode ser. **Animação não é intercambiável entre posturas:** quem está sentado precisa de uma versão em que as pernas não se mexem |
 | M-14 | **Escrevi um teste que media a reação DEPOIS de ela acabar** (sessão 23). A checagem do soco olhava a animação do Carlos no fim da troca de falas, quando ele já tinha voltado a sentar, e reprovava algo que estava certo. **Medição de animação tem que acontecer no instante do evento**, não no fim do turno de jogo |
 | M-11 | **Declarei duas variáveis com o nome de duas que já existiam** (sessão 22). O `gfx` já tinha `tmp` e `tmp2`; eu acrescentei outro `tmp` e reusei `this.t2`, que era o buffer do pós-processamento. O jogo inteiro parou de carregar com um `SyntaxError` de uma linha. **Antes de acrescentar campo em classe grande, procurar o nome primeiro** — e desconfiar de nome genérico (`tmp`, `t`, `buf`): quem já usou um provavelmente usou dois |
@@ -1507,6 +1610,8 @@ salva texto diferente**.
 | R-30 | **A confissão pode ser lida como a verdade do jogo** | Ela é a palavra de um homem espancado, e três coisas dizem isso (o caderno, o Michael e o próprio David admitindo que acredita mesmo assim). **Se na leitura humana ela soar como fato confirmado, é sinal de que o Capítulo 4 precisa desmentir alguma parte dela** — e é melhor decidir qual parte antes de escrever o 4 |
 | R-31 | **ANDRADE é nome provisório meu** | Aparece na confissão, na conversa do Michael e em duas páginas do caderno. Trocar é meia hora |
 | R-32 | **A cela por dentro nunca foi jogada** | Entrar pela grade, as três animações, o soco com peso, e sair com o capítulo terminando. Script não sente nada disso |
+| R-34 | 🔥 **A música da casa é um mp3 de 110 MB e de terceiros** | 48 minutos a 320 kbps — é uma playlist, não uma faixa, e veio do YouTube. **O GitHub recusa arquivo acima de 100 MB**, então ela está no `.gitignore` e o repositório não a tem: quem clonar ouve o piano sintetizado. Para versionar, cortar 1 a 3 minutos que fechem em loop e exportar a 128 kbps (≈2 MB). E vale a mesma ressalva de direitos de `assets/reference/` (R-05) |
+| R-35 | **Os gritos continuam sintetizados** | O slot `assets/audio/grito.mp3` está pronto e é o primeiro a ser usado se existir. Enquanto não existir, toca a versão sintetizada refeita na sessão 22 |
 | R-33 | **A doze agora viaja no casaco e não faz nada no Capítulo 3** | É proposital — ela é a promessa do 4. Mas se na sua mão o jogador ficar tentando usar e não conseguir, o certo é ela **não** ser pegável até o 4 começar. Isso é decisão sua depois de jogar |
 
 ### 13.3 — 🟡 Precisa de atenção, mas não urgente
@@ -1531,7 +1636,22 @@ salva texto diferente**.
 
 ## 14. ROADMAP — O QUE VEM AGORA
 
-### 📌 PRÓXIMO PASSO (sessão 23): **jogar a cela inteira, do lado de dentro**
+### 📌 PRÓXIMO PASSO (sessão 24): **jogar o Capítulo 3 do começo ao fim**
+
+> Ele termina agora. `MENU → CAPÍTULOS → 3` e vai até o plantonista pedir o
+> nome.
+>
+> O que eu preciso saber:
+>
+> 1. A **virada** no fim do interrogatório funciona? Seis falas seguidas é
+>    muito, ou é o peso certo? Se cansar, o lugar de cortar é a terceira e a
+>    quinta.
+> 2. Entregar os pertences na entrada **incomoda na medida certa** ou vira
+>    burocracia chata na segunda vez?
+> 3. A música na casa está no volume certo (0.18)? Ela some quando ele
+>    atende o telefone — dá pra sentir o silêncio depois?
+
+### 📌 PASSO ANTERIOR (sessão 23): **jogar a cela inteira, do lado de dentro**
 
 > `MENU → CAPÍTULOS → 3` → subsolo → a porta da cela → **ENTRAR**.
 >
@@ -2486,6 +2606,9 @@ medidas dentro do pacote.
 | **`gfx.aproximar()`** | A câmera fechando, a 1,35x, chamada entre a luz e a interface — assim o mundo chega perto e o texto não vira letra de bloco |
 | **`ch3_dentro`** | Dentro da cela. 300px, o menor setor do jogo. Quando o David atravessa a grade, a delegacia sai da tela |
 | **`intAsk` · `intPush` · `intHit`** | Os três corpos do interrogatório. Cada um mais baixo e mais fechado que o anterior — a escada está no corpo, e ninguém comenta |
+| **A virada** | As seis falas no fim do interrogatório em que o David decide ir atrás do Andrade. São as únicas do jogo inteiro em que ele decide alguma coisa em voz alta |
+| **`playerSobreFore`** | Setor em que o primeiro plano é desenhado ANTES do jogador. Existe porque a grade e a guarita precisam esconder o preso e o plantonista, e não ele |
+| **`aviso()`** | A faixa no alto da tela quando o jogo TIRA ou DEVOLVE alguma coisa. Diferente do aviso de item pego, que é discreto: este é para as trocas que o jogador não fez com as próprias mãos |
 | **`sitHurt` · `sitFlinch`** | Apanhar sentado. Existem porque `hurt` é um recuo de quem está em pé, e um homem sentado tocando `hurt` parece ter levantado da cadeira para apanhar |
 | **Conclusão** | A página que só existe se o jogador deduzir. Categoria própria no caderno |
 | **Insistir** | Perguntar de novo o que já foi respondido. Custa 5 de sanidade, só dá uma vez por assunto, e às vezes é o único caminho |
@@ -2499,7 +2622,22 @@ medidas dentro do pacote.
 
 ---
 
-> **Última atualização:** 10/08/2026 — Sessão 23 (Claude)
+> **Última atualização:** 11/08/2026 — Sessão 24 (Claude)
+> **O que mudou nela:** **a virada** (o David decide ir atrás do Andrade —
+> as únicas seis linhas do jogo em que ele decide alguma coisa), a portaria
+> obrigatória com devolução na saída, o chute que agora acerta a porta e a
+> abre, música e gritos podendo vir de arquivo, a doze com desenho e aviso,
+> e três bugs: **B-64** (ele atravessava a cela e a guarita), **B-65**
+> (pegar item não avisava nada no Cap. 3) e **B-66** (o balão aparecia no
+> meio das cenas).
+> ⚠ **O mp3 da música tem 110 MB e não vai para o GitHub** — está no
+> `.gitignore`. Ver a sessão 24 e `assets/audio/LEIA-ME.txt`.
+> **Próximo passo:** jogar o Capítulo 3 do começo ao fim, agora que ele
+> termina.
+>
+> _(as notas abaixo são das sessões 21 a 23 e continuam valendo)_
+>
+> **Sessão 23:** o David entra na cela
 > **O que mudou nela:** o David **entra na cela** (setor novo, a delegacia
 > sai da tela), três animações novas para os verbos e duas para o preso
 > apanhar sentado, o Carlos perdeu a árvore de conversa e o "senhor", o

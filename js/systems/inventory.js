@@ -422,6 +422,28 @@ export class Inventory {
       ctx.fillStyle = '#0b0b0d'; ctx.fillRect(X(.80), Y(.22), W(.08), H(.18));
       return;
     }
+    // A CALIBRE DOZE. Ela e 4x1, entao a silhueta e quase toda cano: o que
+    // diz "espingarda" e a proporcao, o guarda-mato embaixo e a coronha de
+    // madeira na ponta de tras. Sem a coronha ela vira um cano de ferro.
+    if (key === 'shotgun') {
+      // cano duplo, com a linha de cima mais clara
+      ctx.fillStyle = '#5c626b'; ctx.fillRect(X(.30), Y(.30), W(.66), H(.17));
+      ctx.fillStyle = '#8f959e'; ctx.fillRect(X(.30), Y(.30), W(.66), H(.07));
+      ctx.fillStyle = '#3d4147'; ctx.fillRect(X(.30), Y(.47), W(.66), H(.09));
+      ctx.fillStyle = '#0b0b0d'; ctx.fillRect(X(.94), Y(.31), W(.04), H(.24));
+      // bloco da culatra
+      ctx.fillStyle = '#454b53'; ctx.fillRect(X(.20), Y(.26), W(.14), H(.36));
+      ctx.fillStyle = edge; ctx.fillRect(X(.20), Y(.26), W(.14), 1);
+      // guarda-mato e gatilho
+      ctx.fillStyle = '#2b2f34'; ctx.fillRect(X(.21), Y(.62), W(.11), H(.16));
+      ctx.fillStyle = '#0d0e10'; ctx.fillRect(X(.24), Y(.62), W(.04), H(.11));
+      // coronha de madeira
+      ctx.fillStyle = base; ctx.fillRect(X(.02), Y(.30), W(.19), H(.40));
+      ctx.fillStyle = '#6b4f2f'; ctx.fillRect(X(.02), Y(.30), W(.19), H(.10));
+      ctx.fillStyle = '#33261a'; ctx.fillRect(X(.02), Y(.64), W(.19), H(.06));
+      ctx.fillStyle = dark; ctx.fillRect(X(.02), Y(.30), 1, H(.40));
+      return;
+    }
     if (key === 'map') {
       ctx.fillStyle = '#bdb59b'; ctx.fillRect(X(.05), Y(.06), W(.90), H(.86));
       ctx.fillStyle = '#8c836d'; ctx.fillRect(X(.34), Y(.06), 1, H(.86)); ctx.fillRect(X(.66), Y(.06), 1, H(.86));

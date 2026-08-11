@@ -839,6 +839,37 @@ const STR = {
                    en: 'I am not going to be able to un-hear that.' },
   b3_int_sair:   { pt: 'Eu preciso sair daqui. Agora.',
                    en: 'I need to get out of here. Now.' },
+  // ---- A VIRADA ----
+  //
+  // ⚠ Estas seis linhas sao o motivo de o Capitulo 3 existir, e sao as
+  // unicas do jogo inteiro em que o David DECIDE alguma coisa em voz alta.
+  // Ele passou tres capitulos reagindo; aqui ele para de reagir.
+  //
+  // A regra de ouro continua valendo — ele nao junta migalha em voz alta e
+  // nao especula sobre estar louco. O que ele faz e o que um detetive faz:
+  // pega o unico fato acionavel que ele tem e vai atras dele.
+  b3_vira_1:     { pt: 'Ela ta viva.',
+                   en: 'She is alive.' },
+  b3_vira_2:     { pt: 'Eu procurei sete anos um corpo que nunca existiu.',
+                   en: 'I spent seven years looking for a body that never existed.' },
+  b3_vira_3:     { pt: 'Andrade abriu a porta. Andrade sabe pra onde ela foi.',
+                   en: 'Andrade opened the door. Andrade knows where she went.' },
+  b3_vira_4:     { pt: 'Entao eu acho o Andrade.',
+                   en: 'So I find Andrade.' },
+  b3_vira_5:     { pt: 'E ele me diz. De um jeito ou de outro, ele me diz.',
+                   en: 'And he tells me. One way or another, he tells me.' },
+  b3_vira_6:     { pt: 'Depois disso eu vejo o que sobra de mim.',
+                   en: 'After that I will see what is left of me.' },
+  b3_rec_barrado:{ pt: 'A arma no escaninho. Eu conheco a regra — fui eu que apliquei ela a vida inteira.',
+                   en: 'Weapon in the locker. I know the rule — I enforced it my whole life.' },
+  b3_rec_volta:  { pt: 'Devolveram tudo. Ate o isqueiro.',
+                   en: 'They gave it all back. Even the lighter.' },
+  aviso_guardou: { pt: 'ESCANINHO 214 — %d ITEM(NS) GUARDADO(S)',
+                   en: 'LOCKER 214 — %d ITEM(S) CHECKED IN' },
+  aviso_retirou: { pt: 'ESCANINHO 214 — %d ITEM(NS) DEVOLVIDO(S)',
+                   en: 'LOCKER 214 — %d ITEM(S) RETURNED' },
+  aviso_barrado: { pt: 'DEIXE A ARMA NO ESCANINHO 214 PARA ENTRAR',
+                   en: 'CHECK YOUR WEAPON AT LOCKER 214 TO ENTER' },
 
   b3_cell_vazia:{ pt: 'Dois cigarros acesos. Da mesma marca.',
                 en: 'Two cigarettes burning. Same brand.' },
@@ -2797,6 +2828,8 @@ export const JOURNAL = {
               en: 'The twelve gauge is still in my desk cabinet, loaded, unlocked, seven years on. Nobody collected it because nobody closed out anything of mine. Until the paperwork closes I still belong here — and that is how you find out what a station really thinks of you.' },
   j3_figura:{ cat: 'other', pt: 'Tem um homem sentado na sala de espera com uma senha na mão. Debaixo de luz fluorescente, às duas e quatorze da manhã, e mesmo assim eu não consigo distinguir nada dele. O plantonista diz que ele está esperando a vez.',
               en: 'There is a man in the waiting area with a ticket in his hand. Under fluorescent light, at two fourteen in the morning, and I still cannot make out a single thing about him. The desk officer says he is waiting his turn.' },
+  j3_caca:  { cat: 'self', pt: 'Se ele mandou deixar ela viva, ela saiu daquela casa viva. Nunca houve corpo porque nunca houve corpo — e eu passei sete anos procurando a coisa errada, no lugar errado, pela razão errada. Andrade abriu a porta. Andrade sabe pra onde ela foi. É a única ponta que existe e eu vou puxar ela até o fim, e eu já sei o que eu sou capaz de fazer com um homem algemado.',
+              en: 'If he had them leave her alive, she walked out of that house alive. There was never a body because there was never a body — and I spent seven years looking for the wrong thing, in the wrong place, for the wrong reason. Andrade opened the door. Andrade knows where she went. It is the only thread there is and I am going to pull it to the end, and I already know what I am capable of doing to a man in handcuffs.' },
   j3_andrade:{ cat: 'clue', pt: 'ANDRADE. Não perguntei quem era. Reparei nisso depois, subindo a escada: um nome que eu nunca tinha ouvido, e eu não perguntei quem era.',
               en: 'ANDRADE. I did not ask who that was. I noticed it afterwards, on the stairs: a name I had never heard, and I did not ask who it was.' },
 

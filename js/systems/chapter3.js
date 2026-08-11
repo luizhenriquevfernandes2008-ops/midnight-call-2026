@@ -289,6 +289,8 @@ export class Fogo {
     this.idx = 0;
     this.k = 0;            // 0 a 1: o tamanho do fogo
     this.crackT = 0;
+    this.portaAberta = false;   // depois do chute ela deixa de existir
+    this.chutou = false;
     this.onEnd = null;
     this.runId = -1;
   }
@@ -353,20 +355,47 @@ export class Fogo {
 
     // Ele CORRE para a porta. Correr e a animacao que este homem nao usa em
     // mais nenhum lugar do capitulo — e e por isso que ela diz alguma coisa.
-    if (this.fase === 'porta' && alvo !== null) {
-      const parada = alvo + 22;
+    //
+    // ⚠ E ELE SO CHUTA QUANDO CHEGA. A primeira versao trocava de fase por
+    // relogio: se a corrida nao tivesse terminado, ele chutava o ar no meio
+    // do quintal. Agora a corrida continua DENTRO da fase do chute ate ele
+    // estar ao alcance, e so entao o pe sai.
+    const perto = alvo !== null && Math.abs(p.x - (alvo + 20)) < 8;
+    if ((this.fase === 'porta' || (this.fase === 'chute' && !this.chutou)) && alvo !== null) {
+      const parada = alvo + 20;
       if (p.x > parada + 2) {
-        p.x -= 118 * dt;
+        p.x = Math.max(parada, p.x - 132 * dt);
         p.det.setFacing(-1);
         if (p.det.anim !== 'run') p.det.play('run', { blend: 0.12 });
-      } else if (p.det.anim !== 'idle') {
-        p.det.play('idle', { blend: 0.14 });
+      } else if (this.fase === 'porta') {
+        // chegou antes da hora: para de frente para ela e espera
+        p.det.setFacing(-1);
+        if (p.det.anim !== 'idle') p.det.play('idle', { blend: 0.14 });
       }
     }
-    // O chute joga ele meio pixel para a frente a cada quadro: o corpo vai
-    // junto com a perna, que e o que separa chutar de encostar o pe.
-    if (this.fase === 'chute' && this.faseT > 0.18 && this.faseT < 0.42) {
-      p.x -= 26 * dt;
+    // Chegou e a fase e a do chute: VIRA PARA A PORTA e chuta.
+    if (this.fase === 'chute' && !this.chutou && perto) {
+      this.chutou = true;
+      p.det.setFacing(-1);
+      p.facing = -1;
+      p.det.play('kick', { restart: true, blend: 0.06 });
+      audio.doorSlam ? audio.doorSlam(0.7) : audio.thud(0.9);
+      gfx.shake(3.0);
+      // a porta cede no quadro do impacto, nao no fim da animacao
+      this._chuteT = 0.30;
+    }
+    if (this._chuteT > 0) {
+      this._chuteT -= dt;
+      if (this._chuteT <= 0) {
+        this.portaAberta = true;
+        audio.doorSlam ? audio.doorSlam(1.0) : audio.thud(1);
+        audio.fireBurst(0.8);
+        gfx.shake(4.6);
+      }
+    }
+    // O corpo vai junto com a perna: e o que separa chutar de encostar o pe.
+    if (this.fase === 'chute' && this.chutou && this._chuteT > 0.06) {
+      p.x -= 22 * dt;
     }
     // A porta cede e ele cai PARA DENTRO, nao para tras.
     if (this.fase === 'queda' && this.faseT < 0.5) {
@@ -395,18 +424,11 @@ export class Fogo {
     } else if (f === 'porta') {
       p.say('b3_fogo_2', 2.2, true);
     } else if (f === 'chute') {
-      // ELE CHUTA A PORTA. A animacao ja existia no rig desde a sessao 13,
-      // guardada para o Credor — e e a mesma coisa aqui: um homem pondo o
-      // corpo inteiro atras de um pe.
-      p.det.play('kick', { restart: true, blend: 0.06 });
+      // O CHUTE em si acontece por POSICAO, no `update`, quando ele chega.
+      // Aqui so entra a fala.
       p.say('b3_fogo_3', 2.0, true);
-      audio.doorSlam ? audio.doorSlam(0.7) : audio.thud(0.9);
-      gfx.shake(3.0);
     } else if (f === 'queda') {
-      // a porta cede, e ele vai junto
-      audio.doorSlam ? audio.doorSlam(1.0) : audio.thud(1);
-      audio.fireBurst(0.9);
-      gfx.shake(5.4);
+      // ele cai para dentro, junto com a porta
       gfx.flashColor = '#ffd0a0'; gfx.flash = 0.38;
       p.det.play('collapse', { restart: true, blend: 0.05 });
       p.say('b3_fogo_4', 2.0, true);
@@ -442,6 +464,30 @@ export class Fogo {
     }
     ctx.globalAlpha = 1;
     ctx.restore();
+
+    // A PORTA ARROMBADA. O cenario e pintado uma vez e nao da para apagar
+    // pixel dele — entao o vao e desenhado POR CIMA: um retangulo de escuro
+    // com fogo lambendo a moldura. E o que faz o chute ter acontecido.
+    if (this.portaAberta) {
+      const P2 = F.porta;
+      const sx = Math.round(P2.x - cam.ix), sy = Math.round(P2.y - cam.iy);
+      ctx.save();
+      ctx.fillStyle = '#0a0604';
+      ctx.fillRect(sx, sy, P2.w, P2.h);
+      // batente lascado: a madeira nao sai inteira
+      ctx.fillStyle = '#2a1c10';
+      for (let i = 0; i < 7; i++) {
+        const yy = sy + 6 + i * 10;
+        ctx.fillRect(sx, yy, 2 + (i % 3), 4);
+        ctx.fillRect(sx + P2.w - 3 - (i % 2), yy + 4, 3, 3);
+      }
+      // e o clarao de dentro, que agora tem por onde sair
+      const b2 = 0.4 + Math.sin(t * 8) * 0.12 + Math.random() * 0.14;
+      ctx.globalAlpha = clamp(b2, 0, 1);
+      ctx.fillStyle = '#c9591f';
+      ctx.fillRect(sx + 3, sy + 4, P2.w - 6, P2.h - 6);
+      ctx.restore();
+    }
 
     if (this.idx < 1) return;   // antes do vidro estourar nao ha chama fora
 

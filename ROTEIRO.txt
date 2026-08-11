@@ -10,7 +10,14 @@
   Documento de história. Só narrativa — nada de código aqui.
   A parte técnica fica em CHAMADO_DA_MEIA_NOITE.md.
 
-  Última atualização: 10/08/2026 (sessão 23)
+  Última atualização: 11/08/2026 (sessão 24)
+  ⚠ NESTA SESSÃO: A VIRADA — depois do interrogatório o David decide ir
+     atrás do Andrade, e são as únicas seis linhas do jogo em que ele decide
+     alguma coisa. Mais: entregar os pertences virou obrigatório para entrar
+     na delegacia (e ele pega de volta na saída), e o chute na porta do
+     incêndio passou a acertar a porta.
+
+  Última atualização anterior: 10/08/2026 (sessão 23)
   ⚠ NESTA SESSÃO: o David ENTRA na cela e a delegacia sai da tela; o Carlos
      perdeu a árvore de conversa (tudo virou cena jogável, inclusive o
      cigarro) e parou de chamar o David de "senhor"; o incêndio acaba com
@@ -2123,6 +2130,24 @@ TEMPO:  ~5 min
   Não é confisco de roteiro, é a porta. E é a segunda vez na vida dele que
   ele entrega uma arma nesse balcão.
 
+  ⚠ E É OBRIGATÓRIO (11/08, sessão 24). SEM ENTREGAR, A PORTA DO PLANTÃO NÃO
+  ABRE. O jogo diz o motivo — na fala dele e num aviso na tela — e ele não
+  discute, porque a regra é dele: foi ele que aplicou essa regra a vida
+  inteira, naquele mesmo balcão.
+
+    "A arma no escaninho. Eu conheço a regra — fui eu que apliquei ela a
+     vida inteira."
+
+  FICAM NO ESCANINHO: a arma, a calibre doze (se ele já tiver pegado) e o
+  isqueiro. FICAM COM ELE: o maço e o caderno. Os dois são pessoais e o
+  capítulo inteiro depende deles.
+
+  ⚠ E NA SAÍDA ELE PEGA TUDO DE VOLTA, com aviso na tela dizendo quantos
+  itens voltaram. Um jogo que mexe no inventário sem dizer nada perde a
+  confiança de quem joga.
+
+    "Devolveram tudo. Até o isqueiro."
+
   (nota de design: isso resolve o combate sem inventar desculpa, e faz o
    jogador sentir a falta o capítulo inteiro. Quando a arma voltar, no
    Capítulo 4, ela vai pesar.)
@@ -2882,6 +2907,34 @@ TEMPO:  ~10 min
     · e uma vez, uma vez só, ele diz algo que não teria como saber:
       a VARANDA, o TELEFONE e o CIGARRO. E segue falando como se não
       tivesse dito, reclamando que não tem relógio na cela.
+
+  ------- ★★★ A VIRADA — o único lugar em que ele DECIDE ★★★ -------
+  travado em 11/08 (sessão 24)
+
+  Depois da confissão, do nome e do cigarro, o David junta a única coisa
+  acionável que saiu daquela cela e para de reagir:
+
+    "Ela tá viva."
+    "Eu procurei sete anos um corpo que nunca existiu."
+    "Andrade abriu a porta. Andrade sabe pra onde ela foi."
+    "Então eu acho o Andrade."
+    "E ele me diz. De um jeito ou de outro, ele me diz."
+    "Depois disso eu vejo o que sobra de mim."
+
+  ⚠ SÃO AS ÚNICAS SEIS LINHAS DO JOGO INTEIRO em que ele decide alguma coisa
+  em voz alta. Ele passou três capítulos reagindo — atendeu, foi, acordou,
+  fugiu, subiu a escada. Aqui ele escolhe.
+
+  E a regra de ouro continua valendo: ele NÃO junta migalha em voz alta e
+  NÃO especula sobre estar louco. O que ele faz é o que um detetive faz —
+  pega o único fato que dá pra trabalhar e vai atrás dele.
+
+  ⚠ "DE UM JEITO OU DE OUTRO, ELE ME DIZ." É a frase que cobra o preço da
+  cena que acabou de acontecer: ele diz isso dez minutos depois de descobrir,
+  na própria mão, do que ele é capaz com um homem algemado. A página do
+  caderno fecha nisso, e é o que o Capítulo 4 herda.
+
+  ⚠ E ELE CONTINUA SEM DIZER O NOME DELA. Nem aqui.
 
   ------- ★★★ O DEGRAU 4 — ELE NÃO DECIDE NADA ★★★ -------
 

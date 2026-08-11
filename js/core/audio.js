@@ -809,6 +809,8 @@ class Audio {
   // A parede continua existindo, mas subiu para 1,6 kHz: abafado demais e o
   // ouvido para de reconhecer voz, e o ponto e justamente reconhecer.
   scream(vol = 1) {
+    // Se existir gravacao, ela ganha: garganta humana nao se sintetiza.
+    if (this.gritoArquivo(0.55 * vol)) return;
     if (!this.ensure()) return;
     const c = this.ctx, t = c.currentTime;
     const dur = 1.5 + Math.random() * 0.6;
@@ -1377,6 +1379,147 @@ class Audio {
   // A voz vai pelo WebAudio para poder ser amplificada acima de 1.0. Um
   // limitador logo depois do ganho segura os picos: sem ele, +12 dB numa
   // fala que ja tem pico em -14 dBFS estouraria nos trechos mais altos.
+  // =======================================================================
+  // AUDIO VINDO DE ARQUIVO — musica da casa e gritos
+  // =======================================================================
+  // O jogo inteiro e sintetizado, e continua sendo: estes dois sao a
+  // excecao, e a excecao existe porque nenhum sintetizador do mundo faz uma
+  // garganta humana convincente e porque o Luiz quis uma musica dele na
+  // casa.
+  //
+  // A REGRA: o arquivo e OPCIONAL. Se ele nao estiver la, o sintetizado
+  // entra no lugar e ninguem percebe que faltou nada. O jogo nao pode
+  // depender de um mp3 para funcionar — foi assim que ele ficou rodando com
+  // dois cliques em qualquer maquina, e isso nao se perde por causa de
+  // trilha sonora.
+  //
+  //   assets/audio/musica-casa.mp3 .. o tema da casa. BAIXO, em loop.
+  //   assets/audio/grito.mp3 ........ os gritos do incendio. MEDIO.
+  //
+  // Procurar arquivo custa tempo, entao cada slot e procurado UMA vez e o
+  // resultado fica guardado.
+  async acharArquivo(chave, candidatos) {
+    this._arquivos = this._arquivos || {};
+    if (Object.prototype.hasOwnProperty.call(this._arquivos, chave)) {
+      return this._arquivos[chave];
+    }
+    const porArquivo = typeof location !== 'undefined' && location.protocol === 'file:';
+    for (const url of candidatos) {
+      let achou = false;
+      if (porArquivo) {
+        // Por file:// o fetch e bloqueado, mas um <audio> ainda carrega.
+        achou = await new Promise(resolve => {
+          const el = new window.Audio();
+          const limpar = () => { el.onloadedmetadata = el.onerror = null; };
+          const t = setTimeout(() => { limpar(); resolve(false); }, 2500);
+          el.onloadedmetadata = () => { clearTimeout(t); limpar(); resolve(el.duration > 0.5); };
+          el.onerror = () => { clearTimeout(t); limpar(); resolve(false); };
+          el.preload = 'metadata';
+          el.src = url;
+        });
+      } else {
+        try { const r = await fetch(url, { method: 'HEAD' }); achou = r.ok; } catch (e) { achou = false; }
+      }
+      if (achou) { this._arquivos[chave] = url; return url; }
+    }
+    this._arquivos[chave] = null;
+    return null;
+  }
+
+  async procurarTrilha() {
+    await this.acharArquivo('musicaCasa', [
+      'assets/audio/musica-casa.mp3', 'assets/audio/musica-casa.ogg',
+      'assets/audio/musica-casa.m4a', 'assets/audio/musica_casa.mp3',
+    ]);
+    await this.acharArquivo('grito', [
+      'assets/audio/grito.mp3', 'assets/audio/grito.ogg', 'assets/audio/grito.wav',
+      'assets/audio/gritos.mp3', 'assets/audio/scream.mp3',
+    ]);
+    return this._arquivos;
+  }
+
+  // ---- a musica da casa ----
+  //
+  // ⚠ BAIXA. Ela toca por baixo de duas conversas longas e nao pode disputar
+  // leitura com elas: 0.18 do barramento de musica, que ja e o mais baixo
+  // dos tres. Se ela chamar atencao para si, a cena virou videoclipe.
+  tocarMusicaArquivo(vol = 0.18) {
+    const url = this._arquivos && this._arquivos.musicaCasa;
+    if (!url) return false;
+    if (this.musicaEl) return true;
+    const el = new window.Audio(url);
+    el.loop = true;
+    el.preload = 'auto';
+    if (this.ensure()) {
+      try {
+        const src = this.ctx.createMediaElementSource(el);
+        const g = this.ctx.createGain();
+        g.gain.setValueAtTime(0.0001, this.ctx.currentTime);
+        g.gain.linearRampToValueAtTime(vol, this.ctx.currentTime + 3.5);
+        src.connect(g); g.connect(this.busMusic);
+        this.musicaChain = { src, gain: g };
+        el.volume = 1;
+      } catch (e) {
+        this.musicaChain = null;
+        el.volume = Math.min(1, vol * this.vol.master);
+      }
+    } else {
+      el.volume = Math.min(1, vol * this.vol.master);
+    }
+    el.play().catch(() => {});
+    this.musicaEl = el;
+    return true;
+  }
+
+  pararMusicaArquivo(fade = 1.8) {
+    if (!this.musicaEl) return;
+    const el = this.musicaEl, ch = this.musicaChain;
+    this.musicaEl = null; this.musicaChain = null;
+    if (ch && this.ctx) {
+      const t = this.ctx.currentTime;
+      ch.gain.gain.cancelScheduledValues(t);
+      ch.gain.gain.setValueAtTime(ch.gain.gain.value, t);
+      ch.gain.gain.linearRampToValueAtTime(0.0001, t + fade);
+    }
+    setTimeout(() => {
+      try { el.pause(); el.currentTime = 0; } catch (e) {}
+      if (ch) { try { ch.src.disconnect(); ch.gain.disconnect(); } catch (e) {} }
+    }, Math.round(fade * 1000) + 60);
+  }
+
+  // ---- os gritos, se houver arquivo ----
+  //
+  // ⚠ MEDIO. Alto demais vira filme de terror barato; baixo demais o
+  // jogador nao entende que sao pessoas. E ele continua saindo DE DENTRO
+  // da casa, entao passa por um passa-baixa que e a parede.
+  gritoArquivo(vol = 0.55) {
+    const url = this._arquivos && this._arquivos.grito;
+    if (!url) return false;
+    const el = new window.Audio(url);
+    el.preload = 'auto';
+    if (this.ensure()) {
+      try {
+        const src = this.ctx.createMediaElementSource(el);
+        const parede = this.ctx.createBiquadFilter();
+        parede.type = 'lowpass';
+        parede.frequency.value = 1700;
+        parede.Q.value = 0.6;
+        const g = this.ctx.createGain();
+        g.gain.value = vol;
+        src.connect(parede); parede.connect(g); g.connect(this.busSfx);
+        const vg = this.ctx.createGain(); vg.gain.value = 0.5;
+        g.connect(vg); vg.connect(this.verb);
+        el.volume = 1;
+      } catch (e) {
+        el.volume = Math.min(1, vol * this.vol.master);
+      }
+    } else {
+      el.volume = Math.min(1, vol * this.vol.master);
+    }
+    el.play().catch(() => {});
+    return true;
+  }
+
   playNarration() {
     if (!this.narration) return null;
     const el = new window.Audio(this.narration);
