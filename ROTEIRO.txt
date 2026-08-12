@@ -10,7 +10,14 @@
   Documento de história. Só narrativa — nada de código aqui.
   A parte técnica fica em CHAMADO_DA_MEIA_NOITE.md.
 
-  Última atualização: 11/08/2026 (sessão 24)
+  Última atualização: 12/08/2026 (sessão 30)
+  ⚠ NESTA SESSÃO: O JOGO PASSOU A TER SEIS CAPÍTULOS, travado pelo Luiz, e
+     o CAPÍTULO 4 FOI ESCRITO INTEIRO — ver PARTE XI. Ele não é mais a
+     caçada: é A CASA, e a caçada foi pro 5. A mecânica do capítulo é o
+     cigarro trocando a casa inteira entre EM PÉ e RUÍNA, sete cigarros no
+     maço, e o fim muda conforme quantos sobraram. Nada foi implementado.
+
+  Última atualização anterior: 11/08/2026 (sessão 24)
   ⚠ NESTA SESSÃO: A VIRADA — depois do interrogatório o David decide ir
      atrás do Andrade, e são as únicas seis linhas do jogo em que ele decide
      alguma coisa. Mais: entregar os pertences virou obrigatório para entrar
@@ -41,6 +48,8 @@
           O FLASHBACK FOI REESCRITO em 10/08 (sessão 21): outra roupa, o
           quarto da menina, o telefone que se atende de qualquer lugar, e
           A CASA PEGANDO FOGO. Ver a Cena 5 e o IX.0.
+          CAPÍTULO 4 ESCRITO em 12/08 (PARTE XI) — "A CASA". NÃO IMPLEM.
+          O jogo tem SEIS capítulos, travado em 12/08. Ver XI.0.
 
   COMO USAR ESTE ARQUIVO
   ----------------------
@@ -1990,15 +1999,29 @@ IX.0 — A ESPINHA  (canon travado em 07/08)
   ⚠ E O DAVID NÃO PERGUNTA QUEM É ANDRADE. Essa é a batida da cena.
 
   ------------------------------------------------------------------------
-  O QUE VEM DEPOIS  — decidido em 10/08, e o Capítulo 4 se apoia nisto
+  O QUE VEM DEPOIS  — REESCRITO em 12/08 (sessão 30). O jogo tem SEIS
+  capítulos, e o Capítulo 4 DEIXOU DE SER A CAÇADA.
   ------------------------------------------------------------------------
 
-  CAPÍTULO 4 — A CAÇADA, jogada. É a memória da noite em que ele foi atrás
+  ⚠ O PLANO DE 10/08 (abaixo, riscado) previa cinco capítulos e colocava a
+  caçada no 4. Gastava ação e revelação no mesmo fôlego. O Luiz travou seis
+  capítulos em 12/08 e a casa entrou no meio. Ver a PARTE XI inteira.
+
+  CAPÍTULO 4 — A CASA. Ele volta na casa buscar o endereço do Andrade, e a
+  casa está EM PÉ. O cigarro troca entre a casa e a ruína, o maço tem sete,
+  e o fim do capítulo muda conforme quantos sobraram. Ele sai de lá com o
+  endereço, com as marcas de unha por dentro do armário da filha e com um
+  sapato pequeno na soleira. Ver PARTE XI.
+
+  CAPÍTULO 5 — A CAÇADA, jogada. É a memória da noite em que ele foi atrás
   do Andrade. A calibre doze da mesa dele (Cap. 3) é a arma dessa noite, e é
   por isso que ela está lá, carregada e destrancada, sem ser pegável.
+  ⚠ E ELE ACHA A JENNA. Viva, feliz, conversando — e a cena corta pro que
+  está acontecendo de verdade, que é ele abraçado com o corpo dela num lugar
+  destruído. Travado pelo Luiz em 12/08. Ver XI.6.
 
-  CAPÍTULO 5 — O PRESENTE. Ele descobre que já fez isso. Sete anos atrás. E
-  que não devolveu nada.
+  CAPÍTULO 6 — O PRESENTE. Ele volta pra delegacia e É DETIDO. Descobre que
+  já fez isso. Sete anos atrás. E que não devolveu nada.
 
   A revelação não é "quem foi". É: VOCÊ JÁ SABE QUEM FOI, VOCÊ JÁ MATOU ELE,
   E VOCÊ CONTINUA AQUI.
@@ -2032,8 +2055,12 @@ IX.0 — A ESPINHA  (canon travado em 07/08)
   ELE ATENDE ESSA MESMA LIGAÇÃO TODA NOITE HÁ SETE ANOS.
 
   ⚠ NO CAPÍTULO 3 ISSO NÃO É REVELADO. O jogador tem que chegar perto e
-    não conseguir provar. Se sair da boca de alguém aqui, o Capítulo 4
+    não conseguir provar. Se sair da boca de alguém aqui, o fim do jogo
     fica sem ter o que dizer.
+
+  ⚠ E NO CAPÍTULO 4 TAMBÉM NÃO (mudança de 12/08). A revelação passou a ser
+    do CAPÍTULO 6. O que o 4 faz é chegar mais perto: o telefone da casa
+    queimada toca, ele atende, e não tem palavra nenhuma do outro lado.
 
   ------------------------------------------------------------------------
   RESSALVA HONESTA, registrada de propósito
@@ -3316,6 +3343,788 @@ PARTE X — PERGUNTAS PARA VOCÊ
 
 
 ===============================================================================
+PARTE XI — CAPÍTULO 4: "A CASA"
+===============================================================================
+
+  ESCRITO em 12/08/2026, sessão 30. [NÃO IMPLEM.] — nenhuma linha de código
+  existe ainda. Este documento é a especificação inteira do capítulo.
+  DURAÇÃO ALVO: 45 minutos.
+  LOCAL: a casa do David. A mesma do flashback do Capítulo 3, sete anos
+         depois.
+  CÂMERA: LATERAL, igual ao resto do jogo.
+
+
+-------------------------------------------------------------------------------
+XI.0 — A DECISÃO DE ESCOPO: O JOGO TEM SEIS CAPÍTULOS
+-------------------------------------------------------------------------------
+
+  ⚠ TRAVADO PELO LUIZ EM 12/08/2026. Substitui o plano de 10/08, que previa
+  cinco capítulos, e substitui a espinha de dez levantada nesta mesma sessão.
+
+  O plano antigo tinha um problema real: o Capítulo 4 era A CAÇADA, o que
+  gastava ação e revelação no mesmo fôlego e deixava o resto do jogo sem ter
+  o que dizer. A casa entra no meio e empurra a caçada para o 5.
+
+    #  CAPÍTULO              MIN   VERBO      O QUE ENTREGA
+    -- --------------------- ---   ---------  ---------------------------
+    1  O Homem Que Atendeu    20   entrar     o bar, o fio cortado
+    2  (o galpão)             70   fugir      o espelho, o Credor
+    3  Gaveta D               55   perguntar  o nome ANDRADE
+    4  A CASA                 45   lembrar    o endereço · e duas coisas
+                                              que ele não foi buscar
+    5  (a caçada)             50   caçar      ele acha o Andrade. E acha
+                                              a JENNA.
+    6  (o presente)           30   entender   ele é detido. E o jogo diz
+                                              o que está acontecendo.
+    -- --------------------- ---
+                            ~4h30
+
+  ⚠ SEIS CAPÍTULOS NÃO É UM JOGO MENOR. É o mesmo alvo de ~5 horas com
+  capítulos mais densos e menos costura entre eles. O que foi cortado foi
+  enchimento, não conteúdo: o capítulo do perito, o do Credor cobrando e o
+  das três repetições da mesma noite viraram CENAS dentro do 4, do 5 e do 6.
+
+
+-------------------------------------------------------------------------------
+XI.1 — O QUE ESTE CAPÍTULO É — E O QUE ELE NÃO É
+-------------------------------------------------------------------------------
+
+  O Capítulo 3 termina com ele decidindo: "Então eu acho o Andrade." Ele
+  precisa de um endereço. O único lugar onde ainda existe papel dele de sete
+  anos atrás é a casa.
+
+  ELE VAI LÁ POR MOTIVO DE DETETIVE. Não vai visitar a dor. Vai buscar uma
+  conta de telefone. Isso não é detalhe — é o que impede o capítulo de virar
+  velório.
+
+  ⚠⚠ A TRAVA MAIS IMPORTANTE DO CAPÍTULO INTEIRO: ISTO NÃO É FLASHBACK.
+
+  O Capítulo 3 já teve o flashback dele, e teve título, teve roupa diferente
+  e teve regra própria. Aqui NÃO TEM NADA DISSO:
+
+    · sem cartela, sem "sete anos atrás", sem sépia, sem corte de tela
+    · sem troca de roupa — ele está com o sobretudo rasgado do Capítulo 2
+    · sem tirar o controle da mão do jogador
+    · e o jogo NUNCA diz o que está acontecendo
+
+  Ele chega, e A CASA ESTÁ EM PÉ. Só isso. O jogo não explica, não pisca, não
+  oferece interpretação. É a cabeça dele brincando com ele, e a regra de ouro
+  continua valendo: ele registra o fato, não especula, e entra assim mesmo.
+
+    (na calçada, olhando)
+    "A casa tá em pé."
+    (pausa)
+    "Ela não tá em pé faz sete anos."
+    (pausa)
+    "..."
+    "A conta de telefone ficava na gaveta da cozinha."
+
+  ⚠ ESSA É A BATIDA. Ele constata o impossível em duas falas e volta ao
+  serviço na terceira. Se ele perguntar "como", o capítulo morre.
+
+
+-------------------------------------------------------------------------------
+XI.2 — A MECÂNICA: O CIGARRO TROCA A CASA
+-------------------------------------------------------------------------------
+
+  ⚠ DESENHADA PELO LUIZ EM 12/08. É o sistema central do capítulo, e o
+  capítulo inteiro é construído em cima dela.
+
+  TECLA:  F  (segurar) — a mesma tecla do isqueiro do Capítulo 2.
+          Isso não é economia de tecla, é continuidade: o isqueiro estava no
+          escaninho 214 e voltou pra mão dele no fim do Capítulo 3.
+
+  DOIS ESTADOS DA MESMA CASA, NA MESMA GEOMETRIA:
+
+    ESTADO         COMO SE ENTRA           O QUE ELE VÊ
+    -------------  ----------------------  ---------------------------------
+    A CASA         é o PADRÃO. É como ela  Luz acesa. Rádio na cozinha.
+    (intacta)      está quando ele chega   Móveis. Portas que fecham.
+                   e quando o cigarro      A JULIE andando no corredor.
+                   acaba                   Quente.
+    -------------  ----------------------  ---------------------------------
+    A RUÍNA        acender um cigarro      Sem telhado. Paredes caídas.
+    (destruída)    (F)                     Mato dentro da sala. Preto.
+                                           Sete anos de chuva. Frio.
+
+  ⚠ A INVERSÃO IMPORTA. O padrão é a casa BOA e a fumaça mostra a RUÍNA —
+  não o contrário. Quem joga entra num lugar acolhedor e tem que se
+  envenenar de propósito pra ver a verdade. Se fosse ao contrário, seria só
+  uma lanterna.
+
+  AS REGRAS DOS DOIS ESTADOS — e é aqui que vira puzzle:
+
+    NA CASA INTACTA
+      · ele VÊ e OUVE: vozes, rádio, a Julie, a menina no quarto
+      · NÃO DÁ PRA PEGAR NADA. A mão atravessa. Nenhum objeto é real
+      · a sanidade sobe devagar
+      · as PAREDES EXISTEM. O corredor tem chão, a porta da frente tem
+        tranca, a janela é vidro
+
+    NA RUÍNA
+      · TODO objeto de verdade só existe aqui, e só aqui dá pra pegar
+      · a sanidade cai enquanto ele estiver dentro dela
+      · as paredes caídas viraram PASSAGEM — e o assoalho do corredor
+        virou BURACO
+
+  ⚠ ENTÃO O PUZZLE É DE TOPOLOGIA, E NOS DOIS SENTIDOS. Tem lugar que só dá
+  pra atravessar fumando (parede caída = passagem) e tem lugar que só dá pra
+  atravessar SEM fumar (o corredor só tem chão na casa intacta). O jogador é
+  obrigado a acender de propósito E a apagar de propósito.
+
+  APAGAR: apertar F de novo joga o cigarro fora — e é EXATAMENTE a animação
+  de ócio do Capítulo 1, a que ele faz desde a primeira tela do jogo. O
+  cigarro é gasto do mesmo jeito. Jogar fora custa igual a fumar até o fim.
+
+  ⚠ O GESTO QUE DEFINE O PERSONAGEM VIROU UM VERBO. Isso é de graça: a
+  animação já existe e já foi vista mil vezes por quem joga.
+
+  DURAÇÃO DE UM CIGARRO: 40 segundos. Fim do cigarro = a casa volta a ficar
+  em pé, no mesmo passo, sem corte de tela e sem tela preta. Se ele estiver
+  em cima de um buraco que virou chão, ou dentro de uma parede que voltou, o
+  jogo o empurra pro vão livre mais próximo — nunca mata por isso.
+
+  AVISO DE FIM: nos últimos 8 segundos a brasa aparece no canto da tela e a
+  ruína começa a "respirar" de volta pro estado bom. Sem número, sem barra.
+
+
+  ------- O MAÇO: SETE CIGARROS. E SÓ -------
+
+  ⚠ SETE. Travado pelo Luiz. Sete anos, sete cigarros, e o jogo nunca diz
+  quantos você vai precisar.
+
+  ECONOMIA EXATA:
+
+    OBRIGATÓRIOS (4) — sem estes o capítulo não anda
+      1. ENTRAR NA CASA .......... a porta da frente está trancada e a chave
+                                   não existe mais. Na ruína, a parede da
+                                   frente caiu. (também é o tutorial)
+      2. O CORREDOR .............. ao contrário: na ruína o assoalho é um
+                                   buraco. Ele tem que APAGAR pra atravessar
+      3. A CAIXA DE PAPÉIS ....... objeto real, só existe na ruína
+      4. O ARMÁRIO DO QUARTO ..... as marcas por dentro da porta
+
+    OPCIONAIS (3) — o capítulo fecha sem nenhum deles
+      5. O SAPATO NA SOLEIRA
+      6. O QUE MORA NA RUÍNA (o colchão, as cinzas, os cartazes)
+      7. O HOMEM DE SOBRETUDO NA VARANDA
+
+  ⚠ E É AQUI QUE A MECÂNICA VIRA O TEMA: TUDO que o capítulo tem de verdade
+  pra contar está do lado destruído. Saber tudo custa os sete. Quem joga
+  direto e não abre nada chega no fim com três na mão — e o fim é OUTRO.
+  Ver XI.7.
+
+  NENHUMA DAS DUAS ROTAS É A CERTA. Uma é o homem se protegendo, a outra é o
+  homem que olhou. O jogo não premia e não pune nenhuma das duas.
+
+  ⚠ NÃO EXISTE CONTADOR NA TELA. Pra saber quantos sobraram ele abre o
+  casaco e olha o maço, como qualquer outro item. O jogo não avisa que
+  acabou — ele aperta F, e ele só amassa o maço vazio.
+
+
+  ------- O QUE ANDA QUANDO ELE NÃO ESTÁ OLHANDO -------
+
+  A partir do terceiro cigarro, TEM ALGUÉM NA CASA COM ELE. É a FIGURA
+  NEGRA — a mesma do depósito do Capítulo 1 e a mesma da sala de espera do
+  Capítulo 3. Ela aparece parada, no fundo do cômodo, na ruína.
+
+  A REGRA, E É A ÚNICA:
+
+    ELA SÓ SE MEXE ENQUANTO ELE NÃO ESTÁ FUMANDO.
+
+  Na ruína, ela está parada onde você a viu. Na casa intacta ela some da
+  tela — e quando você acender de novo, ela está mais perto. Sempre mais
+  perto. Nunca corre, nunca ataca de longe, nunca faz barulho.
+
+  ⚠ ISSO NÃO PRECISA DE IA NENHUMA. É uma posição que anda quando o estado
+  troca. E faz o cigarro ser as duas coisas ao mesmo tempo: o mapa e a
+  única proteção. Os dois acabam juntos.
+
+  SE ELA CHEGAR ENCOSTADA: não mata. Ela senta. Do lado dele. E fica.
+  (a sanidade despenca e não volta enquanto ele não sair do cômodo)
+
+
+-------------------------------------------------------------------------------
+XI.3 — O INVENTÁRIO: ELE CHEGA COM TUDO
+-------------------------------------------------------------------------------
+
+  ⚠ EXIGÊNCIA DO LUIZ, 12/08, e ela paga uma promessa que o Capítulo 3 fez
+  por escrito: "quando a arma voltar, no Capítulo 4, ela vai pesar."
+
+  Ele chega na casa com TUDO que o escaninho 214 devolveu na saída da
+  delegacia, e com tudo que ele já tinha:
+
+    · a PISTOLA, com a munição que sobrou do Capítulo 2
+    · a CALIBRE DOZE
+    · o ISQUEIRO
+    · o MAÇO (os sete)
+    · o CADERNO
+
+  É A PRIMEIRA VEZ NO JOGO INTEIRO EM QUE O CASACO ESTÁ CHEIO. Vale abrir o
+  inventário na primeira tela só pra ver. O Capítulo 2 tirou tudo dele, o 3
+  guardou o que sobrou num escaninho, e o 4 devolve um homem armado.
+
+  E ARMA FUNCIONA AQUI. Dá pra sacar, mirar e atirar na figura, com o mesmo
+  sistema do Capítulo 2. Só que:
+
+  ⚠ TIRO DADO DENTRO DA RUÍNA ESTRAGA A CASA INTACTA. Cada disparo deixa uma
+  marca que fica: o vidro da sala trincado, o rádio que emudece e não volta,
+  uma mancha no papel de parede do corredor. Ele atira no escuro e quando a
+  casa volta a ficar boa, ela está um pouco menos boa. Permanente até o fim
+  do capítulo.
+
+  E o David não comenta nenhuma dessas marcas. Nenhuma vez.
+
+  (nota de design: é a lição do Capítulo 5 sendo ensinada com a mão do
+   jogador, um capítulo antes de ela ser cobrada. Violência contra a coisa
+   que te assombra estraga a lembrança, não a assombração.)
+
+  A DOZE TEM UMA CENA SÓ, E É A ÚLTIMA DO CAPÍTULO. Ver XI.7.
+
+
+-------------------------------------------------------------------------------
+XI.4 — MAPA DO CAPÍTULO — 7 setores
+-------------------------------------------------------------------------------
+
+  #  SETOR                  MIN   O QUE ENTREGA
+  -- --------------------- ---   -----------------------------------------
+  1  A rua e o portão        4    "A casa tá em pé." Cigarro 1 (tutorial)
+  2  A sala                  8    A JULIE. O rádio. A primeira troca dupla
+  3  A cozinha               8    A CAIXA DE PAPÉIS. E o endereço.
+  4  O corredor              5    Apagar de propósito. E a figura.
+  5  O quarto dela          10    O ARMÁRIO. As marcas POR DENTRO.
+  6  A varanda               6    O sapato. E o homem de sobretudo.
+  7  O telefone              4    O fim, em duas versões.
+  -- --------------------- ---
+                           ~45 min
+
+
+===============================================================================
+CENA 1 — A RUA E O PORTÃO
+===============================================================================
+FUNÇÃO: ensinar a mecânica sem uma linha de tutorial.
+TEMPO:  ~4 min
+
+  ABERTURA:
+    Preto. "CAPÍTULO QUATRO". Embaixo: A CASA.
+
+  Ele desce do ônibus (ou chega andando — decidir na produção) numa rua de
+  subúrbio às 03h da manhã. Poste queimado. Nenhuma janela acesa em nenhuma
+  das outras casas.
+
+  A dele está acesa. Todas as janelas. Igual à delegacia do Capítulo 3.
+
+    "A casa tá em pé."
+    (pausa longa — três segundos de nada, sem música)
+    "Ela não tá em pé faz sete anos."
+    (pausa)
+    "..."
+    "A conta de telefone ficava na gaveta da cozinha."
+
+  ⚠ E A MÚSICA QUE TOCA AQUI É A `musica-casa.mp3` DO CAPÍTULO 3 — a mesma
+  faixa baixa que tocava dentro da casa no flashback. Quem jogou o 3
+  reconhece antes de entender. E ela morre no primeiro cigarro.
+
+  O PORTÃO abre. A PORTA DA FRENTE não: está trancada, e a chave dele
+  acabou com a casa. Ele mexe na maçaneta duas vezes.
+
+    "Trancada."
+    "Claro que tá trancada."
+
+  Não tem outra entrada. O jogo não sugere nada. O jogador vai abrir o
+  casaco procurando alternativa — e o casaco está CHEIO, o que empurra ele a
+  experimentar. O maço é o único item que faz alguma coisa aqui.
+
+  ⚠ SE O JOGADOR DEMORAR MAIS DE 90 SEGUNDOS, e só então:
+    "Sete anos sem." (ele leva a mão ao bolso e para no meio do caminho)
+  É a única dica do capítulo inteiro. Não tem segunda.
+
+  AO ACENDER O PRIMEIRO:
+    A casa em volta dele DESABA em tempo real, sem corte: o telhado se abre,
+    a tinta descasca, o mato sobe pelo degrau, a luz das janelas apaga uma
+    por uma. Quatro segundos. Sem susto, sem trilha — só o som do fogo que
+    já passou.
+
+    (a primeira tragada é MUDA. Ele não fala nada.)
+
+  E a parede da frente não existe mais. Dá pra entrar por cima do escombro.
+
+    (entrando)
+    "..."
+
+
+===============================================================================
+CENA 2 — A SALA
+===============================================================================
+FUNÇÃO: ensinar que os dois estados servem pra coisas diferentes.
+TEMPO:  ~8 min
+
+  NA RUÍNA: chão de carvão e vidro. O sofá é uma carcaça de molas. Tem
+  mato de verdade crescendo onde ficava a mesa de centro.
+
+  Ele atravessa e o cigarro acaba sozinho. A casa volta.
+
+  NA CASA INTACTA: a mesma sala, quente, luz de abajur. O rádio na
+  estante tocando baixo. E a JULIE atravessa o fundo da tela indo pra
+  cozinha, de costas, com um copo na mão.
+
+  ⚠ ELA NÃO INTERAGE. Não olha, não fala com ele, não responde. Ela está
+  fazendo uma noite comum. É pior assim.
+
+    "Julie."
+    (ela não para)
+    "..."
+
+  ⚠ E ELE NÃO CHAMA DE NOVO. Uma vez, e ele volta ao serviço. Ele já sabe
+  o que isso é — ele só não vai dizer em voz alta.
+
+  COISAS PARA EXAMINAR — e cada uma existe nos DOIS estados, com duas
+  descrições. Isso é metade do trabalho de escrita do capítulo:
+
+    O RÁDIO
+      (intacta) "Tocando. A estação que ela ouvia."
+      (ruína)   "Derretido em cima da estante."
+      ⚠ e a partir do cigarro 4, na casa intacta, o rádio não toca mais
+        música: toca o TOM DE TELEFONE FORA DO GANCHO. Baixo. Ele não
+        comenta.
+
+    O RETRATO DA PAREDE
+      (intacta) "Nós três."
+                (pausa)
+                "Eu tô rindo nessa foto."
+      (ruína)   "O vidro estourou pra dentro."
+                "Dá pra ver as três formas. Não dá pra ver mais nada."
+      ⚠ REGRA DO NOME: o rosto da menina não é legível em NENHUM dos dois
+        estados. Nem o nome dela no canto do porta-retrato.
+
+    O TELEFONE DA MESINHA
+      (intacta) "Esse é o daqui de dentro."
+                "O da varanda toca junto."
+      (ruína)   "Fio derretido. Ele não toca faz sete anos."
+      ⚠ ESSE TELEFONE É A CENA 7. Ele fica mudo o capítulo inteiro até lá.
+
+    O SOFÁ
+      (intacta) "Ela dormia aqui quando eu chegava tarde."
+                "Pra eu não subir no escuro e me achar sozinho."
+      (ruída)   "..."
+
+  A PRIMEIRA TROCA DUPLA (é o puzzle-tutorial de verdade): a porta da
+  cozinha está emperrada na casa intacta — inchou de umidade, ele empurra e
+  não vai. Na ruína ela não existe: o batente caiu. Acende, passa.
+
+
+===============================================================================
+CENA 3 — A COZINHA
+===============================================================================
+FUNÇÃO: entregar cedo o que ele veio buscar.
+TEMPO:  ~8 min
+
+  ⚠ ISSO ACONTECE NO PRIMEIRO TERÇO DO CAPÍTULO, DE PROPÓSITO. Não faça o
+  jogador esperar 40 minutos pelo óbvio. Ele veio buscar um endereço, ele
+  acha o endereço, e o capítulo continua por outro motivo — que é o motivo
+  de verdade.
+
+  A GAVETA. Na casa intacta ela abre e está cheia — e vazia de utilidade:
+  a mão atravessa tudo.
+
+    "Tá tudo aqui."
+    "E eu não consigo pegar nada."
+
+  Na ruína, a gaveta é um buraco no armário caído. Dentro, molhada e
+  colada, A CAIXA DE PAPÉIS. [obrigatório — cigarro 3]
+
+  O QUE TEM NA CAIXA, e o jogador lê no caderno (aba DOCUMENTOS):
+
+    · A CONTA DE TELEFONE do mês. Uma chamada RECEBIDA às 02h14, e o
+      número de origem é um ramal da delegacia. O mesmo que a Elaine disse.
+      "Ela tava aqui. Sete anos nessa gaveta."
+      "Eu procurei em todo lugar menos dentro de casa."
+
+    · A AGENDA DELE, de sete anos atrás. Na letra dele. E na letra A, na
+      lista de plantonistas do turno da noite: ANDRADE, e um endereço.
+      ⚠ ELE NÃO COMEMORA. Ele lê, fecha a agenda e guarda no bolso.
+        "Achei."
+        (pausa)
+        "..."
+        (e ele não vai embora — e o jogo não deixa. A parede da frente
+         voltou. Ele precisa de outro cigarro pra sair, e a essa altura
+         o jogador já entendeu que sair custa igual a entrar.)
+
+    · O LAUDO DO INCÊNDIO, cópia carbonada. ORIGEM INDETERMINADA.
+      ⚠ E CONTINUA INDETERMINADA. NÃO RESPONDER NUNCA — nem aqui, nem no
+      5, nem no 6. Ver a D-12 do .md. Enquanto não tem resposta, o cigarro
+      na mão dele é a acusação que ele faz a si mesmo, e é disso que o
+      Capítulo 5 vive.
+
+  ⚠ NÃO TEM NADA NA CAIXA SOBRE A MENINA. É de propósito, e o jogador vai
+  reparar.
+
+
+===============================================================================
+CENA 4 — O CORREDOR
+===============================================================================
+FUNÇÃO: ensinar a APAGAR. E é onde a figura aparece.
+TEMPO:  ~5 min
+
+  Na ruína, o assoalho do corredor cedeu: é um vão de dois metros com terra
+  e ferro no fundo. Não dá pra pular, não dá pra descer.
+
+  Na casa intacta, o corredor é um corredor. Com tapete.
+
+  ⚠ ENTÃO ELE TEM QUE JOGAR O CIGARRO FORA DE PROPÓSITO, no escuro, sabendo
+  que a única coisa que ele controla naquela casa vai acabar. E é aqui que a
+  FIGURA NEGRA aparece pela primeira vez — parada no fim do corredor
+  arruinado, virada pra ele.
+
+  As três falas da primeira vez (as mesmas três da sala de espera do
+  Capítulo 3 — repetir textualmente):
+
+    "Tem alguém ali."
+    "Não dá pra ver a roupa dele. Não dá pra ver nada dele."
+    "..."
+
+  E aí o cigarro morre — ou ele joga fora — e a figura some junto com a
+  ruína. Corredor com tapete. Luz. Nada.
+
+  Ele atravessa. Do outro lado, quando acender de novo, ELA ESTÁ MAIS PERTO.
+
+  ⚠ E O DAVID NÃO COMENTA QUE ELA ANDOU. Nunca. Nem uma vez no capítulo
+  inteiro. Quem conta a distância é o jogador.
+
+
+===============================================================================
+CENA 5 — O QUARTO DELA
+===============================================================================
+FUNÇÃO: o núcleo do capítulo.
+TEMPO:  ~10 min
+
+  NA CASA INTACTA: o quarto igual ao do flashback do Capítulo 3 — o mesmo
+  cenário, o mesmo giz de cera, os mesmos desenhos no chão. E ELA NÃO ESTÁ
+  AQUI. A cama está feita. Não tem ninguém.
+
+  ⚠ ISSO É A DIFERENÇA MAIS CRUEL ENTRE OS DOIS CAPÍTULOS, E ELA É DE GRAÇA:
+  no Capítulo 3 a menina estava sentada no chão desenhando. Aqui o quarto é
+  idêntico e vazio. Mesmo na versão boa da casa, ela não volta.
+
+    (entrando)
+    "..."
+    (pausa longa)
+    "Ela arrumava a cama sozinha. Ninguém mandou ela fazer isso."
+
+  OS DESENHOS NO CHÃO — na casa intacta dá pra olhar, não dá pra pegar:
+    "Uma casa. Um sol. Três bonecos."
+    "Um dos bonecos tá do lado de fora da casa."
+    (pausa)
+    "Fumando."
+    ⚠ E ELE NÃO DIZ MAIS NADA. Não explica, não se defende, não pede
+      desculpa. Sai da fala.
+
+  ------- O ARMÁRIO -------  ★ A REVELAÇÃO DO CAPÍTULO
+
+  Na casa intacta, o armário abre e tem roupa dentro. Nada.
+
+  Na ruína, a porta do armário está caída no chão, com a face de dentro
+  pra cima. [obrigatório — cigarro 4]
+
+    MARCAS DE UNHA. POR DENTRO.
+
+    "..."
+    "Isso é por dentro."
+    (pausa)
+    "Ela se escondeu aqui."
+    (pausa)
+    "E ficou um tempo."
+
+  ⚠ O QUE ISSO ESTABELECE, e o capítulo não diz em voz alta em lugar
+  nenhum: ELA NÃO FOI TIRADA DA CAMA DORMINDO. Ela ouviu, se escondeu, e
+  esperou. Ela estava viva e acordada durante.
+
+  ⚠ E O DAVID NÃO CONCLUI ISSO. Ele constata a marca. Quem conclui é o
+  jogador, e é essa vantagem que segura o jogo em pé (PARTE VIII.B).
+
+  A DEDUÇÃO DO CADERNO (o par que fecha o capítulo):
+
+    "marcas por dentro da porta"  +  "o cigarro da varanda"
+                    vira
+    UMA CONCLUSÃO — categoria CONCLUSÃO, e a página é curta:
+      "Ela saiu andando."
+      "Passou por mim."
+
+  ⚠ ESSA DEDUÇÃO É OBRIGATÓRIA PRA FECHAR O CAPÍTULO? NÃO. Ela é opcional,
+  e vale +12 de sanidade como todas. Mas ela é a que o Capítulo 5 cobra: se
+  o jogador deduziu, a cena de achar a Jenna no 5 tem uma linha a mais.
+
+
+===============================================================================
+CENA 6 — A VARANDA
+===============================================================================
+FUNÇÃO: as duas coisas opcionais que o capítulo tem de melhor.
+TEMPO:  ~6 min
+
+  A varanda é o lugar onde ele estava. O jogo nunca precisou dizer isso e
+  não vai dizer agora.
+
+  ------- O SAPATO -------  [opcional — cigarro 5]
+
+  Na ruína, na soleira, fora do alcance que o fogo teve: UM SAPATO PEQUENO.
+  Sozinho. Do lado de fora da porta.
+
+    "..."
+    "Isso tava do lado de fora."
+    (pausa muito longa)
+    "O fogo não chegou aqui."
+
+  E é só. Ele não pega. Ele não guarda. Ele fica olhando até o jogador
+  andar.
+
+  ⚠ NÃO ESCREVER MAIS NENHUMA LINHA NESSA CENA. Nenhuma. A tentação de
+  explicar aqui vai ser enorme e ela mata a cena.
+
+  ------- O HOMEM DE SOBRETUDO -------  [opcional — cigarro 7]
+
+  ⚠ RECUPERADA DA PARTE IV (OPÇÃO 2), que tinha sido arquivada em 06/08 com
+  o motivo "entrega o Credor cedo demais". NO CAPÍTULO 4 JÁ NÃO É CEDO.
+
+  Sentado no degrau da varanda, de costas. SOBRETUDO IGUAL AO DELE.
+  Fumando. Só aparece se ele chegar aqui com o último cigarro aceso.
+
+  Ele oferece um cigarro. E o maço do David está vazio.
+
+    HOMEM: "Eu também dizia isso."
+    DAVID: "Dizia o quê?"
+    HOMEM: "Hoje não."
+
+  Nunca mostra o rosto. Quando o David dá a volta pra ver, não tem ninguém —
+  só uma guimba acesa na beirada do degrau.
+
+  ⚠ SE ELE ACEITAR O CIGARRO (e o jogador pode): o maço volta a ter UM. E
+  esse não conta como oitavo — é o mesmo sétimo, devolvido. É a única vez
+  no jogo em que alguma coisa é devolvida a ele.
+
+  ------- O QUE MORA NA RUÍNA -------  [opcional — cigarro 6]
+
+  Nos fundos, o que sobrou da garagem. E ali:
+
+    · um COLCHÃO no chão, com cobertor
+    · CINZAS FRESCAS numa lata. Frescas de hoje
+    · MAÇOS VAZIOS. Da marca dele. Muitos
+    · e um BOLO DE CARTAZES DE DESAPARECIDA, impressos, empilhados,
+      amarrados com barbante. Os mesmos do beco do Capítulo 1
+
+    "Alguém dorme aqui."
+    (pausa)
+    "..."
+    "Alguém dorme aqui faz tempo."
+
+  ⚠ ELE NÃO COMPLETA. NUNCA. Nem no fim do capítulo, nem no 5. Quem
+  completa é quem está jogando, e a frase é: ELE VEM AQUI. FAZ SETE ANOS
+  QUE ELE VEM AQUI. E ELE NÃO LEMBRA.
+
+  ⚠ ISSO É PAGAMENTO DA FLAG DO FIM DO CAPÍTULO 3 — a primeira escolha do
+  jogo que muda alguma coisa. Ver IX (o livro do plantonista):
+
+    SE ELE DEU O NOME PRO CARTAZ:
+      no bolo tem um cartaz com o nome IMPRESSO, e o papel é novo. Numa
+      casa onde ele não esteve.
+        "Esse é novo."
+        "Esse é de hoje."
+
+    SE ELE DISSE "DEIXA PRA PRÓXIMA":
+      são todos sem nome. E um está pela metade, escrito à mão, e a letra
+      é dele.
+        "Essa letra é minha."
+        "E eu parei no meio."
+
+  ⚠ NOS DOIS CASOS O FATO É O MESMO e a conclusão é a mesma. A escolha não
+  muda o que aconteceu — muda o que o Capítulo 6 pode cobrar dele.
+
+
+===============================================================================
+CENA 7 — O TELEFONE
+===============================================================================
+FUNÇÃO: fechar o capítulo em duas versões, pela conta do maço.
+TEMPO:  ~4 min
+
+  ⚠ A MECÂNICA DECIDE O FIM, E O JOGADOR NÃO ESCOLHE NUMA TELA DE ESCOLHA.
+  Ele já escolheu, fumando ou não fumando, durante 45 minutos. Ideia do
+  Luiz, 12/08.
+
+  O TELEFONE DA SALA TOCA. Casa sem luz, fio derretido, sete anos.
+
+  Ele atende. Nas duas versões ele atende — isso não é opcional, e é o nome
+  do jogo.
+
+  ------- VERSÃO A — SOBROU CIGARRO (a casa está em pé) -------
+
+  Ele atende na cozinha iluminada. Quente. O rádio tocando na sala. Passos
+  no corredor que não são dele.
+
+    (no fone)
+    "..."
+    "Alô."
+    "..."
+
+  SILÊNCIO. Nada do outro lado. Nem respiração, nem estática, nem voz.
+
+    "..."
+    (ele desliga)
+    "Andrade." (ele olha a agenda na mão) "Rua [X], [número]."
+    "Tá bom."
+
+  Ele sai pela porta da frente — que na casa intacta abre por dentro sem
+  chave, e o jogo deixa. E aí:
+
+  ⚠ O ÚLTIMO PLANO DO CAPÍTULO: a câmera fica na calçada e não acompanha
+  ele. Ele anda pra fora do quadro. E quando ele sai da tela, A CASA ATRÁS
+  DELE É A RUÍNA. Sempre foi. Ele não olhou pra trás nenhuma vez.
+
+  ELE VAI EMBORA SEM SABER.
+
+  ------- VERSÃO B — MAÇO VAZIO (ele está na ruína) -------
+
+  Ele atende de pé na cozinha sem telhado, na chuva, com o fone derretido
+  na mão. E atende assim mesmo.
+
+    (no fone)
+    "..."
+    "Alô."
+    "..."
+
+  E TEM RESPIRAÇÃO. Curta. Rápida. De criança. Três segundos.
+  E acaba — não desliga, ACABA.
+
+    "..."
+    (ele não fala nada por muito tempo)
+    (ele desliga devagar)
+
+  E aí a mesma coisa: a agenda, o endereço, o "tá bom". As mesmas três
+  falas, exatamente as mesmas, ditas por um homem que acabou de ouvir
+  aquilo.
+
+  ⚠ ÚLTIMO PLANO DA VERSÃO B: igual — a câmera fica, ele sai do quadro. Só
+  que a casa já é a ruína e ele já sabe.
+
+  ⚠ O QUE A LIGAÇÃO NÃO PODE DIZER, EM NENHUMA DAS DUAS: nenhuma palavra,
+  nenhum nome, nenhuma voz de mulher. A regra de 10/08 continua de pé — se
+  sair palavra daí, o Capítulo 6 fica sem ter o que dizer. Respiração não é
+  palavra, e é por isso que ela pode.
+
+  ------- E A DOZE -------
+
+  Nas duas versões, o capítulo fecha do lado de fora, no degrau: ele senta,
+  quebra a calibre doze, coloca dois cartuchos, fecha. O estalo é a última
+  coisa que se ouve antes do preto.
+
+    "..."
+    "De um jeito ou de outro, ele me diz."
+
+  ⚠ É A REPETIÇÃO EXATA DA FALA DO FIM DO CAPÍTULO 3. Ele disse isso na
+  delegacia sem arma nenhuma. Agora ele diz com dois cartuchos na mão, e o
+  jogador ouve a diferença.
+
+
+-------------------------------------------------------------------------------
+XI.5 — AS TRAVAS: O QUE ESTE CAPÍTULO NÃO PODE DIZER
+-------------------------------------------------------------------------------
+
+  Uma linha em qualquer um destes pontos derruba o resto do jogo:
+
+  1. NÃO EXPLICAR A CASA. Nem personagem, nem narração, nem caderno. Nunca
+     usar as palavras "lembrança", "memória", "alucinação" ou "sonho".
+
+  2. NÃO REVELAR QUE ELE ATENDE A MESMA LIGAÇÃO TODA NOITE. É do Capítulo 6.
+     A respiração da Versão B chega perto e não prova nada.
+
+  3. NÃO REVELAR QUE ELE JÁ MATOU O ANDRADE. É do Capítulo 6. Neste
+     capítulo o Andrade é um endereço numa agenda, e nada mais.
+
+  4. NÃO RESPONDER SE O INCÊNDIO FOI POSTO. (D-12)
+
+  5. NÃO MOSTRAR O ROSTO DA FIGURA. (D-14)
+
+  6. O DAVID NÃO JUNTA MIGALHA EM VOZ ALTA E NÃO ESPECULA SOBRE ESTAR
+     LOUCO. A regra de ouro do jogo inteiro, e este é o capítulo em que ela
+     é mais difícil de manter — e mais necessária.
+
+  7. O ROSTO DA JENNA NÃO É LEGÍVEL EM LUGAR NENHUM. Retrato, cartaz,
+     desenho: em todos, ilegível. O NOME dela já pode aparecer escrito (ele
+     disse em voz alta no fim do Capítulo 3), mas o rosto não.
+
+
+-------------------------------------------------------------------------------
+XI.6 — O QUE O CAPÍTULO 4 TEM QUE PLANTAR PARA O 5 E O 6
+-------------------------------------------------------------------------------
+
+  CAPÍTULO 5 — A CAÇADA  (~50 min, travado pelo Luiz em 12/08)
+
+    Ele vai no endereço. Acha o Andrade. CAPTURA. E MATA.
+
+    E é matando que ele acha a JENNA — viva. E ele quebra: é a única cena
+    do jogo inteiro em que o David está feliz, e ele fala pelos cotovelos,
+    e chama ela pelo nome, e ri.
+
+    ⚠ E ENQUANTO ELE CONVERSA COM ELA, CORTA. Sem aviso. Outro lugar,
+    destruído, frio. E ele está abraçado com o CORPO dela. Morto. Há muito
+    tempo.
+
+    ⚠ A CENA FELIZ TEM QUE SER LONGA E TEM QUE SER BOA. Se ela for curta
+    ou irônica, o corte não cobra nada. O jogador tem que ter acreditado.
+
+    O QUE O 4 PLANTA PRA ISSO FUNCIONAR:
+      · as marcas por dentro do armário (ela estava viva e acordada)
+      · o sapato na soleira (ela saiu andando)
+      · a dedução "ela saiu andando / passou por mim"
+      → tudo isso construiu, durante 45 minutos, a esperança que a Cena
+        do 5 vai usar contra o jogador. É pra ele acreditar. É pra doer.
+
+  CAPÍTULO 6 — O PRESENTE  (~30 min)
+
+    Ele volta pra delegacia. E É DETIDO.
+
+    E aí o jogo diz o que está acontecendo: foi há sete anos. Ele já fez
+    tudo isso. A porta da cela do Capítulo 3 nunca esteve trancada porque
+    ele mora do lado de dentro; as sete assinaturas por ano no livro de
+    visitas são dele; o plantonista nunca perguntou o nome dele porque
+    sabe; e a figura sentada na sala de espera com uma senha na mão está
+    esperando ser atendida faz sete anos.
+
+    QUEM ESTÁ PRESO NA DELEGACIA É O DAVID.
+
+    O QUE O 4 PLANTA PRA ISSO:
+      · o colchão, as cinzas frescas e os maços vazios na ruína
+      · os cartazes impressos e empilhados
+      · a Versão A do fim: ele foi embora sem olhar pra trás — de novo
+      · a Versão B: ele olhou, e o 6 pode cobrar isso dele
+
+    ⚠ E É AQUI QUE ELE CAPTURA ALGUÉM DE VERDADE. A única prisão que o
+    jogo entrega em seis capítulos é a dele: ele entra na delegacia e
+    assina o livro de visitas com o próprio nome, no lugar certo, pela
+    primeira vez em sete anos. Era o detetive, é o preso, e o único que
+    ainda podia prender era ele.
+
+
+-------------------------------------------------------------------------------
+XI.7 — O QUE JÁ EXISTE NO CÓDIGO E DÁ PRA REAPROVEITAR
+-------------------------------------------------------------------------------
+
+  (o detalhe técnico fica no .md — aqui só o suficiente pra saber que o
+   capítulo é barato)
+
+  · A CASA JÁ ESTÁ DESENHADA — `js/world/levels-ch3.js`, os setores 5a/5b/5c
+    do flashback. O Capítulo 4 é A MESMA GEOMETRIA em segundo estado.
+    Desenhar a ruína, não a casa.
+  · O fogo, o incêndio e o chute na porta: `js/world/fx.js` + `chapter3.js`
+  · A camada de primeiro plano e o `playerSobreFore`: sessão 24
+  · Sanidade, inventário, caderno, dedução, cutscene, mira e tiro: prontos
+  · A `musica-casa.mp3` já é carregada pelo Capítulo 3
+  · A animação de jogar o cigarro fora existe desde o Capítulo 1
+
+  CÓDIGO NOVO DE VERDADE: o relógio do cigarro, a troca dos dois estados
+  (colisão e desenho), a figura que anda quando o estado troca, e as marcas
+  permanentes de tiro. Nada disso é sistema grande.
+
+
+===============================================================================
 ANEXO — NARRAÇÃO ANTIGA (DESCARTADA)
 ===============================================================================
 
@@ -3350,7 +4159,8 @@ ANEXO — NARRAÇÃO ANTIGA (DESCARTADA)
     telefone tocou, David saiu pra atender, acendeu um cigarro na varanda
     — e foi nesse intervalo que aconteceu. Ele atende essa mesma ligação
     toda noite desde então.
-    ⚠ Isso é revelação do CAPÍTULO 4. O Capítulo 3 só planta.
+    ⚠ Isso é revelação do CAPÍTULO 6 (mudou em 12/08 — era do 4). O
+      Capítulo 3 planta, e o 4 chega perto sem provar.
 
 
 ===============================================================================

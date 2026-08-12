@@ -41,6 +41,185 @@
 
 ---
 
+## SESSÃO 30 — 12/08/2026 · Claude · o jogo tem seis capítulos, e o quatro foi escrito
+
+**Nenhuma linha de código foi alterada.** Sessão de escrita e de decisão de
+escopo, no mesmo formato da sessão 18. O capítulo inteiro está em
+`ROTEIRO.txt`, **PARTE XI**.
+
+### 1. 🔥 O escopo mudou: **seis capítulos**, travado pelo Luiz
+
+O plano de 10/08 tinha cinco capítulos e o **Capítulo 4 era A CAÇADA** — a
+memória da noite do Andrade. O problema era real: gastava ação e revelação
+no mesmo fôlego, e deixava o resto do jogo sem ter o que dizer.
+
+Foi levantada uma espinha de dez capítulos e **o Luiz cortou para seis**.
+O que caiu era costura, não conteúdo — o capítulo do perito, o do Credor
+cobrando e o das três repetições da mesma noite viraram **cenas** dentro do
+4, do 5 e do 6.
+
+| # | Capítulo | Min | Verbo | O que entrega |
+|---|---|---|---|---|
+| 1 | O Homem Que Atendeu | 20 | entrar | o bar, o fio cortado |
+| 2 | (o galpão) | 70 | fugir | o espelho, o Credor |
+| 3 | Gaveta D | 55 | perguntar | o nome ANDRADE |
+| 4 | **A CASA** 🆕 | 45 | lembrar | o endereço, e duas coisas que ele não foi buscar |
+| 5 | (a caçada) | 50 | caçar | ele acha o Andrade. E acha a JENNA |
+| 6 | (o presente) | 30 | entender | ele é detido, e o jogo diz o que está acontecendo |
+
+**Seis capítulos não é um jogo menor** — é o mesmo alvo de ~5 horas com
+capítulos mais densos. E responde a D-07 pelo lado certo.
+
+### 2. 🔥 O Capítulo 4 — "A CASA"
+
+Ele volta à casa **por motivo de detetive**: precisa do endereço do Andrade,
+e o único papel dele de sete anos atrás está lá. Chega, e **a casa está em
+pé**.
+
+⚠ **Isto não é flashback.** Sem cartela, sem sépia, sem troca de roupa, sem
+tirar o controle da mão. O jogo nunca explica, e o David não especula — ele
+constata em duas falas e volta ao serviço na terceira. É a regra de ouro
+aplicada no capítulo em que ela é mais difícil de manter.
+
+### 3. A mecânica: **o cigarro troca a casa** (ideia do Luiz)
+
+`F` (a mesma tecla do isqueiro do Capítulo 2, que voltou do escaninho 214).
+
+| Estado | Como se entra | O que ele vê |
+|---|---|---|
+| **A casa** (intacta) | é o **padrão** | luz, rádio, móveis, a Julie no corredor. Quente |
+| **A ruína** | acender um cigarro | sem telhado, mato na sala, sete anos de chuva. Frio |
+
+**A inversão importa:** o padrão é a casa boa, e a fumaça mostra a ruína.
+Quem joga entra num lugar acolhedor e tem que se envenenar de propósito
+para ver a verdade. Ao contrário, seria só uma lanterna.
+
+- **Na casa intacta** ele vê e ouve, e **não pega nada** — a mão atravessa.
+  A sanidade sobe. E as **paredes existem**.
+- **Na ruína** está todo objeto de verdade, e só ali dá para pegar. A
+  sanidade cai. As paredes caídas viraram **passagem**, e o assoalho do
+  corredor virou **buraco**.
+
+**O puzzle é de topologia, nos dois sentidos:** tem lugar que só dá para
+atravessar fumando e tem lugar que só dá para atravessar **sem** fumar. O
+jogador é obrigado a acender de propósito **e a apagar de propósito** — e
+apagar é exatamente a animação de ócio do Capítulo 1, a do "hoje não...".
+**O gesto que define o personagem virou um verbo, e a animação já existe.**
+
+Um cigarro dura **40 segundos**. Fim do cigarro = a casa volta a ficar em
+pé, no mesmo passo, sem corte de tela.
+
+### 4. Sete cigarros — e é a conta que decide o fim
+
+**Sete. Travado pelo Luiz.** Quatro são obrigatórios (entrar, o corredor, a
+caixa de papéis, o armário). Os outros três abrem o que o capítulo tem de
+melhor, **e é tudo opcional**: o sapato na soleira, o que mora na ruína, e o
+homem de sobretudo na varanda.
+
+⚠ **É aqui que a mecânica vira o tema:** tudo que o capítulo tem de verdade
+para contar está do lado destruído. Saber tudo custa os sete.
+
+**Não existe contador na tela.** Para saber quantos sobraram ele abre o
+casaco e olha o maço.
+
+**E o fim do capítulo sai dessa conta, sem tela de escolha:**
+
+| | O telefone toca, e ele atende |
+|---|---|
+| **Sobrou cigarro** | atende na cozinha iluminada. **Silêncio absoluto** na linha. Sai pela porta da frente — e o último plano, da calçada, mostra a ruína atrás dele. **Ele vai embora sem saber** |
+| **Maço vazio** | atende de pé na cozinha sem telhado, com o fone derretido. E tem **respiração de criança**, três segundos. Ele já sabe |
+
+Nenhuma das duas é a certa: uma é o homem se protegendo, a outra é o homem
+que olhou. E a regra de 10/08 continua de pé — **nenhuma palavra sai da
+linha**. Respiração não é palavra, e é por isso que ela pode.
+
+### 5. Ele chega com tudo — e a arma pesa
+
+Exigência do Luiz, e paga uma promessa que o Capítulo 3 fez por escrito
+("quando a arma voltar, no Capítulo 4, ela vai pesar"). Pistola, calibre
+doze, isqueiro, maço e caderno: **é a primeira vez no jogo em que o casaco
+está cheio**.
+
+E arma funciona ali. Só que **tiro dado dentro da ruína estraga a casa
+intacta** — vidro trincado, o rádio que emudece e não volta, mancha no papel
+de parede. Permanente até o fim do capítulo, e o David não comenta nenhuma.
+
+### 6. O que ele acha, em três camadas
+
+1. **O que veio buscar** (e acha no primeiro terço, de propósito): a conta de
+   telefone com a chamada das 02h14 vinda do ramal da delegacia, e a agenda
+   dele com **ANDRADE e um endereço**.
+2. **O que não queria:** o armário do quarto dela, com **marcas de unha por
+   dentro** — ela se escondeu, e ficou. E o **sapato pequeno na soleira**,
+   fora do alcance do fogo. Ela saiu andando, e passou pela varanda.
+3. **O que não se explica:** colchão, cinzas frescas, maços vazios da marca
+   dele e um bolo de **cartazes de desaparecida** empilhados na ruína.
+   ⚠ O David nunca completa isso. Quem completa é quem joga.
+
+**E isso paga a flag do fim do Capítulo 3** (dar ou não o nome para o
+cartaz): se deu, tem um cartaz com o nome impresso, **novo**, numa casa onde
+ele não esteve; se não deu, são todos sem nome e um está pela metade, na
+letra dele. O fato é o mesmo — muda o que o Capítulo 6 pode cobrar.
+
+### 7. Uma cena arquivada voltou
+
+O **homem de sobretudo** da PARTE IV (opção 2), que tinha sido cortada em
+06/08 por "entregar o Credor cedo demais". No Capítulo 4 já não é cedo. Ele
+oferece um cigarro com o maço do David vazio: *"Eu também dizia isso." /
+"Dizia o quê?" / "Hoje não."*
+
+### 8. A figura anda quando ele não está olhando
+
+A partir do terceiro cigarro há alguém na casa. A regra é única: **ela só se
+mexe enquanto ele não está fumando.** Não precisa de IA nenhuma — é uma
+posição que anda quando o estado troca — e faz o cigarro ser as duas coisas
+ao mesmo tempo: o mapa e a única proteção. Os dois acabam juntos.
+
+### 9. Capítulos 5 e 6, travados
+
+**5 — A CAÇADA.** Ele acha o Andrade, captura e **mata**. E é matando que ele
+acha a **Jenna**, viva: é a única cena do jogo em que o David está feliz,
+fala pelos cotovelos e chama ela pelo nome. ⚠ **E enquanto ele conversa com
+ela, corta** — outro lugar, destruído, frio, e ele está abraçado com o corpo
+dela. A cena feliz tem que ser longa e boa; se for curta ou irônica, o corte
+não cobra nada. É para isso que o Capítulo 4 constrói esperança durante 45
+minutos.
+
+**6 — O PRESENTE.** Ele volta à delegacia e **é detido**. Quem está preso na
+delegacia é o David, e sempre esteve. ⚠ **É aqui que ele captura alguém de
+verdade** — a única prisão que o jogo entrega em seis capítulos é a dele.
+
+### 10. As travas do Capítulo 4
+
+Uma linha em qualquer um destes pontos derruba o resto do jogo: não explicar
+a casa (e **nunca** usar as palavras lembrança/memória/alucinação/sonho);
+não revelar a ligação de toda noite (é do 6); não revelar que ele já matou o
+Andrade (é do 6); não responder se o incêndio foi posto (D-12); não mostrar
+o rosto da figura (D-14); o rosto da Jenna ilegível em todo lugar.
+
+### O que isso custa de código
+
+A casa **já está desenhada** — `js/world/levels-ch3.js`, setores 5a/5b/5c do
+flashback. O Capítulo 4 é **a mesma geometria em segundo estado**: desenhar
+a ruína, não a casa. Fogo e incêndio (`js/world/fx.js`), primeiro plano com
+`playerSobreFore`, sanidade, inventário, caderno, dedução, mira e tiro:
+todos prontos. A `musica-casa.mp3` já é carregada. A animação de jogar o
+cigarro fora existe desde o Capítulo 1.
+
+**Novo de verdade:** o relógio do cigarro, a troca dos dois estados (colisão
+e ordem de desenho), a figura que anda na troca, e as marcas permanentes de
+tiro. Nenhum é sistema grande.
+
+### Verificação
+
+**Nenhuma — e isso é honesto.** Não há código para testar. O que existe é
+documento, e o risco desta sessão é de outra natureza: **um capítulo escrito
+inteiro sem uma tela é um capítulo escrito no escuro**. Vale o M-06 de
+sempre, e vale dobrado aqui: 40 segundos de cigarro pode ser curto demais ou
+longo demais, e só dá para saber com o dedo na tecla.
+
+---
+
 ## ATUALIZACAO CODEX — SESSAO 11 — 06/08/2026
 
 ### Puzzle novo do Capitulo 2: **O TURNO DE 02h14**
@@ -331,6 +510,570 @@ separados e legiveis.
 **Status:** implementado e validado por regressao automatizada e revisao
 visual. A velocidade adaptativa do Credor e a nova frequencia de inimigos
 ainda precisam de teste humano para ajuste fino de dificuldade.
+
+---
+
+## SESSÃO 29 — 11/08/2026 · Claude · a tela cheia que não enchia a tela
+
+O Luiz jogou o pacote da sessão 28 e trouxe duas coisas. Na primeira eu
+**entreguei uma opção que não funcionava**; na segunda ele apontou um erro de
+desenho que era meu e estava escrito na tela.
+
+### 1. 🐛 B-76 — a opção existia, e não fazia nada
+
+> *"além de não ficar em tela cheia..."*
+
+Procede, e o defeito é o pior tipo: **falha silenciosa**.
+`requestFullscreen()` dentro de um WebView **embutido** — que é o caso do
+`.exe` — não devolve erro, não rejeita a promessa e **não acontece nada**. A
+janela fica do mesmo tamanho.
+
+Provado com clique de verdade (gesto de usuário legítimo, não sintético):
+`chamou: true`, `erro: null`, `fullscreenElement: null`, `1280x720` antes e
+depois.
+
+**Por quê:** num WebView embutido a página não manda no tamanho da janela.
+Ela *avisa* o programa hospedeiro de que quer tela cheia, e é o **hospedeiro**
+que tem que esticar. Se ninguém escuta do lado de fora, o pedido morre em
+silêncio.
+
+**A correção, sem quebrar a regra do projeto.** O jogo continua **não sabendo
+que existe um `.exe`**. Ele passou a procurar um gancho opcional:
+
+```js
+window.__telaCheia = { ativa(), alternar() }
+```
+
+Se existir, ele manda. Se não existir — navegador, servidor de dev,
+`JOGO_OFFLINE.html` — cai na API padrão, que ali funciona. É o mesmo padrão
+do `musica-casa.mp3`: uma coisa opcional que, quando falta, ninguém sente.
+
+Quem preenche o gancho é o **lançador da demo**, que é de fora do jogo: uma
+ponte `js_api` do pywebview chamando `toggle_fullscreen()` na janela nativa.
+
+> 🐛 **E a ponte nasceu quebrada também.** Guardei a janela em `self.janela`,
+> atributo **público** — e o pywebview varre os atributos públicos do objeto
+> para montar o espelho dele em JavaScript. Ele tentou serializar o objeto
+> nativo do Windows inteiro e entrou em recursão infinita:
+> `AccessibilityObject.Bounds.Empty.Empty.Empty…` umas trezentas vezes,
+> terminando em `maximum recursion depth exceeded`, e a janela nem abria.
+> Com `self._janela`, só os métodos atravessam a ponte.
+
+### 2. O Esc não podia ser duas coisas
+
+> *"não faz sentido o esc sair da tela cheia se o esc sai das opções"*
+
+Está certíssimo, e o pior é que **eu tinha escrito isso na tela**: a dica
+embaixo da opção dizia `ESC SAI DA TELA CHEIA`, dentro de um painel onde o
+Esc **volta**. Eu documentei a confusão em vez de resolver.
+
+Resolvido de graça pela correção acima: no `.exe` a tela cheia agora é estado
+da **janela nativa**, não da página. Com `document.fullscreenElement` nulo, o
+navegador não tem tela cheia nenhuma para o Esc desfazer — o Esc chega no jogo
+limpo e só fecha o menu. **Isso é medido**, não suposto.
+
+A dica virou `F11 ALTERNA A QUALQUER MOMENTO`, que é a única tecla que faz só
+uma coisa, e agora aparece com a linha selecionada — ela ensina o atalho em
+vez de avisar de um efeito colateral.
+
+### 3. 🔍 M-19 — eu verifiquei a existência da API, não o efeito dela
+
+O erro de método da sessão 28, e ele é grande. Minha verificação perguntava:
+
+```
+permitido: true    temApi: true    noMenu: true
+```
+
+As três verdadeiras, **e a tela cheia não funcionava**. Eu escrevi no
+documento que estava "provado que a API está liberada" e mandei o pacote.
+
+*"A API existe" nunca foi "a janela estica."* Perguntei ao sistema se ele
+**tinha** a função em vez de medir o que ela **fez**. É a mesma família do
+M-07 (testei que o NPC existe, nunca que ele aparece) — e eu tinha esse erro
+escrito no documento, de mim mesmo, e repeti.
+
+A verificação agora mede a **área útil da página antes e depois**:
+
+```
+janela ....... 1264 x 681
+em tela cheia  1920 x 1080     <- esticou
+devolvida .... 1264 x 681      <- voltou
+```
+
+E ela chama **as mesmas funções que o menu do jogo chama**, e não o gancho
+direto — provar que a ponte funciona não prova que o jogo chega nela. Foi
+justamente isso que pegou uma cópia velha do `panels.js` na pasta de build,
+reproduzindo o bug original em cima do arquivo errado.
+
+### Verificação
+
+- `teste_capitulo3.html`: **1117/1117, TUDO VERDE** (o B-71 não piscou desta vez).
+- No `.exe`, a corrente inteira medida: `alternarTelaCheia()` do jogo → gancho
+  → Python → `toggle_fullscreen()` → **1264x681 → 1920x1080 → 1264x681**, com
+  o menu lendo `false → true → false` e `document.fullscreenElement` nulo o
+  tempo todo (por isso o Esc não interfere).
+- O `.exe` final aberto: janela 1280x720 numa tela de 1920x1080, título
+  **"The Midnight Call"**, 95 MB.
+
+> ⚠ **O que continua sendo teste humano:** apertar ENTER e F11 com o dedo. O
+> arnês entrega tecla com `code` vazio, então o jogo nunca vê um ENTER de
+> verdade. Eu provei que a função do menu estica a janela; não provei que a
+> tecla chega até ela.
+
+---
+
+## SESSÃO 28 — 11/08/2026 · Claude · tela cheia, e a voz sai da demo
+
+Duas ressalvas do Luiz em cima do pacote da sessão 27.
+
+### 1. A dublagem saiu da demo — e não custou uma linha de código
+
+> *"remova a dublagem do começo da demo"*
+
+O `narrator.mp3` saiu do pacote. **Isso é o certo, e não é só gosto:** aquela
+gravação não corresponde ao roteiro — é o **B-20**, aberto desde a sessão 03.
+O áudio tem 60,76s contra 77s de texto, e a correlação entre os blocos de
+fala e as legendas deu 0,15, ou seja, nenhuma. Numa demo, uma voz dizendo uma
+coisa enquanto a legenda diz outra é **pior do que voz nenhuma**.
+
+Não houve mudança no jogo. O sistema já tinha sido escrito para isso lá atrás:
+sem arquivo, `playNarration()` devolve `null`, a cutscene passa a correr pelo
+cronômetro próprio (`narrTimer` contra `NARRATION_END`) e as legendas aparecem
+nos tempos escritos em `js/i18n.js`. Uma linha na `LISTA_NEGRA` do
+`construir.py`, e pronto. Quando a gravação nova existir, é só tirar o nome
+de lá — não há código para desfazer.
+
+**Verificado rodando a abertura inteira sem voz:** as **18 legendas**
+aparecem na ordem, o carro freia na hora certa, e a cena entrega no beco aos
+89,2s. As fases saíram `fadein → drive(77,8s) → decel → stop → dooropen →
+exit → closedoor → walk → enter → JOGO`.
+
+Saíram junto o `roteiro-narracao.srt` e o `LEIA-ME.txt` de `assets/audio/`:
+material de oficina, que o jogo não lê. **A pasta de áudio do pacote agora
+está vazia** — o jogo da demo é 100% som sintetizado.
+
+### 2. Tela cheia nas opções — e o F11 que não existia
+
+> *"adicione uma opção de tela cheia nas configs"*
+
+Linha nova no painel de opções, entre LEGENDAS e LINHAS DE TELA.
+
+**Ela não é uma preferência guardada, e não podia ser.** Tela cheia é estado
+real da janela, e navegador nenhum entra nela sem um gesto do jogador — não dá
+para restaurar sozinho ao abrir o jogo. Guardar `fullscreen: true` no arquivo
+de opções criaria uma configuração que **mente**: apareceria LIGADO com o jogo
+em janela. Então a linha não tem campo em `settings`: ela lê
+`document.fullscreenElement` a cada quadro e mostra a verdade. Se o jogador
+sair pelo Esc, a opção acompanha sozinha, porque nunca teve opinião própria.
+
+**O F11 passou a ser tratado dentro do jogo**, e isso corrigiu duas coisas que
+só apareceram olhando:
+
+| Onde | O que acontecia |
+|---|---|
+| no `.exe` | o F11 do navegador **não existe** num WebView2. O atalho não fazia nada no pacote que as pessoas baixam |
+| no navegador | o F11 nativo **não é** a API de tela cheia: estica a janela e deixa `fullscreenElement` nulo. A opção nova leria DESLIGADO com o jogo em tela cheia |
+
+Tratando os dois pelo mesmo caminho, o atalho e o menu concordam sempre. E
+como isso roda **dentro do evento de tecla**, é gesto de usuário de verdade —
+nenhum navegador recusa por falta de permissão.
+
+### 3. 🐛 B-75 — a lista de opções passou a bater no rodapé
+
+Achado ao pôr a linha nova: a altura da caixa é `linhas * 16 + 16`, e a tela
+tem 270px. Com 12 linhas a caixa passou a terminar em y=243, **por cima** da
+descrição de dificuldade que é desenhada em y=229 — um número escrito na mão.
+
+Agora o passo diminui sozinho quando a lista cresce (16px até 11 linhas, 15px
+acima disso) e o rodapé é calculado a partir do fim da caixa. A próxima opção
+nova não quebra nada.
+
+### Verificação
+
+- `teste_capitulo3.html`: **1116/1117**. A única falha é o **B-71**, o
+  intermitente de sempre — piscou de novo nesta rodada.
+- A fiação da tela cheia foi provada com espião na API: ENTER liga, ENTER
+  desliga, seta alterna, o painel **continua aberto**, e — o que importava —
+  **nada é escrito em `settings[undefined]`**, que era a armadilha de pôr uma
+  linha sem campo no mesmo caminho do `bool`.
+- Dentro da **janela do `.exe`**: `fullscreenEnabled: true`,
+  `requestFullscreen` existe, a opção está no menu, e `narrationUrl: null`
+  com o jogo em `waitkey` e 33 fases.
+- O `.exe` final foi aberto: janela **"The Midnight Call"**, 95 MB, servindo
+  em `127.0.0.1:61068`.
+
+> ⚠ **O que eu NÃO consegui verificar sozinho:** apertar ENTER na opção e ver
+> a tela encher. O arnês de automação entrega a tecla com `code` vazio, então
+> o jogo nunca vê um ENTER de verdade — dá para provar que o caminho é
+> percorrido e que a API está liberada, não que a janela esticou. **Isso é
+> teste humano.**
+
+### Tamanho
+
+O pacote caiu de **17,8 MB para 16,7 MB** com a saída da dublagem.
+
+---
+
+## SESSÃO 27 — 11/08/2026 · Claude · o jogo virou um .exe
+
+O Luiz pediu uma versão que rode na máquina de quem baixar. Feita **fora do
+projeto**, numa oficina separada:
+
+```
+C:\Users\Vargas\Downloads\midnight-call-demo\
+```
+
+⚠ **Nada do projeto foi alterado por causa disso.** A oficina só *lê* daqui.
+O `index.html` com o servidor de dev e o `JOGO_OFFLINE.html` continuam
+exatamente como sempre — o empacotamento é uma casca por fora, não uma
+dependência nova. A regra de ouro do projeto (o jogo tem que rodar com dois
+cliques numa máquina que só tem o HTML) continua de pé.
+
+### 1. O que foi escolhido, e por quê
+
+A máquina não tem **node, rust nem dotnet** — só Python 3.13 (da Microsoft
+Store) e o **WebView2 runtime já instalado** (151.x). Isso descartou Electron
+e Tauri de saída e apontou um caminho só:
+
+| Peça | O que faz |
+|---|---|
+| **PyInstaller** | vira o `.exe`. Funciona com o Python da Store, apesar de a documentação dizer que não — testado antes de prometer qualquer coisa |
+| **pywebview** → WebView2 | a janela nativa. É o motor do Edge, que já vem no Windows 10/11 |
+| **servidor local** | `http.server` em `127.0.0.1`, porta sorteada pelo sistema |
+
+**Por que um servidor, e não abrir o HTML direto:** o jogo é ES modules, e
+navegador nenhum carrega módulo por `file://`. É o mesmo problema que criou o
+`JOGO_OFFLINE.html` lá na sessão 04 — só que num `.exe` dá para resolver
+melhor, subindo um servidor de verdade dentro da própria máquina. Nada é
+exposto para fora: `127.0.0.1` só a própria máquina enxerga.
+
+**A janela não é um navegador:** sem barra de endereço, sem abas, com o ícone
+e o nome do jogo. E se a máquina do jogador não tiver WebView2, o jogo **não
+quebra** — avisa e abre no navegador padrão, pelo mesmo servidor local.
+
+### 2. A música de 110 MB não entrou, e isso foi decisão
+
+O `musica-casa.mp3` ficou **fora do pacote**, por duas razões que já estavam
+escritas na ressalva R-34:
+
+1. **Tamanho** — 110 MB contra 18 MB do pacote inteiro. Ela sozinha faria o
+   download ficar seis vezes maior.
+2. **Direitos** — a faixa veio do YouTube. Ouvir na própria máquina enquanto
+   testa é uma coisa; **mandar para outras pessoas é outra**, e essa é a que
+   estava sendo pedida.
+
+O jogo lida com a ausência sozinho, como sempre lidou: entra o piano
+sintetizado. Está documentado no `LEIA-ME.txt` da oficina como religar isso
+(cortar 1–3 min em loop a 128 kbps e tirar o nome da `LISTA_NEGRA`).
+
+Também ficaram de fora `ferramentas/`, os testes, este documento, o
+`ROTEIRO.txt` e o `.git`. **O jogador recebe o jogo, não a oficina.**
+
+### 3. O que foi entregue
+
+| Pacote | Tamanho | Para quê |
+|---|---|---|
+| `dist\onefile\Chamado da Meia-Noite.exe` | 17,8 MB | mandar por link. Um arquivo, dois cliques |
+| `dist\Chamado da Meia-Noite (pasta).zip` | 17,7 MB | a versão em pasta, zipada |
+| `dist\onedir\Chamado da Meia-Noite\` | 36,6 MB | abre instantâneo, e dá para trocar um arquivo em `_internal\jogo\` sem reconstruir |
+
+Mais o `icone.ico` — um relógio com os dois ponteiros de pé, em brasa sobre
+preto. Gerado por `fazer_icone.py`, **em Python puro**: não há Pillow nesta
+máquina e não valia exigir uma dependência para desenhar um quadrado. Um
+`.ico` aceita PNG inteiro dentro, e PNG dá para escrever na mão com `zlib`.
+
+### 4. 🔍 Como isso foi verificado — e não foi "compilou, então funciona"
+
+Compilar não prova nada: o risco todo estava em o `pywebview` carregar o
+backend do Windows **por nome, em tempo de execução**, coisa que o
+PyInstaller não enxerga sozinho (daí os três `--hidden-import`). Um pacote
+com essa dependência faltando compila liso e depois abre no navegador achando
+que a máquina não tem WebView2.
+
+Então existe um `verificar.py`, que **também é empacotado** e faz a pergunta
+para o próprio jogo, de dentro da janela:
+
+```
+temJogo: True     estado: waitkey     fases: 33
+crash: False      canvas: 480x270     audio ctx: true
+```
+
+Rodado nos dois lugares — como script e **como `.exe` empacotado**, que é o
+que importa. Nos dois: `O JOGO RODA NA JANELA`. E o `.exe` final foi aberto
+de verdade: dois processos (o carregador e o jogo, 97 MB), janela com título
+**"The Midnight Call"**, 12 processos do WebView2 e o servidor em
+`127.0.0.1:59787`.
+
+### 5. Duas coisas que vão acontecer na distribuição
+
+Estão no `LEIA-ME.txt` da oficina, mas ficam registradas aqui porque não são
+bug e vão gerar pergunta:
+
+- **O SmartScreen vai avisar** na primeira abertura, em qualquer máquina.
+  Acontece com todo programa sem assinatura digital. Some só com certificado
+  de assinatura de código (US$ 200–400/ano) — vale quando o jogo for vendido,
+  não numa demo entre amigos.
+- **Algum antivírus pode reclamar.** Executável de PyInstaller `onefile` é
+  falso positivo clássico, porque se descompacta ao abrir. A versão em
+  **pasta** costuma passar limpa, porque não se descompacta. É por isso que
+  os dois formatos existem.
+
+---
+
+## SESSÃO 26 — 11/08/2026 · Claude · três coisas que ficam onde não deviam
+
+Três reclamações do Luiz jogando. Todas procedentes, e **duas delas são o
+mesmo defeito** com roupas diferentes.
+
+### 1. 🐛 B-72 — a doze continuava no armário depois de pega
+
+> *"faça a doze sumir da parede quando pegar"*
+
+A calibre doze estava **pintada na camada do cenário** (`rect(g, …)` dentro
+do `buildDeskRoom`). Tudo no jogo é pintado uma vez e depois só deslocado —
+é o que faz ele rodar a 60fps sem sprite sheet. Só que **pixel pintado na
+camada não some**: ela ia para o casaco e continuava encostada lá dentro do
+móvel. Dois doze, um deles fantasma.
+
+O projeto já tem a solução pronta e escrita desde o Capítulo 2 —
+`itensSoltos()`, a lista de coisas desenhadas por quadro e filtradas por
+`pego`. A doze e a caixa de cartuchos saíram da camada e entraram nela; o
+**armário** continua pintado, porque armário não se leva embora. E o `pego`
+já entra no save, então ela continua fora do armário depois de carregar, e
+volta num jogo novo.
+
+### 2. 🐛 B-73 — o David reaparecia do nada no fim do flashback
+
+> *"apos entrar na casa no flashback o david sai do nada e fica andando ate o
+> flashback acabar, faça ele nao voltar para fora, acabe o flashback assim
+> que ele entrar"*
+
+Duas linhas, no fim da cena do incêndio:
+
+```js
+this.ativo = false;
+game.player.det.alpha = 1;   // <- devolve o David
+```
+
+O `alpha` voltava a 1 **no mesmo quadro** em que a cena era desligada. E como
+o fogo só é desenhado enquanto a cena está ativa, o resultado era o pior
+possível: a casa voltava a ser uma **casa normal, intacta**, e o David
+reacendia em pé na soleira com a animação de andar ainda em laço — andando
+no lugar, por 3,4 segundos, até o fade acabar.
+
+O erro de fundo é de ordem: **a tela só começava a apagar depois de a cena
+terminar**, e aí já era tarde. Agora a cena avisa no instante em que ele
+atravessa a soleira (`onEntrou`), com a casa **ainda queimando**, e é esse
+aviso que escurece a tela — 1,3s de fade sobre o vão em chamas. O fim da
+cena virou rede de segurança e não acende mais ninguém; quem devolve o
+`alpha` é o `enterLevel` do setor seguinte.
+
+O flashback acabou de encurtar de ~3,4s de rabo para 1,3s. Ele não é uma
+cena da qual se sai — é uma porta que se atravessa.
+
+> Como agora existem **dois** caminhos para `voltarDoFlashback()` (o corte e
+> a rede), ele ficou idempotente: quem chega primeiro fecha a porta. Sem
+> isso, entrar na cela duas vezes empilharia as falas de entrada.
+
+### 3. 🐛 B-74 — ele respondia a última pergunta do capítulo andando
+
+> *"na saida da receção, na pergunta do cartaz, o david fica andando para
+> fora enquanto fala, faça ele ficar parado"*
+
+**É o mesmo defeito do B-73.** `frozen` zera a velocidade e desliga a máquina
+de estados do jogador — mas **não para a animação**:
+
+```js
+if (this.frozen) { this.vx = 0; this._updateBarks(dt); d.update(dt); return; }
+```
+
+O quadro que estava rodando continua rodando, em laço. Ele chega na recepção
+**andando para a saída**, o plantonista chama, o jogo congela — e ele fica
+andando para fora, no lugar, durante a pergunta que fecha o capítulo.
+
+Agora `fimDoCapitulo3()` diz em que pose ele para (`idle`) e **para onde ele
+olha**: para a guarita, não para a rua. Sair de costas enquanto respondem a
+última pergunta era a leitura errada da cena — ele para na porta e olha para
+trás.
+
+> **A regra que sai daqui:** quem congela um personagem no meio de uma cena
+> precisa dizer em que pose ele para. `frozen` sozinho não é uma pose, é uma
+> pausa na física. As outras cenas do capítulo já faziam isso por acidente
+> (o interrogatório toca `intAsk`, a ligação toca `interact`) — estas duas
+> não faziam, e eram justamente as duas que congelam alguém **em movimento**.
+
+### 4. O que o teste passou a cobrir
+
+De **1106** para **1117** asserções:
+
+- a doze está na lista de itens desenhados **por quadro** (se voltar para a
+  camada, o teste cai), o armário fica marcado como vazio, e ela volta ao
+  lugar num jogo novo;
+- o corte do flashback avisa na soleira, **com a casa ainda queimando**, com
+  o David já invisível — e ele **não reaparece** em nenhum quadro até a cena
+  acabar, nem no fim dela;
+- na pergunta do cartaz ele está em `idle`, com `vx` zero, virado para a
+  guarita — e o teste chega lá **andando de verdade**, que é a única forma
+  de o bug existir.
+
+### Verificação
+
+- `teste_capitulo3.html` contra `index.html`: **1116/1117**. A única falha é
+  o `as pernas dele ficam ESCONDIDAS pelo balcao` — o **B-71**, que já estava
+  registrado como intermitente na sessão passada e acabou de piscar de novo.
+- O mesmo contra o `JOGO_OFFLINE.html` regerado: **1117/1117, TUDO VERDE** —
+  incluindo o B-71, que na mesma rodada não piscou. É exatamente o
+  comportamento que o registro dele descreve, e mais uma razão para arrumar:
+  uma asserção que depende de sorte não diz nada quando fica verde.
+- As três cenas foram **olhadas** em captura: o armário com a doze e vazio
+  depois de pega, o vão em chamas escurecendo sem o David dentro, e ele
+  parado de frente para a guarita com a pergunta do cartaz na tela.
+
+---
+
+## SESSÃO 25 — 11/08/2026 · Claude · o chute que agora acha a porta
+
+Duas coisas apontadas pelo Luiz jogando. As duas procedentes — e a primeira
+é a **mesma** que a sessão 24 deu por resolvida.
+
+### 1. 🐛 B-69 — o chute na porta, de novo (e agora pelo lado certo)
+
+> *"o david no flashback não chuta a porta, ele chuta o ar e fica lá"*
+
+A sessão 24 corrigiu **um** dos dois jeitos de errar esse chute e declarou
+vitória. O que ela consertou foi o relógio: antes a cena trocava de fase por
+tempo, e se a corrida não tivesse acabado o pé saía no meio do quintal.
+
+O que ela **não** viu é que a corrida só sabia andar para a **esquerda**:
+
+```js
+if (p.x > parada + 2) { p.x -= 132 * dt; ... }   // e mais nada
+const perto = Math.abs(p.x - (alvo + 20)) < 8;   // parada fixa à direita
+```
+
+A porta fica em `x=665`. Quem sai de casa pela porta da frente cai em
+**`x=660`** — cinco pixels à **esquerda** dela (`levels-ch3.js:1081`,
+`tox: 660`). E é exatamente aí que o telefone toca e que o jogador atende,
+porque desde a sessão 21 o telefone é dele e se atende de qualquer lugar.
+
+Resultado: `p.x > 687` era falso, ele não andava; `|660 − 685| < 8` era
+falso, ele não chutava. Ele ficava plantado na calçada enquanto a cena
+passava por cima dele — caía sozinho no meio da rua, levantava e sumia
+andando, com a porta inteira.
+
+**Por que o teste não pegou:** a asserção *"ele chuta A PORTA, não o ar"*
+existia desde a sessão 24 e passava. Ela começava a cena em `x=780`, do lado
+certo. Testava o único caso que já funcionava.
+
+**Como ficou.** A cena agora **olha onde ele está** antes de mover um dedo:
+
+| | |
+|---|---|
+| `lado` | de que lado da porta ele está, decidido no 1º quadro |
+| `parada` | a marca no chão, `alvo + lado * 20` — do lado dele |
+| `dir` | para onde ele olha, chuta, cai e entra |
+
+Ele anda até a marca **venha de onde vier** (corrida, virando caminhada nos
+últimos 34px, que de quebra dá desaceleração), **vira de frente** para a
+porta e só então o pé sai. Queda e entrada andam no sentido de `dir`, não
+mais para a esquerda fixa.
+
+E a fase do chute deixou de ter duração: ela tem **condição**. Enquanto ele
+não chutou, o relógio não avança — senão uma caminhada mais longa termina
+em `queda` com a porta ainda inteira. Como condição que nunca chega prende o
+jogador no passado (é o buraco do B-56, entrando por outra porta), há uma
+rede: 5 segundos tentando e os pés vão para a marca de uma vez.
+
+### 2. Duas coisas que só apareceram olhando a tela
+
+Achadas depois, com a cena rodando quadro a quadro e capturas do
+`/snap`. **Nenhuma das duas o teste pegaria** — as duas são de enquadramento.
+
+**Ele atravessava a casa.** A fase `entra` empurrava 46px/s por 1,35s = 62px
+sem limite nenhum. Ele entrava pelo vão e **saía pelo outro lado**,
+meio transparente, na calçada. Agora ele para **no vão** — a porta é o fim
+do caminho, é para isso que ele chutou.
+
+**A queda acontecia atrás da legenda.** A porta cedia, ele caía no chão — e
+o corpo deitado ficava inteiro atrás da caixa de fala e da faixa preta de
+baixo. O jogador ouvia a porta ceder e via um vão vazio. A câmera agora
+**sobe 30px durante o incêndio**, pelo mesmo motivo que ela já subia nas
+conversas. De brinde, cabe o telhado pegando fogo — que é a única coisa na
+tela que diz que a casa acabou.
+
+### 3. 🐛 B-70 — a música só existia dentro de casa
+
+> *"arrume também a música que adicionei, ela deve tocar desde o começo do
+> flashback, não só na casa"*
+
+Estava escrito setor a setor: `ch3_home` e `ch3_room` ligavam a música, e
+`ch3_past` — **a rua, que é onde o flashback começa** — mandava calar. O
+jogador entrava no passado em silêncio, ouvia a música nascer ao abrir a
+porta de casa e morrer ao sair.
+
+A música é do **passado inteiro**, não da sala de estar. Os três setores
+agora ligam ela, e trocar de sala não reinicia nada (`tocarMusicaArquivo`
+devolve `true` se já estiver tocando; `startMusic` ignora pedido do mesmo
+tema). De passagem saiu um `stopMusic()` incondicional que fazia o piano
+sintetizado **recomeçar do zero a cada porta** quando não há mp3.
+
+E ela continua morrendo onde sempre morreu: **no instante em que ele
+atende**. A flag `atendeu` é lida na entrada do setor, para uma sala
+revisitada depois da ligação não ressuscitar o tema.
+
+### 4. O que o teste passou a cobrir
+
+O `teste_capitulo3.html` foi de **1068** para **1106** asserções:
+
+- o chute roda agora de **quatro pontos de partida** — `660` (saindo de
+  casa, o caso que quebrou), `780`, `1050` e `200` — e cada um confere sete
+  coisas, inclusive **para que lado ele está virado** ao chutar e se ele
+  reaparece visível fora do vão depois de a porta ceder;
+- a música é conferida nos dois caminhos, **com e sem mp3**: nasce na rua,
+  atravessa casa e quarto sem cortar, não volta depois da ligação, e o
+  presente troca pelo tema da delegacia.
+
+Para conferir a trilha sem pôr 110 MB para tocar no meio da bateria, o teste
+troca as chamadas de áudio por um registro — e para isso o `window.__dev`
+ganhou `audio`. **Isso era necessário:** módulo é singleton **por janela**, e
+o teste roda o jogo dentro de um `<iframe>`; importar `audio.js` da página de
+teste devolvia outra instância, a que ninguém estava usando. Foi assim que a
+primeira versão desses testes falhou dez vezes com o registro vazio.
+
+### 5. 🔍 M-16 e M-17 — os erros de método desta sessão (meus, e da 24)
+
+**Um teste que só cobre o caso que funciona é pior que nenhum teste**, porque
+ele dá autorização para escrever "corrigido" no documento. A sessão 24
+escreveu *"O chute na porta agora acerta a porta"* com uma asserção verde que
+começava do lado certo da porta. O Luiz encontrou o mesmo bug jogando, uma
+sessão depois.
+
+A regra que sai daqui (**M-16**): **quando o bug for de posição, o teste
+começa de todas as posições** — principalmente da que o jogo produz sozinho.
+`x=660` não é um caso de canto; é onde o jogador *sempre* está, porque é onde
+a porta de casa cospe ele.
+
+E a outra (**M-17**): o chute tinha **dois** defeitos independentes, o
+relógio e a direção. A sessão 24 fechou o primeiro, viu a cena funcionar do
+ponto que testou e deu o caso por encerrado. **Achar uma causa não é achar a
+causa** — fechar um dos caminhos só torna o outro mais difícil de encontrar
+depois, porque agora o sintoma aparece com menos frequência.
+
+### Verificação
+
+- `ferramentas/teste_capitulo3.html` contra `index.html`: **1106/1106,
+  TUDO VERDE**.
+- O mesmo contra o `JOGO_OFFLINE.html` regerado: **1106/1106, TUDO VERDE**,
+  em duas rodadas seguidas.
+- ⚠ No meio do caminho, duas rodadas contra o pacote acusaram `as pernas
+  dele ficam ESCONDIDAS pelo balcao`. Cheguei a atribuir isso a uma
+  diferença entre os dois builds — **e estava errado**: a mesma asserção
+  passou nas duas rodadas seguintes, no mesmo pacote, sem mudança de código.
+  É uma medição de imagem que **pisca**. Registrada como B-71 e alheia a
+  esta sessão (nada aqui toca na recepção).
+- A cena foi rodada quadro a quadro e **olhada** em captura nos dois
+  sentidos de aproximação: corrida, chute, porta cedendo, queda no vão,
+  levantar, atravessar e o vão vazio antes do corte.
 
 ---
 
@@ -853,7 +1596,7 @@ efeito.
 | **Idiomas** | 🇧🇷 PT-BR e 🇬🇧 EN, com seletor no menu |
 | **Repositório** | `github.com/luizhenriquevfernandes2008-ops/midnight-call-2026` (público) |
 | **Início** | 03/08/2026 |
-| **Status** | 🟡 Sessão 21 — **Capítulos 1, 2 e 3 jogáveis do início ao fim.** Nada do Capítulo 3 passou por teste humano |
+| **Status** | 🟡 Sessão 30 — **Capítulos 1, 2 e 3 jogáveis do início ao fim.** Capítulo 4 **escrito e não implementado**. O jogo tem **6 capítulos**, travado em 12/08 |
 
 ### Pitch
 
@@ -1304,6 +2047,27 @@ tinha mudado.
 > A chuva **volta a ser ouvida na doca**, abafada. É o primeiro sinal, em uma
 > hora inteira de jogo, de que existe um lado de fora.
 
+### Música por lugar (Capítulo 3)
+
+Dois temas, e os dois entram **por baixo** do ambiente. A regra do jogo
+continua sendo que o silêncio é a arma principal e que a música só existe
+para ser cortada.
+
+| Onde | O que toca | Volume |
+|---|---|---|
+| `ch3_past` · `ch3_home` · `ch3_room` | `assets/audio/musica-casa.mp3` se existir; senão o piano sintetizado (`startMusic('casa')`) | 0.18 |
+| todo o resto do capítulo | `startMusic('delegacia')` — bordão grave e um trítono quase inaudível. Não é tema, é o prédio | — |
+
+> **A música é do passado INTEIRO, não da casa.** Ela nasce no primeiro
+> quadro do flashback — na rua, ao lado do carro dele — e atravessa a casa e
+> o quarto da menina **sem cortar nas portas**: `tocarMusicaArquivo` devolve
+> `true` se já estiver tocando, e `startMusic` ignora pedido do mesmo tema.
+> Até a sessão 25 ela existia só dentro de casa (B-70).
+>
+> **E ela morre no instante em que ele atende o telefone.** Daí em diante o
+> passado não tem trilha nenhuma — nem se o jogador voltar a entrar num
+> setor que a tocava, porque a flag `atendeu` é lida na entrada do setor.
+
 ### Sons novos do Capítulo 2
 
 `clubHit` (madeira em corpo, mais seca e grave que o soco) · `clubBreak` (dois
@@ -1463,8 +2227,9 @@ salva texto diferente**.
 
 | Item | Nota |
 |---|---|
-| Sobrenome do David | Só fará falta quando aparecer um documento, uma ficha ou uma lápide |
-| Capítulos 3 e 4 | O Capítulo 3 precisa do **degrau 4 da escada do cigarro** |
+| Sobrenome do David | ✅ **HENRY**, travado em 07/08 |
+| **Capítulo 4 — "A CASA"** | **Escrito inteiro em 12/08** (`ROTEIRO.txt`, PARTE XI) e **nada implementado**. Precisa: o relógio do cigarro, os dois estados da mesma casa, a figura que anda na troca, as marcas de tiro permanentes, e o desenho da ruína por cima da geometria que já existe em `levels-ch3.js` |
+| Capítulos 5 e 6 | Decididos em 12/08 (a caçada e o presente), **não escritos** |
 | Música original | Só o piano do menu existe |
 | Dublagem | Nenhuma além da narração |
 | Gamepad | Estrutura de input permite, não implementado |
@@ -1481,6 +2246,7 @@ salva texto diferente**.
 |---|---|---|---|---|
 | B-20 | Áudio da narração não corresponde ao roteiro | 🟠 Alto | Sessão 03 | Não é bug de código. Depende de gravação nova |
 | B-21 | QTE nunca completou em loop automatizado de 60 toques, apesar de acumular corretamente em medição direta | 🟡 Médio | Sessão 08 | Recalibrado na 08b e medido soltando em 10 toques. **Provavelmente artefato do ambiente de teste — precisa de teste humano** |
+| B-71 | A asserção `as pernas dele ficam ESCONDIDAS pelo balcao` falha **de vez em quando** | 🟡 Médio | Sessão 25 | **Intermitente, não determinística.** Falhou duas vezes seguidas contra o `JOGO_OFFLINE.html` (600px de diferença onde o esperado é **zero**) e depois passou duas vezes seguidas, no mesmo pacote, sem nenhuma alteração de código. Contra `index.html` sempre passou. Não é regressão desta sessão — nada aqui toca na recepção. É uma medição de imagem que exige zero pixel e depende de estado deixado por testes anteriores (é a família do M-09). **Uma asserção que pisca é pior que uma que falha:** ela ensina a ignorar vermelho. Precisa de tolerância explícita ou de isolamento de estado |
 
 > **B-53 e B-54 foram encontrados e corrigidos na sessão 18** — ver 12.2.
 
@@ -1544,6 +2310,14 @@ salva texto diferente**.
 | B-57 | 🔥 **As pessoas do Capítulo 3 eram invisíveis** | Duas metades do mesmo descuido: o laço que **desenha** NPC estava dentro do `if (cap2)`, e o laço que **insere o gancho de interação** ficava depois de um `return` seco em `entrouCh2()` para setores fora do Capítulo 2. Resultado: conversa escrita, caixa de colisão pendurada à mão, e ninguém na tela | Desenho para fora do `if (cap2)`, inserção extraída para `_porGenteNaFase()` e chamada pelos dois caminhos, e oito personagens desenhados de verdade em `creatures.js`. O teste agora mede **pixel na tela**, não a existência do objeto | 20 |
 | B-64 | 🔥 **O jogador atravessava a cela e a guarita** | As camadas de primeiro plano em paralaxe 1:1 (a grade da custódia, a frente do balcão) são desenhadas **depois de todo mundo** — e o David ia junto. Parado no corredor ele aparecia por trás da grade, ou seja, **dentro da cela**; na recepção, dentro da guarita. Parecia falta de colisão e não era: era ordem de desenho, e colisão teria partido as duas salas ao meio | `playerSobreFore` nos dois setores: o primeiro plano entra **antes** do jogador. Os outros continuam atrás das barras e do vidro; ele passa na frente | 24 |
 | B-65 | **Pegar item não avisava nada no Capítulo 3** | O aviso de item era desenhado dentro de `drawCh2UI()`, que só roda no Capítulo 2. Pegar a calibre doze não dizia absolutamente nada — o jogador ficava sem saber se tinha pegado | Os avisos passaram a ser desenhados nos dois capítulos, mais um `aviso()` próprio para as trocas que o jogador não fez com as próprias mãos (a portaria) | 24 |
+| B-76 | 🔥 **A opção TELA CHEIA não enchia a tela** | `requestFullscreen()` dentro de um WebView **embutido** (o caso do `.exe`) não devolve erro, não rejeita a promessa e não faz nada — a página não manda no tamanho da janela, ela só avisa o hospedeiro, e ninguém estava escutando. **Falha silenciosa:** parecia que o código nem rodava. Achado pelo Luiz jogando o pacote | O jogo passou a procurar um gancho opcional `window.__telaCheia = { ativa(), alternar() }` e usa a API do navegador só quando ele não existe. Quem preenche é o lançador da demo, com `js_api` do pywebview chamando `toggle_fullscreen()`. O jogo continua sem saber que existe um `.exe` | 29 |
+| B-77 | **A ponte pro JavaScript travava a janela antes de ela abrir** | A janela foi guardada num atributo **público** do objeto exposto como `js_api`. O pywebview varre os atributos públicos para montar o espelho em JS, tentou serializar o objeto nativo do Windows e entrou em recursão infinita (`AccessibilityObject.Bounds.Empty` ×300 → `maximum recursion depth exceeded`) | Atributos privados (`self._janela`): só os métodos atravessam a ponte | 29 |
+| B-75 | **A lista de opções passou a bater no rodapé** | A altura da caixa é `linhas * 16 + 16` e a tela tem 270px. Com a linha de tela cheia virando 12 linhas, a caixa passou a terminar em y=243, por cima da descrição de dificuldade desenhada em y=229 — um número escrito na mão | O passo diminui sozinho quando a lista cresce (16px até 11 linhas, 15px acima), e o rodapé é calculado a partir do fim da caixa em vez de ser constante. A próxima opção nova não quebra nada | 28 |
+| B-72 | **A calibre doze continuava no armário depois de pega** | Ela estava pintada na camada do cenário, e pixel pintado na camada não some. A arma ia para o casaco e continuava encostada dentro do móvel: dois doze, um deles fantasma. É a mesma família do porrete/mapa/maço do Capítulo 2, que já tinham solução pronta | A doze e a caixa de cartuchos saíram da camada e entraram em `itensSoltos()` — desenhadas por quadro e filtradas por `pego`, que já entra no save. O armário continua pintado, porque armário não se leva embora | 26 |
+| B-73 | 🔥 **O David reaparecia do nada no fim do flashback** | O fim da cena do incêndio fazia `ativo = false` e `det.alpha = 1` no mesmo quadro. Como o fogo só é desenhado enquanto a cena está ativa, a casa voltava a ser uma **casa intacta** e o David reacendia em pé na soleira com a animação de andar em laço — andando no lugar por 3,4s até o fade acabar. A tela só começava a apagar **depois** de a cena terminar | A cena avisa quando ele atravessa a soleira (`onEntrou`), com a casa ainda queimando, e é esse aviso que escurece a tela (1,3s). O fim virou rede de segurança e não devolve mais o `alpha` — quem devolve é o `enterLevel` seguinte. `voltarDoFlashback()` ficou idempotente porque agora há dois caminhos até ele | 26 |
+| B-74 | **Ele respondia a última pergunta do capítulo andando para fora** | **O mesmo defeito do B-73.** `frozen` zera a velocidade e desliga a máquina de estados, mas continua rodando a animação atual — e a atual era `walk`, em laço, porque ele chega na recepção indo embora. Ele ficava andando para a saída, no lugar, durante a pergunta do cartaz | `fimDoCapitulo3()` passou a dizer em que pose ele para (`idle`) e para onde olha (a guarita, não a rua). **Quem congela um personagem numa cena precisa dizer em que pose ele para** — `frozen` sozinho é pausa na física, não é pose | 26 |
+| B-69 | 🔥 **O chute no incêndio errava a porta — pela SEGUNDA vez** | A sessão 24 corrigiu o relógio e deixou passar a geometria: a corrida só sabia andar **para a esquerda** (`if (p.x > parada + 2) p.x -= …`) e a marca era fixa à direita da porta. Quem sai de casa cai em `x=660`, cinco pixels à **esquerda** da porta em `x=665` — e é aí que o telefone toca. As duas condições davam falso: ele não andava e não chutava, ficava plantado na calçada e a cena passava por cima. **O teste da sessão 24 começava em `x=780`, do lado que já funcionava** | A cena escolhe `lado`/`parada`/`dir` no primeiro quadro, olhando onde ele está: anda até a marca venha de onde vier, vira de frente e só então chuta. A fase do chute deixou de ter duração e passou a ter **condição** (com rede de 5s contra travar). Queda e entrada andam no sentido de `dir`. Teste refeito de **quatro** posições | 25 |
+| B-70 | **A música do flashback só tocava dentro de casa** | Estava escrita setor a setor: `ch3_home` e `ch3_room` ligavam, e `ch3_past` — **a rua, que é onde o flashback começa** — mandava calar. O passado abria em silêncio e a música nascia só ao abrir a porta de casa | Os três setores do passado ligam a música; trocar de sala não reinicia (`tocarMusicaArquivo` devolve `true` se já toca). Saiu junto um `stopMusic()` incondicional que reiniciava o piano sintetizado a cada porta. Ela continua morrendo quando ele atende | 25 |
 | B-66 | **O balão de interação aparecia no meio das cenas** | Com a casa pegando fogo e o jogador sem controle nenhum, a porta continuava oferecendo "ABRIR" na tela | O prompt só aparece quando o jogador realmente controla alguém: fora durante fogo, interrogatório e a pergunta do nome | 24 |
 | B-62 | 🔥 **O Capítulo 3 não terminava** | `ch3_pronto` exigia o fim de uma conversa com o Carlos que deixou de existir na sessão 22, quando falar com ele passou a abrir o interrogatório. O jogador fazia tudo — o flashback, a confissão, o cigarro — e ficava rodando a delegacia para sempre. Achado pelo Luiz jogando | O gatilho virou a própria cena: quebrar o Carlos marca `ch3_pronto`, o David diz que precisa sair, e a portaria pede o nome. O teste agora confere a flag no fim do interrogatório | 23 |
 | B-63 | 🔥 **A luz da cela nova não chegava no chão** | Lâmpada de raio 168 pendurada em y=30, chão em y=214: a luz morria 40px antes dos dois homens e a sala ficava preta com duas manchas dentro. **É o B-23 pela quinta vez**, e desta vez numa sala de 300px — o erro não é de sensibilidade, é de nunca conferir o alcance contra a altura do chão | Raio para 250, poça própria na altura do peito e contraluz frio na grade. O teste passou a exigir que exista lâmpada forte cujo raio **alcance o chão** | 23 |
@@ -1562,6 +2336,10 @@ salva texto diferente**.
 | M-03 | **Deixei o servidor de captura na porta 8137**, a mesma do `ABRIR_JOGO.bat`, e derrubei o jogo do jogador no meio de uma sessão. Usar 8140 |
 | M-04 | **Repeti o B-23 inteiro** (sessão 09): construí o corredor de carga com luz calibrada para uma sala, num espaço 3× maior. A lição já estava escrita neste documento e eu não a apliquei. **A regra agora é numérica, não é sensibilidade:** lâmpada forte a cada ~400px e preenchimento fraco a cada ~200px na altura do chão, em qualquer fase maior que 800px |
 | M-05 | **Escrevi números de sanidade sem medir** (sessão 09). Trinta segundos de jogo levavam o medidor de 100 a 16. Números de ritmo têm que ser medidos rodando, e não escolhidos porque "parecem certos" — é o mesmo erro do M-02 com outra roupa |
+| M-18 | **Congelei personagens sem dizer em que pose eles param** (sessão 26). `frozen` zera a velocidade e desliga a máquina de estados, mas continua rodando a animação do quadro atual, em laço. Escrevi duas cenas que congelam alguém **em movimento** — o fim do flashback e a pergunta do cartaz — e nas duas ele ficou andando no lugar. As cenas que já funcionavam funcionavam por acidente: elas tocavam uma animação por outro motivo. **Congelar é pausa na física, não é pose.** Quem para um personagem numa cena escolhe a pose e a direção do olhar, sempre |
+| M-19 | **Verifiquei que a API EXISTE, não o que ela FEZ** (sessão 28, cobrado na 29). Minha checagem da tela cheia perguntava `fullscreenEnabled`, se `requestFullscreen` era função e se a opção estava no menu. As três deram verdadeiro, escrevi no documento que estava "provado que a API está liberada", mandei o pacote — **e a tela cheia não funcionava**. *"A API existe" nunca foi "a janela estica."* Perguntei ao sistema se ele **tinha** a função em vez de medir o efeito dela. É a mesma família do M-07 (testei que o NPC existe, nunca que ele aparece) — eu tinha esse erro escrito neste documento, de mim mesmo, e repeti. **Verificação mede efeito: a área útil antes e depois** |
+| M-16 | **Escrevi um teste que só cobria o caso que já funcionava** (sessão 24, cobrado na 25). A asserção *"ele chuta A PORTA, não o ar"* começava a cena em `x=780`, do lado certo da porta — e ficou verde enquanto o bug real, o jogador saindo de casa em `x=660`, continuava lá. O verde deu autorização para escrever "corrigido" no documento, e o Luiz encontrou o mesmo bug jogando uma sessão depois. **Teste que só cobre o caso que funciona é pior que nenhum teste.** Quando o bug for de posição, o teste começa de **todas** as posições — principalmente da que o jogo produz sozinho (`x=660` não é caso de canto: é onde a porta de casa cospe o jogador) |
+| M-17 | **Corrigi um dos dois jeitos de errar e declarei vitória** (sessão 24, cobrado na 25). O chute tinha dois defeitos independentes: o relógio e a direção. Consertei o primeiro, vi a cena funcionar do ponto que testei e escrevi *"O chute na porta agora acerta a porta"* no documento. **Achar uma causa não é achar a causa** — quando o sintoma tem mais de um caminho para acontecer, fechar um deles só torna o outro mais difícil de encontrar da próxima vez |
 | M-15 | **Li "colisão" onde o defeito era ordem de desenho** (sessão 24). O Luiz disse que o David atravessava a cela e a recepção "como se estivessem abaixo dele na hierarquia de colisão", e a descrição estava certa mas o diagnóstico era outro: o jogo não tem colisão por objeto, e o que fazia ele parecer dentro da cela era a camada de primeiro plano vindo por cima dele. **Se eu tivesse implementado colisão, teria partido as duas salas ao meio e o bug continuaria lá.** Reproduzir antes de consertar — a captura de tela respondeu em trinta segundos o que o código não respondia |
 | M-13 | **Reaproveitei uma animação de "levar pancada" num personagem sentado** (sessão 23). `hurt` mexe as pernas, porque é o recuo de quem está em pé. Num homem sentado o resultado é que ele parece ter levantado da cadeira para apanhar — cômico exatamente onde não pode ser. **Animação não é intercambiável entre posturas:** quem está sentado precisa de uma versão em que as pernas não se mexem |
 | M-14 | **Escrevi um teste que media a reação DEPOIS de ela acabar** (sessão 23). A checagem do soco olhava a animação do Carlos no fim da troca de falas, quando ele já tinha voltado a sentar, e reprovava algo que estava certo. **Medição de animação tem que acontecer no instante do evento**, não no fim do turno de jogo |
@@ -1636,7 +2414,114 @@ salva texto diferente**.
 
 ## 14. ROADMAP — O QUE VEM AGORA
 
-### 📌 PRÓXIMO PASSO (sessão 24): **jogar o Capítulo 3 do começo ao fim**
+### 📌 PRÓXIMO PASSO (sessão 30): **decidir por onde o Capítulo 4 começa a existir**
+
+> O capítulo está escrito inteiro (`ROTEIRO.txt`, PARTE XI) e **não tem uma
+> linha de código**. Duas ordens possíveis, e a escolha é sua:
+>
+> **A — o sistema primeiro.** Fazer só a troca dos dois estados num setor
+> só (a sala), com o cigarro de 40s, e **jogar isso antes de escrever mais
+> cenário**. É o caminho que eu recomendo: 40 segundos pode ser curto ou
+> longo demais, e isso não se decide no papel. Se a troca não for boa de
+> sentir, o capítulo inteiro muda — melhor descobrir com um setor pronto
+> do que com sete.
+>
+> **B — o cenário primeiro.** Desenhar a ruína por cima da geometria que já
+> existe em `levels-ch3.js` e só depois ligar a mecânica. Entrega tela
+> bonita mais cedo e descobre o problema de ritmo mais tarde.
+>
+> ⚠ E continua de pé o que **só você** pode fazer: **o Capítulo 3 nunca foi
+> jogado inteiro por mão humana** depois das sessões 24 a 26. Escrever o 4
+> não substitui isso.
+
+### 📌 PASSO ANTERIOR (sessão 29): **abrir o exe novo e apertar F11**
+
+> `dist\onefile\Chamado da Meia-Noite.exe` — **reconstruído**, o anterior
+> tinha a opção quebrada.
+>
+> Eu medi a janela indo de 1264x681 para 1920x1080 e voltando, chamando a
+> mesma função do menu. O que falta é o dedo:
+>
+> 1. **F11 enche a tela?** E de novo devolve para a janela?
+> 2. **ENTER na opção faz o mesmo?** Se o F11 funcionar e o ENTER não, o
+>    problema é a tecla chegar no menu, não a tela cheia.
+> 3. **O Esc agora só fecha as opções**, sem desfazer a tela cheia. Confere.
+> 4. Em tela cheia, o canvas escala inteiro ou fica com borda estranha? A
+>    opção ESCALA INTEIRA é a que mexe nisso.
+> 5. A abertura sem dublagem: 77s de carro com as 18 legendas e nenhuma voz.
+>    Se ficar longo em silêncio, dá para encurtar os tempos em `js/i18n.js`.
+
+### 📌 PASSO ANTERIOR (sessão 28): **apertar ENTER na TELA CHEIA**
+
+> É a única coisa desta sessão que eu **não consigo verificar sozinho** — o
+> arnês de automação entrega a tecla sem código, então o jogo nunca vê um
+> ENTER de verdade. Eu provei que o caminho é percorrido e que a API está
+> liberada dentro da janela do `.exe`; não provei que a janela estica.
+>
+> `dist\onefile\Chamado da Meia-Noite.exe` → OPCOES → TELA CHEIA → ENTER.
+> Depois F11, que faz a mesma coisa.
+>
+> 1. Enche a tela? E o Esc devolve para a janela?
+> 2. A opção mostra LIGADO/DESLIGADO **de acordo** com o que está na tela,
+>    inclusive depois de sair pelo Esc?
+> 3. Em tela cheia, o canvas escala inteiro ou fica com borda estranha? Se
+>    ficar, a opção ESCALA INTEIRA é a que mexe nisso.
+> 4. **A abertura sem dublagem funciona?** São 77s de carro com as 18
+>    legendas e nenhuma voz. Se ficar longo demais em silêncio, dá para
+>    encurtar os tempos em `js/i18n.js`.
+
+### 📌 PASSO ANTERIOR (sessão 27): **abrir o .exe e jogar por ele**
+
+> `C:\Users\Vargas\Downloads\midnight-call-demo\dist\onefile\Chamado da
+> Meia-Noite.exe` — duplo clique.
+>
+> Eu verifiquei que ele **abre, carrega e chega na tela inicial**. O que eu
+> não consigo verificar é como ele se comporta com as mãos de alguém:
+>
+> 1. **O tamanho da janela (1280x720) está bom?** O canvas escala sozinho, então
+>    qualquer tamanho funciona — mas 720p é um chute meu.
+> 2. **Falta tela cheia?** Hoje não tem. Dá para pôr F11, e vale saber se você
+>    quer que a demo abra já em tela cheia.
+> 3. **O som sai no volume certo pela janela nativa?** É outro caminho de áudio,
+>    não é o Chrome que você usa para testar.
+> 4. **A ausência da música da casa incomoda?** Sem o mp3 o flashback roda com o
+>    piano sintetizado. Se ficar pobre, o caminho é cortar 1–3 min em loop.
+> 5. Mande para **uma pessoa** antes de mandar para várias — é a única forma de
+>    saber o que o SmartScreen e o antivírus dela vão dizer.
+
+### 📌 PASSO ANTERIOR (sessão 26): **jogar o Capítulo 3 inteiro outra vez**
+
+> As três correções desta sessão são de coisas que só aparecem **jogando** —
+> nenhuma delas quebrava nada, todas quebravam a ilusão.
+>
+> 1. **A doze some do armário** quando você pega. Confere se o armário vazio
+>    fica estranho — se ficar, dá para deixar a caixa de cartuchos lá.
+> 2. **O flashback corta assim que ele entra na casa em chamas**, com 1,3s de
+>    fade sobre o vão. Se ficar apressado demais, o número a mexer é esse
+>    1,3 (e o `fim` das fases, que tem que ser maior que ele).
+> 3. **Na pergunta do cartaz ele para e olha para a guarita.** Confere se
+>    virar de frente é o que a cena pede, ou se ele devia responder de
+>    costas, já com a mão na porta — é escolha de direção, não de código.
+
+### 📌 PASSO ANTERIOR (sessão 25): **jogar o flashback inteiro, e olhar o chute**
+
+> `MENU → CAPÍTULOS → 3` → subsolo → gaveta D. Fala com a Julie e com a
+> Jenna, sai de casa, atende o telefone **de onde estiver**.
+>
+> O que eu preciso saber:
+>
+> 1. **O chute acerta a porta agora?** Ele foi testado dos quatro cantos da
+>    rua, mas quem decide se a corrida tem o peso certo é quem está olhando.
+>    Se ele parecer atrapalhado indo até a marca, o lugar de mexer é a
+>    velocidade (132 px/s) e os 34px em que a corrida vira caminhada.
+> 2. **A queda dá para ver?** A câmera sobe 30px durante o incêndio por
+>    causa disso. Se ainda ficar escondida atrás da legenda, sobe mais.
+> 3. **A música entra na hora certa?** Ela nasce no primeiro quadro do
+>    passado, na rua, e não é mais cortada nas portas. Volume 0.18 — se ela
+>    disputar leitura com as conversas da casa, baixa.
+> 4. E o silêncio depois que ele atende: dá para sentir?
+
+### 📌 PASSO ANTERIOR (sessão 24): **jogar o Capítulo 3 do começo ao fim**
 
 > Ele termina agora. `MENU → CAPÍTULOS → 3` e vai até o plantonista pedir o
 > nome.
@@ -1808,7 +2693,7 @@ propriedade.
 | ~~D-02~~ | ~~Ele recupera a arma no Capítulo 2?~~ | ✅ **Sim, na Sala de Máquinas** — e paga por ela |
 | D-03 | A figura negra é uma pessoa ou já é um pesadelo? | Define se o horror começa aqui ou depois. O Capítulo 2 escolheu não responder |
 | D-04 | Quem escreveu a nota? | "Essa letra... eu conheço essa letra". O caderno já plantou a resposta: a letra é dele mesmo, de sete anos atrás |
-| D-05 | O jogo terá múltiplos finais? | Muda a estrutura de flags de save |
+| D-05 | O jogo terá múltiplos finais? | Muda a estrutura de flags de save. **Em 12/08 apareceu a primeira bifurcação de verdade**: o fim do Capítulo 4 tem duas versões, decididas pela conta do maço. Não são finais, mas usam a mesma estrutura |
 | D-06 | Vai existir música original ou só ambiente sintetizado? | Se sim, precisa de arquivos |
 | D-07 | Manter 5 horas ou cortar para 3 horas excelentes? | Recomendação minha: prefira 3 horas boas a 5 irregulares |
 | ~~D-08~~ | ~~O Credor volta no Capítulo 3?~~ | ✅ **Volta, e não persegue.** Fica sentado na sala de espera da delegacia com uma senha de atendimento na mão, motosserra desligada no colo. O número do painel sobe a cada setor. Na saída chamam a senha dele e a cadeira está vazia |
@@ -1818,7 +2703,10 @@ propriedade.
 | ~~D-10~~ | ~~A aproximação de câmera em conversa amplia o pixel do cenário~~ | ✅ **1,35x**, e só no interrogatório. Decidido olhando a tela: 1,6x denuncia, 1,35x não. `gfx.aproximar()`, chamada entre a luz e a interface |
 | D-14 | **O Andrade aparece na tela em algum momento?** | Ele é a figura negra sentada na sala de espera, se você quiser que seja. Minha recomendação: **nunca mostrar o rosto**, nem no Capítulo 4. Um homem que o David matou e não lembra funciona melhor sem cara |
 | D-12 | **O incêndio foi acidente ou foi posto?** | O laudo diz origem indeterminada, o Michael diz que não foi ele, e o Carlos não nega nem confirma. **A minha recomendação é nunca responder:** enquanto não há resposta, o cigarro na mão dele é a acusação que ele faz a si mesmo — e é isso que o Capítulo 4 tem para cobrar. Se virar "foi um curto", o personagem perde o motivo |
-| D-13 | **Ele acha mesmo que ela está viva, ou é só o processo aberto?** | A dedução `fogo` faz ele escrever "não é esperança, é papel". Isso é a defesa dele, não a verdade — e o Capítulo 4 pode escolher desmontar |
+| D-13 | ~~**Ele acha mesmo que ela está viva, ou é só o processo aberto?**~~ | ✅ **Respondido pelo Capítulo 5**, travado em 12/08: ele acha, o jogo deixa ele achar, e o jogo desmonta na cena do corpo. O Capítulo 4 existe para construir essa esperança durante 45 minutos |
+| D-15 | **40 segundos de cigarro é o tempo certo?** | Decisão de tela, não de papel — igual à D-10. Curto demais vira corrida contra o relógio, longo demais tira a tensão. **Só se resolve jogando um setor** |
+| D-16 | **Dá para o jogador ficar preso por falta de cigarro?** | Hoje não: os quatro obrigatórios são exatamente quatro, e os três opcionais só abrem conteúdo. Mas se a produção mover um obrigatório, isso vira risco de softlock e precisa de rede |
+| D-17 | **As marcas de tiro na casa intacta ficam entre capítulos?** | Recomendação minha: **não**. Zerar no fim do 4. Carregar isso para o 5 e o 6 é estrutura de flag que o jogo ainda não tem |
 
 ---
 
