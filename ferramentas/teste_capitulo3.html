@@ -551,30 +551,94 @@ document.getElementById('rodar').onclick = async () => {
       // queimando em loop. Esta checagem existe por causa disso.
       ok('o fogo TERMINA sozinho', acabou === true, g.fogo.fase);
 
-      // ⚠ O CHUTE TEM QUE ACERTAR A PORTA. A primeira versao trocava de
-      // fase por relogio: se a corrida nao tivesse acabado, ele chutava o
-      // ar no meio do quintal e atravessava uma porta fechada.
-      {
-        g.fogo.reset();
-        d.ir('ch3_past', 780, -1);
+      // ⚠ O CHUTE TEM QUE ACERTAR A PORTA, VENHA ELE DE ONDE VIER.
+      //
+      // Isto ja quebrou duas vezes, e as duas por motivo diferente:
+      //
+      //   sessao 23 .. a fase trocava por relogio. Se a corrida nao tivesse
+      //                acabado, o pe saia no meio do quintal.
+      //   sessao 24 .. a corrida so sabia ir PARA A ESQUERDA. Quem saia de
+      //                casa parava em x=660 — CINCO pixels a esquerda da
+      //                porta — e a condicao "ele esta a direita dela" nunca
+      //                era verdadeira: ele ficava plantado na calcada e a
+      //                cena passava por cima. O teste antigo comecava em
+      //                780, do lado certo, e por isso nao pegou nada.
+      //
+      // Por isso agora sao QUATRO pontos de partida, e o que sai da porta
+      // de casa e o primeiro: e o unico que o jogo produz sozinho.
+      for (const [nome, inicio] of [['saindo de casa', 660], ['da varanda', 780],
+                                    ['do fim da rua', 1050], ['do carro', 200]]) {
+        g.fogo.parar(); g.fogo.reset();
+        d.ir('ch3_past', inicio, -1);
+        g.player.x = inicio;
         g.player.controllable = false; g.player.frozen = true;
         g.fogo.comecar(g);
         const portaX = g.levels.ch3_past.props.portaX;
-        let chuteX = null, animChute = null;
-        for (let i = 0; i < 900; i++) {
+        let chuteX = null, animChute = null, olhava = null, foraDoVao = 0;
+        for (let i = 0; i < 1800; i++) {
           d.step(1 / 60);
           if (g.fogo.chutou && chuteX === null) {
             chuteX = g.player.x; animChute = g.player.det.anim;
+            olhava = g.player.det.facing;
           }
+          // depois de a porta ceder ele nao pode reaparecer VISIVEL fora do vao
+          if (g.fogo.portaAberta && g.player.det.alpha > 0.1
+              && Math.abs(g.player.x - portaX) > 26) foraDoVao++;
           if (!g.fogo.ativo) break;
         }
-        ok('ele chuta A PORTA, nao o ar',
+        ok(`[${nome}] ele chuta A PORTA, nao o ar`,
           chuteX !== null && Math.abs(chuteX - portaX) < 40,
           chuteX === null ? 'nao chutou' : `x=${Math.round(chuteX)} porta=${Math.round(portaX)}`);
-        ok('e chuta com a animacao de chute', animChute === 'kick', String(animChute));
-        ok('a porta ABRE depois do chute', g.fogo.portaAberta === true);
-        ok('e ele atravessa a soleira',
-          g.player.x < portaX + 6, `x=${Math.round(g.player.x)} porta=${Math.round(portaX)}`);
+        ok(`[${nome}] e chuta com a animacao de chute`, animChute === 'kick', String(animChute));
+        // e chuta VIRADO PARA ELA: quem vem da esquerda chuta para a direita
+        ok(`[${nome}] e chuta virado para a porta`,
+          olhava === (inicio < portaX ? 1 : -1), `facing=${olhava} inicio=${inicio}`);
+        ok(`[${nome}] a porta ABRE depois do chute`, g.fogo.portaAberta === true);
+        ok(`[${nome}] e ele para NO vao, nao atravessa a casa`,
+          Math.abs(g.player.x - portaX) < 8,
+          `x=${Math.round(g.player.x)} porta=${Math.round(portaX)}`);
+        ok(`[${nome}] e nao reaparece do lado de fora`, foraDoVao === 0, `${foraDoVao} quadros`);
+        ok(`[${nome}] a cena TERMINA`, g.fogo.ativo === false, g.fogo.fase);
+        c3.sairFlashback(g);
+      }
+
+      // ⚠ O CORTE ACONTECE QUANDO ELE ATRAVESSA A SOLEIRA.
+      //
+      // 🐛 O fim da cena devolvia `det.alpha = 1` e desligava `ativo` no mesmo
+      // quadro. Como o fogo so e desenhado enquanto `ativo`, a casa voltava a
+      // ser uma casa NORMAL e o David reaparecia do nada, em pe na porta, com
+      // a animacao de andar em laco — e ficava assim ate o flashback acabar.
+      //
+      // Agora existe `onEntrou`, que dispara na hora em que ele passa da
+      // porta, com a casa AINDA queimando: e ele quem escurece a tela. O fim
+      // da cena e so a rede de seguranca, e nao acende mais ninguem.
+      {
+        g.fogo.parar(); g.fogo.reset();
+        d.ir('ch3_past', 660, -1);
+        g.player.x = 660;
+        g.player.controllable = false; g.player.frozen = true;
+        let entrouCom = null, fimCom = null;
+        g.fogo.comecar(g,
+          () => { fimCom = { alpha: g.player.det.alpha, fogo: g.fogo.ativo }; },
+          () => { entrouCom = { alpha: g.player.det.alpha, fogo: g.fogo.ativo, fase: g.fogo.fase }; });
+        let visivelDepois = 0;
+        for (let i = 0; i < 1800; i++) {
+          d.step(1 / 60);
+          if (entrouCom && g.player.det.alpha > 0.05) visivelDepois++;
+          if (!g.fogo.ativo) break;
+        }
+        ok('o corte avisa quando ele atravessa a soleira', !!entrouCom,
+          entrouCom ? '' : 'onEntrou nunca disparou');
+        ok('e avisa com a casa AINDA queimando',
+          !!entrouCom && entrouCom.fogo === true);
+        ok('e ele ja esta invisivel nessa hora',
+          !!entrouCom && entrouCom.alpha < 0.05, entrouCom ? String(entrouCom.alpha) : '-');
+        // o coracao do bug: ele NAO pode reacender depois de entrar
+        ok('e ele nao reaparece ate a cena acabar', visivelDepois === 0,
+          `${visivelDepois} quadros visivel`);
+        ok('e o fim da cena tambem nao acende ele',
+          !!fimCom && fimCom.alpha < 0.05, fimCom ? String(fimCom.alpha) : '-');
+        g.player.det.alpha = 1;
         c3.sairFlashback(g);
       }
 
@@ -601,6 +665,78 @@ document.getElementById('rodar').onclick = async () => {
       // esta secao entrou no passado na mao; sai dele antes de seguir
       c3.sairFlashback(g);
       ok('sair do passado devolve a roupa de hoje', g.player.det.parts === null);
+    }
+
+    // =================================================================
+    sec('A MUSICA DO FLASHBACK');
+    //
+    // A musica e do PASSADO INTEIRO, nao da sala de estar. Ela nascia so
+    // quando ele punha o pe dentro de casa, e a rua — que e onde a cena
+    // comeca — ficava em silencio. E ela continua morrendo no instante em
+    // que ele atende o telefone: o que vem depois nao tem trilha.
+    //
+    // O teste troca as chamadas de audio por um registro. Assim ele nao
+    // depende de existir mp3 na maquina, e nao poe 110 MB para tocar no
+    // meio de uma bateria de testes.
+    // =================================================================
+    {
+      const d = w.__dev;
+      // ⚠ O audio do JOGO, o de dentro do iframe. Importar `audio.js` aqui
+      // devolveria outra instancia — modulo e singleton por janela.
+      const audio = d.audio;
+      const orig = {
+        t: audio.tocarMusicaArquivo, p: audio.pararMusicaArquivo,
+        s: audio.startMusic, x: audio.stopMusic,
+      };
+      const registro = [];
+      const espiar = (temArquivo) => {
+        registro.length = 0;
+        audio.tocarMusicaArquivo = () => { registro.push('casa'); return temArquivo; };
+        audio.pararMusicaArquivo = () => { registro.push('parar'); };
+        audio.startMusic = (m) => { registro.push(m === 'casa' ? 'casa' : 'outra:' + m); };
+        audio.stopMusic = () => {};
+      };
+      const soltar = () => {
+        audio.tocarMusicaArquivo = orig.t; audio.pararMusicaArquivo = orig.p;
+        audio.startMusic = orig.s; audio.stopMusic = orig.x;
+      };
+
+      for (const [nome, temArquivo] of [['com mp3', true], ['sem mp3 (sintetizado)', false]]) {
+        g.startChapter(3); g.state = 'play';
+        espiar(temArquivo);
+
+        g.entrarFlashback();
+        ok(`[${nome}] a musica comeca NA RUA, no primeiro quadro do passado`,
+          registro.includes('casa'), registro.join(','));
+
+        registro.length = 0;
+        g.enterLevel('ch3_home', null, 1, true);
+        ok(`[${nome}] e continua dentro de casa`, registro.includes('casa'), registro.join(','));
+        ok(`[${nome}] e nao e cortada na porta`, !registro.includes('parar'), registro.join(','));
+
+        registro.length = 0;
+        g.enterLevel('ch3_room', null, 1, true);
+        ok(`[${nome}] e continua no quarto da menina`, registro.includes('casa'), registro.join(','));
+
+        registro.length = 0;
+        g.enterLevel('ch3_past', null, 1, true);
+        ok(`[${nome}] e continua quando ele sai de casa`,
+          registro.includes('casa') && !registro.includes('parar'), registro.join(','));
+
+        // ---- ele atende: daqui em diante, silencio ----
+        g.flags.atendeu = true;
+        registro.length = 0;
+        g.enterLevel('ch3_past', null, 1, true);
+        ok(`[${nome}] depois da ligacao ela NAO volta`,
+          !registro.includes('casa'), registro.join(','));
+
+        registro.length = 0;
+        g.enterLevel('ch3_cell', null, 1, true);
+        ok(`[${nome}] e o presente troca pelo tema da delegacia`,
+          registro.includes('outra:delegacia'), registro.join(','));
+        soltar();
+      }
+      c3.sairFlashback(g);
     }
 
     // =================================================================
@@ -915,6 +1051,25 @@ document.getElementById('rodar').onclick = async () => {
       ok('a doze tem desenho proprio no casaco',
         typeof g.inv._drawItemShape === 'function');
 
+      // 🐛 E ELA TEM QUE SUMIR DO ARMARIO. Ela estava pintada na camada do
+      // cenario, e pixel pintado na camada nao some: ela ia para o casaco e
+      // continuava encostada la dentro. Dois doze, um deles fantasma.
+      //
+      // Quem some e quem e desenhado POR QUADRO — a lista `itemDefs`, filtrada
+      // por `pego`. Se a arma nao estiver nessa lista, ela esta pintada de
+      // novo e o bug voltou, por mais que o inventario diga que ele pegou.
+      {
+        const desk = g.levels.ch3_desk;
+        const def = (desk.itemDefs || []).find(x => x.id === 'shotgun');
+        ok('a doze e desenhada por quadro, nao pintada na parede', !!def,
+          (desk.itemDefs || []).map(x => x.id).join(',') || 'nenhum itemDef');
+        ok('e o armario fica marcado como vazio', desk.pego.shotgun === true);
+        // e ela VOLTA para o armario quando o mundo e devolvido ao inicio
+        g._aplicarMundo(null);
+        ok('e ela volta ao armario num jogo novo', !desk.pego.shotgun);
+        desk.pego.shotgun = true;
+      }
+
       // ---- O CANON DA LIGACAO ----
       // Ninguem mais afirma que ele ligou para si proprio. A telefonista
       // responde de ONDE a chamada veio, e quem completa e o jogador.
@@ -936,6 +1091,34 @@ document.getElementById('rodar').onclick = async () => {
     ok('chegar na portaria pronto dispara a pergunta', g.namePrompt.ativo === true);
     ok('a senha do Credor e chamada no fim', g.ticket.chamado === true);
     ok('o jogador perde o controle enquanto responde', g.player.controllable === false);
+
+    // 🐛 E ELE PARA DE ANDAR. `frozen` zera a velocidade e desliga a maquina
+    // de estados, mas NAO para a animacao: o quadro que estava rodando
+    // continua em laco. Ele chega na recepcao andando para a saida, o
+    // plantonista chama, e ele ficava andando para fora, no lugar, durante a
+    // pergunta inteira. Quem congela um personagem tem que dizer em que pose
+    // ele para — e para onde ele olha.
+    {
+      // repete a cena com ele ANDANDO de verdade, que e como ela acontece
+      g.namePrompt.ativo = false; g.flags.ch3_fim = false;
+      w.__dev.ir('ch3_reception', 200, -1);
+      g.player.x = 200; g.player.frozen = false; g.player.controllable = true;
+      g.player.det.play('walk', { restart: true });
+      for (let i = 0; i < 6; i++) w.__dev.step(1 / 60);
+      g.player.x = 60;
+      g.updateCh3(1 / 60, g.levels.ch3_reception);
+      for (let i = 0; i < 20; i++) w.__dev.step(1 / 60);
+      const p = g.player;
+      ok('e ele PARA de andar quando o plantonista chama',
+        p.det.anim === 'idle', String(p.det.anim));
+      ok('e nao continua deslizando para a saida', p.vx === 0, String(p.vx));
+      // e se vira para quem chamou, em vez de responder de costas
+      const guarita = g.npcs.plantonista.cfg.x;
+      ok('e se vira para a guarita, nao para a rua',
+        p.det.facing === (guarita >= p.x ? 1 : -1),
+        `facing=${p.det.facing} david=${Math.round(p.x)} guarita=${guarita}`);
+      g.namePrompt.comecar(() => {});
+    }
     // dizer
     g.namePrompt.t = 1; g.namePrompt.sel = 0;
     g.namePrompt.fase = 'resposta'; g.flags.disse_o_nome = true;

@@ -68,6 +68,13 @@ const STR = {
   opt_shake:      { pt: 'TREMOR DE CAMERA',    en: 'CAMERA SHAKE' },
   opt_pixel:      { pt: 'ESCALA INTEIRA',      en: 'INTEGER SCALING' },
   opt_subs:       { pt: 'LEGENDAS',            en: 'SUBTITLES' },
+  opt_fullscreen: { pt: 'TELA CHEIA',          en: 'FULLSCREEN' },
+  // ⚠ Esta dica ja disse "ESC SAI DA TELA CHEIA", e era o pior conselho
+  // possivel: no painel de opcoes o Esc VOLTA, e mandar o jogador apertar
+  // Esc ali era ensinar a fechar o menu achando que ia sair da tela cheia.
+  // Duas coisas diferentes na mesma tecla. Agora a dica aponta o F11, que
+  // e a unica tecla que faz so isso, em qualquer lugar do jogo.
+  opt_fs_hint:    { pt: 'F11 ALTERNA A QUALQUER MOMENTO', en: 'F11 TOGGLES ANY TIME' },
   opt_difficulty: { pt: 'DIFICULDADE',          en: 'DIFFICULTY' },
   diff_story:     { pt: 'HISTORIA',             en: 'STORY' },
   diff_normal:    { pt: 'NORMAL',               en: 'NORMAL' },

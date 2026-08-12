@@ -43,8 +43,31 @@ class Input {
 
   init() {
     window.addEventListener('keydown', e => {
+      // ---- F11: TELA CHEIA ----
+      //
+      // ⚠ ELE E TRATADO AQUI DENTRO, E NAO DEIXADO PARA O NAVEGADOR, por
+      // dois motivos que so aparecem quando se olha:
+      //
+      //   no .exe .......... a janela e um WebView2, e ali o F11 do
+      //                      navegador simplesmente NAO EXISTE. Sem isto o
+      //                      atalho nao faz nada no pacote que as pessoas
+      //                      baixam.
+      //   no navegador ..... o F11 nativo NAO e a mesma coisa que a API de
+      //                      tela cheia: ele estica a janela mas deixa
+      //                      `document.fullscreenElement` nulo. A opcao nas
+      //                      configuracoes leria "DESLIGADO" com o jogo em
+      //                      tela cheia — uma configuracao que mente.
+      //
+      // Tratando os dois pelo mesmo caminho, o atalho e o menu concordam
+      // sempre. E como isto roda DENTRO do evento de tecla, e um gesto do
+      // usuario de verdade: nenhum navegador recusa por falta de permissao.
+      if (e.code === 'F11') {
+        e.preventDefault();
+        if (!e.repeat && this.onFullscreen) this.onFullscreen();
+        return;
+      }
       // F5/F12 continuam funcionando; o resto o jogo consome.
-      if (!['F5', 'F12', 'F11'].includes(e.code)) e.preventDefault();
+      if (!['F5', 'F12'].includes(e.code)) e.preventDefault();
       if (e.repeat) return;
       this.down.add(e.code);
       this.pressedFrame.add(e.code);

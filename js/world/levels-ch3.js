@@ -670,21 +670,20 @@ export function buildOldDesk() {
   // ---- O ARMARIO DE PAREDE, E O QUE ESTA DENTRO DELE ----
   //
   // A calibre doze que ele guardava na delegacia, e que continua no lugar
-  // porque ninguem esvaziou a mesa dele. Ela NAO e pegavel aqui: a arma
-  // fica na portaria e essa regra nao tem excecao. Ela e uma promessa,
-  // deixada em cima da mesa para o Capitulo 4 — e o David comenta a
-  // conveniencia, que e o que ele sempre faz.
+  // porque ninguem esvaziou a mesa dele. Ela e a arma do Capitulo 4, e ele
+  // guarda sabendo disso.
+  //
+  // ⚠ O ARMARIO e pintado na camada; A ARMA, NAO. Pixel pintado na camada
+  // nao some, e ela sumia do casaco para dentro e continuava encostada la
+  // dentro do movel — dois doze, um deles fantasma. Por isso a arma e as
+  // munições sao desenhadas por quadro, via `itensSoltos`, e o armario fica
+  // VAZIO no instante em que ele pega. E o mesmo motivo da nota do
+  // Capitulo 2: se as coisas continuam onde estavam depois de pegas, o
+  // jogador para de acreditar que pegou.
   const ARM = 330;
   rect(g, ARM, GY - 104, 46, 62, '#3a3128');
   rect(g, ARM, GY - 104, 46, 2, '#54483a');
   rect(g, ARM + 2, GY - 102, 42, 58, '#241d17');
-  // a coronha e o cano, encostados de pe la dentro
-  rect(g, ARM + 14, GY - 96, 5, 34, '#8f959e');
-  rect(g, ARM + 13, GY - 62, 7, 16, '#5a4028');
-  rect(g, ARM + 13, GY - 62, 7, 2, '#7d5a38');
-  rect(g, ARM + 20, GY - 94, 3, 30, '#6c727a');
-  rect(g, ARM + 26, GY - 88, 12, 8, '#43331f');
-  for (let i = 0; i < 4; i++) rect(g, ARM + 28 + i * 3, GY - 86, 2, 5, '#c9a03a');
   rect(g, ARM + 2, GY - 46, 42, 2, '#54483a');
   inter.push({
     x: ARM, y: GY - 104, w: 46, h: 62, prompt: 'prompt_look',
@@ -752,6 +751,21 @@ export function buildOldDesk() {
           ctx.fillRect(x, y + i, 22, 1);
         }
         ctx.fillStyle = '#7a7062'; ctx.fillRect(x + 7, y, 8, 5);
+      },
+    },
+    {
+      // A CALIBRE DOZE dentro do armario: cano duplo, coronha de madeira e
+      // a caixa de cartuchos ao lado. Some inteira quando ele pega.
+      id: 'shotgun', x: ARM + 13, y: GY - 96,
+      draw: (ctx, x, y) => {
+        ctx.fillStyle = '#8f959e'; ctx.fillRect(x + 1, y, 5, 34);
+        ctx.fillStyle = '#6c727a'; ctx.fillRect(x + 7, y + 2, 3, 30);
+        ctx.fillStyle = '#5a4028'; ctx.fillRect(x, y + 34, 7, 16);
+        ctx.fillStyle = '#7d5a38'; ctx.fillRect(x, y + 34, 7, 2);
+        // a caixa de cartuchos, e os latoes aparecendo na boca dela
+        ctx.fillStyle = '#43331f'; ctx.fillRect(x + 13, y + 8, 12, 8);
+        ctx.fillStyle = '#c9a03a';
+        for (let i = 0; i < 4; i++) ctx.fillRect(x + 15 + i * 3, y + 10, 2, 5);
       },
     },
   ]);

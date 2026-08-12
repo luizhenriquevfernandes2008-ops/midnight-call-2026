@@ -274,8 +274,8 @@ const FASES = [
   ['porta', 2.6],     // ele corre ate a porta
   ['chute', 1.5],     // e chuta
   ['queda', 1.6],     // a porta cede e ele cai junto com ela
-  ['entra', 2.2],     // ele levanta e atravessa a soleira
-  ['fim', 1.2],
+  ['entra', 2.0],     // ele levanta e atravessa a soleira, e SOME
+  ['fim', 1.6],       // so a casa queimando. E aqui que a tela apaga.
 ];
 
 export class Fogo {
@@ -291,15 +291,28 @@ export class Fogo {
     this.crackT = 0;
     this.portaAberta = false;   // depois do chute ela deixa de existir
     this.chutou = false;
+    this._chuteT = 0;
+    // Onde ele para para chutar. Decidido UMA vez, olhando onde ele estava
+    // quando o fogo comecou — ver o bloco grande la embaixo, no `update`.
+    this.parada = null;   // a marca no chao
+    this.lado = 1;        // -1 = ele veio pela esquerda, 1 = pela direita
+    this.dir = -1;        // para onde ele olha, chuta, cai e entra
     this.onEnd = null;
+    this.onEntrou = null;
     this.runId = -1;
   }
 
-  comecar(game, onEnd) {
+  // `onEntrou` dispara no instante em que ele ATRAVESSA a soleira, e nao no
+  // fim da cena. A diferenca importa: e quem escurece a tela, e ele precisa
+  // fazer isso ENQUANTO a casa ainda esta queimando. Se a tela so comecasse
+  // a apagar depois de a cena terminar, o fogo ja teria parado de ser
+  // desenhado e o jogador veria a casa intacta de novo.
+  comecar(game, onEnd, onEntrou) {
     if (this.ativo) return false;
     this.reset();
     this.ativo = true;
     this.onEnd = onEnd || null;
+    this.onEntrou = onEntrou || null;
     this.runId = game.runId;
     audio.startLoop('fogo', { gain: 0.02, fade: 1.8 });
     return true;
@@ -331,17 +344,42 @@ export class Fogo {
 
     const p = game.player;
     const lv = game.level;
-    const alvo = lv && lv.props && lv.props.portaX ? lv.props.portaX : null;
+    const alvo = lv && lv.props && typeof lv.props.portaX === 'number' ? lv.props.portaX : null;
+
+    // ---- ONDE ELE PARA PARA CHUTAR ----
+    //
+    // A marca no chao e escolhida UMA vez, no primeiro quadro da cena, e
+    // olhando onde ele esta: o lado da porta mais perto dele. Ele pode ter
+    // atendido o telefone em qualquer ponto da rua — o telefone e dele e
+    // esta no bolso dele —, entao a cena nao pode supor de onde ele vem.
+    if (alvo !== null && this.parada === null) {
+      this.lado = p.x < alvo ? -1 : 1;      // de que lado da porta ele esta
+      this.parada = alvo + this.lado * 20;  // onde os pes param
+      this.dir = -this.lado;                // para onde ele olha, chuta e entra
+    }
+    const emPosicao = this.parada !== null && Math.abs(p.x - this.parada) <= 1.5;
 
     // 🐛 A primeira versao fazia `idx = min(idx+1, ultima)` e zerava o
     // cronometro. Na ultima fase isso reentrava nela para sempre: o
     // cronometro voltava a zero antes de a condicao de fim ser lida, a cena
     // nunca terminava e o jogador ficava preso no passado, com a casa
     // queimando em loop. O fim precisa ser um ramo proprio.
-    if (this.faseT >= FASES[this.idx][1]) {
+    //
+    // ⚠ E A CENA NAO PASSA POR CIMA DO CHUTE. Se ele ainda esta indo, a
+    // fase do chute ESPERA — ela nao tem duracao fixa, tem uma condicao.
+    // Sem isso, uma caminhada mais longa acabava com o relogio chegando na
+    // fase da queda antes do pe: a porta continuava inteira e o David caia
+    // sozinho no meio da rua.
+    const esperandoChute = this.fase === 'chute' && !this.chutou && alvo !== null;
+    if (this.faseT >= FASES[this.idx][1] && !esperandoChute) {
       if (this.idx >= FASES.length - 1) {
+        // ⚠ AQUI NAO SE DEVOLVE O `alpha`. Devolver acendia o David de volta
+        // em pe na soleira, com a animacao de andar ainda em laco — e como
+        // `ativo` fica falso no mesmo instante, o fogo PARA DE SER
+        // DESENHADO: a casa voltava a ser uma casa normal e o David
+        // reaparecia do nada andando no lugar, até o flashback acabar.
+        // Quem devolve o `alpha` é o `enterLevel` do setor seguinte.
         this.ativo = false;
-        game.player.det.alpha = 1;
         const cb = this.onEnd;
         this.onEnd = null;
         if (cb) cb();
@@ -356,33 +394,55 @@ export class Fogo {
     // Ele CORRE para a porta. Correr e a animacao que este homem nao usa em
     // mais nenhum lugar do capitulo — e e por isso que ela diz alguma coisa.
     //
-    // ⚠ E ELE SO CHUTA QUANDO CHEGA. A primeira versao trocava de fase por
-    // relogio: se a corrida nao tivesse terminado, ele chutava o ar no meio
-    // do quintal. Agora a corrida continua DENTRO da fase do chute ate ele
-    // estar ao alcance, e so entao o pe sai.
-    const perto = alvo !== null && Math.abs(p.x - (alvo + 20)) < 8;
-    if ((this.fase === 'porta' || (this.fase === 'chute' && !this.chutou)) && alvo !== null) {
-      const parada = alvo + 20;
-      if (p.x > parada + 2) {
-        p.x = Math.max(parada, p.x - 132 * dt);
-        p.det.setFacing(-1);
-        if (p.det.anim !== 'run') p.det.play('run', { blend: 0.12 });
+    // ⚠ E ELE SO CHUTA QUANDO CHEGA. Isto ja deu errado duas vezes:
+    //
+    //   1. a fase trocava por relogio — se a corrida nao tivesse acabado, o
+    //      pe saia no meio do quintal e ele atravessava uma porta fechada;
+    //   2. a corrida so sabia ir PARA A ESQUERDA. Quem saia de casa parava
+    //      em x=660, cinco pixels a esquerda da porta, e a condicao "ele
+    //      esta a direita dela" nunca era verdadeira: ele ficava plantado
+    //      na calcada, chutava o ar (ou nem isso) e a cena passava por cima.
+    //
+    // Agora ele anda ate a marca venha de onde vier, VIRA de frente para a
+    // porta, e o pe so sai depois disso.
+    if (alvo !== null && !this.chutou && (this.fase === 'porta' || this.fase === 'chute')) {
+      if (!emPosicao) {
+        const rumo = this.parada > p.x ? 1 : -1;
+        const passo = 132 * dt;
+        p.x = rumo > 0 ? Math.min(this.parada, p.x + passo) : Math.max(this.parada, p.x - passo);
+        p.det.setFacing(rumo);
+        p.facing = rumo;
+        // Um acerto de cinco pixels nao e corrida — correr para andar meio
+        // passo vira sapateado no lugar. Os ultimos 34px sao caminhada, e
+        // de quebra isso da uma desaceleracao de graca.
+        const anim = Math.abs(this.parada - p.x) > 34 ? 'run' : 'walk';
+        if (p.det.anim !== anim) p.det.play(anim, { blend: 0.12 });
+        // ⚠ SEGURANCA. A fase do chute agora espera por uma CONDICAO, e uma
+        // condicao que nunca chega prenderia o jogador no passado com a
+        // casa queimando em loop — que e exatamente o buraco do bug antigo,
+        // entrando por outra porta. Depois de cinco segundos tentando, os
+        // pes vao para a marca de uma vez e a cena segue.
+        if (this.fase === 'chute' && this.faseT > 5) p.x = this.parada;
       } else if (this.fase === 'porta') {
-        // chegou antes da hora: para de frente para ela e espera
-        p.det.setFacing(-1);
+        // Chegou antes da hora: fica DE FRENTE para ela e espera o chute.
+        p.det.setFacing(this.dir);
+        p.facing = this.dir;
         if (p.det.anim !== 'idle') p.det.play('idle', { blend: 0.14 });
       }
     }
     // Chegou e a fase e a do chute: VIRA PARA A PORTA e chuta.
-    if (this.fase === 'chute' && !this.chutou && perto) {
+    if (this.fase === 'chute' && !this.chutou && emPosicao) {
       this.chutou = true;
-      p.det.setFacing(-1);
-      p.facing = -1;
+      p.det.setFacing(this.dir);
+      p.facing = this.dir;
       p.det.play('kick', { restart: true, blend: 0.06 });
       audio.doorSlam ? audio.doorSlam(0.7) : audio.thud(0.9);
       gfx.shake(3.0);
       // a porta cede no quadro do impacto, nao no fim da animacao
       this._chuteT = 0.30;
+      // E o relogio da fase comeca AGORA. Se a caminhada levou dois
+      // segundos, o chute nao pode ficar com meio segundo de tela.
+      this.faseT = 0;
     }
     if (this._chuteT > 0) {
       this._chuteT -= dt;
@@ -394,18 +454,28 @@ export class Fogo {
       }
     }
     // O corpo vai junto com a perna: e o que separa chutar de encostar o pe.
+    // Tudo daqui para baixo anda no sentido da porta (`dir`), nao para a
+    // esquerda: de que lado dela ele estava e coisa que a cena so descobre
+    // quando ela comeca.
     if (this.fase === 'chute' && this.chutou && this._chuteT > 0.06) {
-      p.x -= 22 * dt;
+      p.x += this.dir * 22 * dt;
     }
     // A porta cede e ele cai PARA DENTRO, nao para tras.
     if (this.fase === 'queda' && this.faseT < 0.5) {
-      p.x -= 34 * dt;
+      p.x += this.dir * 34 * dt;
     }
-    // E ele atravessa a soleira.
+    // E ele atravessa a soleira — e some dentro do clarao. A tela nao apaga
+    // com ele parado na varanda: apaga com ele ja do outro lado.
+    //
+    // ⚠ E ELE PARA NO VAO. Sem o limite ele andava os 62px inteiros da fase
+    // e SAIA pelo outro lado da porta — atravessava a casa e reaparecia na
+    // calcada, meio transparente, que e o oposto exato do que a cena diz.
+    // A porta e o fim do caminho: e por isso que ele chutou.
     if (this.fase === 'entra' && this.faseT > 0.85 && alvo !== null) {
-      p.x -= 46 * dt;
+      const passo = this.dir * 46 * dt;
+      p.x = this.dir > 0 ? Math.min(alvo, p.x + passo) : Math.max(alvo, p.x + passo);
       if (p.det.anim !== 'walk') p.det.play('walk', { blend: 0.16 });
-      p.det.alpha = clamp(1 - (this.faseT - 0.85) * 0.55, 0.35, 1);
+      p.det.alpha = clamp(1 - (this.faseT - 0.85) * 0.9, 0, 1);
     }
     p.det.update(dt);
   }
@@ -419,7 +489,9 @@ export class Fogo {
       audio.fireBurst(0.8);
       gfx.shake(2.6);
       gfx.flashColor = '#ffb060'; gfx.flash = 0.22;
-      p.det.setFacing(-1);
+      // De frente para a casa, seja de que lado da porta ele estiver.
+      p.det.setFacing(this.dir);
+      p.facing = this.dir;
       p.say('b3_fogo_1', 2.0, true);
     } else if (f === 'porta') {
       p.say('b3_fogo_2', 2.2, true);
@@ -436,8 +508,15 @@ export class Fogo {
       p.det.play('standUp', { restart: true, blend: 0.14 });
       p.say('b3_fogo_5', 2.4, true);
     } else if (f === 'fim') {
-      p.det.setFacing(-1);
+      // Ele ja esta do outro lado, e invisivel. O que sobra na tela e uma
+      // casa queimando com um vao aberto no meio — e e nisso que a tela
+      // apaga. Ele nao volta a aparecer.
+      p.det.setFacing(this.dir);
+      p.det.alpha = 0;
       p.say('b3_fogo_6', 2.4, true);
+      const cb = this.onEntrou;
+      this.onEntrou = null;
+      if (cb) cb();
     }
   }
 

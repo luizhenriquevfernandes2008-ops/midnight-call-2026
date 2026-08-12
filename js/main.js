@@ -46,7 +46,8 @@ import { CombatFinishers } from './systems/combat-finishers.js';
 import { difficulty } from './systems/difficulty.js';
 import { TitleMenu } from './ui/menu.js';
 import { PauseMenu } from './ui/pause.js';
-import { SlotPicker, OptionsPanel, ChapterPicker, screenDim, panelBox } from './ui/panels.js';
+import { SlotPicker, OptionsPanel, ChapterPicker, screenDim, panelBox,
+         alternarTelaCheia } from './ui/panels.js';
 import { t as T, setLang, getLang, LINES, line as L, TALKS } from './i18n.js';
 
 // A planta baixa do galpao, do jeito que ela e desenhada no papel que ele
@@ -102,6 +103,10 @@ class Game {
 
     gfx.init();
     input.init();
+    // F11 alterna tela cheia. O `input` so avisa que a tecla veio; quem sabe
+    // COMO entrar em tela cheia e o painel de opcoes, que e onde mora a
+    // mesma opcao no menu. Assim o atalho e o menu nunca discordam.
+    input.onFullscreen = alternarTelaCheia;
     this.applySettings();
 
     set('montando o beco...');
@@ -589,13 +594,26 @@ class Game {
     //               notas. E a unica musica quente do jogo.
     //   delegacia . um bordao grave com um tritom quase inaudivel por cima.
     //               Nao e tema; e o predio.
+    //
+    // ⚠ A MUSICA E DO FLASHBACK INTEIRO, nao da sala. Ela nascia so quando
+    // ele punha o pe dentro de casa, e a rua — que e onde a cena comeca,
+    // com ele saindo do carro — ficava em silencio de delegacia. Agora ela
+    // entra no primeiro quadro do passado e atravessa a rua, a sala e o
+    // quarto sem cortar nas portas: `tocarMusicaArquivo` devolve `true` se
+    // ela ja estiver tocando, entao trocar de sala nao reinicia nada.
+    //
+    // E ela continua morrendo no mesmo lugar de sempre: no instante em que
+    // ele atende o telefone (`atenderNoPassado`). O que vem depois nao tem
+    // trilha — e por isso que a flag e lida aqui, para uma sala revisitada
+    // depois da ligacao nao ressuscitar o tema.
     if (this.flags.cap3) {
-      if (lv.key === 'ch3_home' || lv.key === 'ch3_room') {
+      const noPassado = lv.key === 'ch3_past' || lv.key === 'ch3_home' || lv.key === 'ch3_room';
+      if (noPassado && !this.flags.atendeu) {
         // Se houver gravacao, ela e a musica da casa. Se nao houver, o
         // piano sintetizado faz o mesmo papel.
-        audio.stopMusic(1.2);
-        if (!audio.tocarMusicaArquivo(0.18)) audio.startMusic('casa');
-      } else if (lv.key === 'ch3_past') {
+        if (audio.tocarMusicaArquivo(0.18)) audio.stopMusic(1.2);
+        else audio.startMusic('casa');
+      } else if (noPassado) {
         audio.pararMusicaArquivo(2.4);
         audio.stopMusic(2.2);
       } else {
@@ -725,7 +743,13 @@ class Game {
       // Numa conversa a camera sobe. A caixa de dialogo ocupa o terco de
       // baixo da tela, e sem isso quem esta falando com voce fica escondido
       // atras da propria fala.
-      this.cam.offsetY = this.dialogue.talk ? 40 : 0;
+      //
+      // E ela sobe no incendio pelo mesmo motivo, com um agravante: a porta
+      // cede e ele cai NO CHAO. Deitado, o corpo inteiro ficava atras da
+      // legenda e da faixa preta de baixo — o jogador ouvia a porta ceder e
+      // via um vao vazio. De quebra, com a camera mais alta cabe o telhado
+      // pegando fogo, que e a unica coisa que diz que a casa acabou.
+      this.cam.offsetY = this.fogo.ativo ? 30 : (this.dialogue.talk ? 40 : 0);
       this.cam.follow(this.player.x, 0, this.player.facing, sim, Math.abs(this.player.vx) > 4);
       this.checkBarks(lv);
       this.updateRandomSfx(lv, sim);
@@ -2080,14 +2104,29 @@ class Game {
     setTimeout(() => {
       if (this.state !== 'play' || this.runId !== agora) return;
       this.anotar('j3_fogo');
-      this.fogo.comecar(this, () => {
-        if (this.state !== 'play' || this.runId !== agora) return;
-        // A tela apaga com ele de pe na varanda, olhando a casa, com o
-        // cigarro ainda entre os dedos. A mesma composicao da cena da nota:
-        // de costas para o que importa, sete anos antes.
-        audio.tinnitus(0.85);
-        this.fadeTo(() => this.voltarDoFlashback(), 3.4, 1.8);
-      });
+      this.fogo.comecar(this,
+        // Rede de seguranca: se a cena chegar ao fim sem a tela ter apagado
+        // (o `onEntrou` abaixo e quem apaga), o passado acaba do mesmo jeito.
+        // Sem isto, um caminho que escape do `onEntrou` deixaria o jogador
+        // preso no flashback — que e o B-59 de novo.
+        () => {
+          if (this.state !== 'play' || this.runId !== agora) return;
+          this.voltarDoFlashback();
+        },
+        // ---- O CORTE ----
+        //
+        // ⚠ A tela apaga NO INSTANTE EM QUE ELE ATRAVESSA A SOLEIRA, com a
+        // casa ainda queimando atras dele. Antes ela só começava a apagar
+        // depois de a cena inteira terminar, e aí era tarde: com a cena
+        // encerrada o fogo para de ser desenhado, então o jogador via a casa
+        // INTACTA por três segundos e meio, com o David reaparecido na porta
+        // andando no lugar. O flashback tem que acabar quando ele entra —
+        // não é uma cena da qual se sai, é uma porta que se atravessa.
+        () => {
+          if (this.state !== 'play' || this.runId !== agora) return;
+          audio.tinnitus(0.85);
+          this.fadeTo(() => this.voltarDoFlashback(), 1.3, 1.8);
+        });
     }, 10600);
   }
 
@@ -2137,6 +2176,11 @@ class Game {
   }
 
   voltarDoFlashback() {
+    // Agora ha DOIS caminhos que chamam isto — o corte, quando ele atravessa
+    // a soleira, e a rede de seguranca no fim da cena. Voltar duas vezes
+    // entraria na cela duas vezes, com as falas de entrada em cima das
+    // outras. Quem chega primeiro fecha a porta.
+    if (!this.flags.flashback) return;
     sairFlashback(this);
     this.flags.viu_passado = true;   // e nao se entra la de novo
     this.fogo.parar();
@@ -2155,6 +2199,21 @@ class Game {
     const p = this.player;
     p.controllable = false;
     p.frozen = true;
+    // ⚠ CONGELAR NAO PARA A ANIMACAO. `frozen` zera a velocidade e desliga a
+    // maquina de estados, mas continua rodando o quadro atual — e o quadro
+    // atual era `walk`, em laco, porque ele estava indo embora quando o
+    // plantonista chamou. Ele ficava andando para fora, no lugar, durante a
+    // pergunta inteira. Quem congela um personagem no meio de uma cena
+    // precisa DIZER em que pose ele para.
+    p.vx = 0;
+    p.det.play('idle', { blend: 0.2 });
+    // E ele se vira para quem chamou. Sair de costas enquanto respondem a
+    // pergunta que fecha o capitulo era a leitura errada da cena: ele para
+    // na porta e olha para tras.
+    const guarita = (this.npcs && this.npcs.plantonista) ? this.npcs.plantonista.cfg.x : 310;
+    const olhar = guarita >= p.x ? 1 : -1;
+    p.facing = olhar;
+    p.det.setFacing(olhar);
     this.ticket.chamar();
     const agora = this.runId;
     this.namePrompt.comecar(() => {
@@ -3922,6 +3981,11 @@ window.game = game;
 window.__dev = {
   step(dt = 1 / 60, n = 1) { for (let i = 0; i < n; i++) game.tick(dt); return game.state; },
   gfx,
+  // O audio e um singleton POR JANELA. O teste roda o jogo dentro de um
+  // iframe, entao importar `audio.js` da pagina de teste devolve OUTRA
+  // instancia — a que ninguem esta usando. Sem este gancho nao da para
+  // conferir a trilha sem por 110 MB de mp3 para tocar no meio da bateria.
+  audio,
   // Pula direto para um setor. Existe so para testar: sem isto e preciso
   // jogar o capitulo inteiro para olhar a ultima sala.
   ir(key, x, facing = 1) {

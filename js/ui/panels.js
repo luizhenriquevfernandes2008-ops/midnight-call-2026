@@ -248,6 +248,77 @@ export class SlotPicker {
 // opcoes
 // ---------------------------------------------------------------------------
 
+// ---- TELA CHEIA ----
+//
+// ⚠ Ela NAO e uma preferencia guardada, e nao pode ser. Tela cheia e um
+// estado real da janela — nao da para restaurar sozinho ao abrir o jogo.
+// Guardar "tela cheia: ligada" no arquivo de opcoes criaria uma
+// configuracao que mente: apareceria ligada com o jogo em janela. Entao a
+// linha PERGUNTA a cada quadro e mostra a verdade, sem opiniao propria.
+//
+// ---------------------------------------------------------------------
+// 🐛 E A API DO NAVEGADOR NAO BASTA. Foi assim que isto nasceu quebrado.
+// ---------------------------------------------------------------------
+// `requestFullscreen()` dentro de um WebView EMBUTIDO — que e o caso do
+// .exe da demo — nao devolve erro, nao rejeita a promessa, e NAO ACONTECE
+// NADA. Testado com clique de verdade: `fullscreenElement` continua nulo e
+// a janela nao muda de tamanho.
+//
+// O motivo e que num WebView embutido a pagina nao manda na janela. Ela
+// avisa o programa hospedeiro de que quer tela cheia, e e o HOSPEDEIRO que
+// tem que esticar a janela. Se ninguem do lado de fora escuta, o pedido
+// morre em silencio — que e o pior tipo de falha, porque parece que o
+// codigo nao rodou.
+//
+// Por isso existe um GANCHO OPCIONAL. Quem hospeda o jogo pode publicar:
+//
+//     window.__telaCheia = { ativa(), alternar() }
+//
+// Se o gancho existir, ele manda. Se nao existir — jogo aberto no
+// navegador, no servidor de dev, no JOGO_OFFLINE.html — cai na API padrao,
+// que ali funciona.
+//
+// ⚠ A REGRA DO PROJETO CONTINUA: o jogo NAO sabe que existe um .exe. Ele
+// so pergunta se alguem esta oferecendo tela cheia. Quem implementa o
+// gancho e o lancador da demo, que e de fora do jogo — do mesmo jeito que
+// a musica da casa e um mp3 opcional que, se nao existir, ninguem sente
+// falta.
+function hospedeiro() {
+  if (typeof window === 'undefined') return null;
+  const h = window.__telaCheia;
+  return (h && typeof h.alternar === 'function' && typeof h.ativa === 'function') ? h : null;
+}
+
+export function telaCheiaAtiva() {
+  const h = hospedeiro();
+  if (h) { try { return !!h.ativa(); } catch (e) { return false; } }
+  if (typeof document === 'undefined') return false;
+  // Os prefixos existem por causa do Safari, que ainda pede `webkit`.
+  return !!(document.fullscreenElement || document.webkitFullscreenElement);
+}
+
+export function alternarTelaCheia() {
+  const h = hospedeiro();
+  if (h) { try { h.alternar(); } catch (e) { /* o hospedeiro que se explique */ } return; }
+  if (typeof document === 'undefined') return;
+  try {
+    if (telaCheiaAtiva()) {
+      const sair = document.exitFullscreen || document.webkitExitFullscreen;
+      if (sair) sair.call(document);
+    } else {
+      const el = document.documentElement;
+      const entrar = el.requestFullscreen || el.webkitRequestFullscreen;
+      // `navigationUI: 'hide'` some com a barra que alguns navegadores
+      // deixam por cima; onde nao existir, o argumento e ignorado.
+      if (entrar) entrar.call(el, { navigationUI: 'hide' });
+    }
+  } catch (e) {
+    // Pode ser negada por politica do navegador ou por a janela nao ter
+    // foco. Nao ha o que fazer, e nao ha por que derrubar o menu: a linha
+    // continua mostrando DESLIGADO, que e a verdade.
+  }
+}
+
 export class OptionsPanel {
   constructor(settings, onChange) {
     this.s = settings;
@@ -263,6 +334,9 @@ export class OptionsPanel {
       { key: 'opt_sfx', type: 'range', f: 'sfx' },
       { key: 'opt_voice', type: 'range', f: 'voice' },
       { key: 'opt_subs', type: 'bool', f: 'subs' },
+      // Sem `f`: nao ha campo em `settings` para guardar. Ver o comentario
+      // grande acima — esta linha reflete a janela, nao uma preferencia.
+      { key: 'opt_fullscreen', type: 'fullscreen' },
       { key: 'opt_scan', type: 'range', f: 'scanlines', max: 0.18 },
       { key: 'opt_grain', type: 'range', f: 'grain', max: 0.06 },
       { key: 'opt_shake', type: 'bool', f: 'shake' },
@@ -294,14 +368,21 @@ export class OptionsPanel {
         clearTextCache();
       } else if (r.type === 'difficulty') {
         this.s.difficulty = cycleDifficulty(this.s.difficulty || 'hard', dir);
+      } else if (r.type === 'fullscreen') {
+        alternarTelaCheia();
       }
       audio.uiMove();
       if (this.onChange) this.onChange();
     }
 
-    if (input.pressed('cancel') || (input.pressed('confirm') && r.type === 'bool')) {
+    // ⚠ A tela cheia entra JUNTO com o `bool` no confirmar, mas NAO no
+    // `this.s[r.f] = !this.s[r.f]` — ela nao tem campo em `settings`, e essa
+    // linha escreveria `settings[undefined]`. Por isso os dois ramos.
+    const alternavel = r.type === 'bool' || r.type === 'fullscreen';
+    if (input.pressed('cancel') || (input.pressed('confirm') && alternavel)) {
       if (input.pressed('confirm')) {
-        this.s[r.f] = !this.s[r.f];
+        if (r.type === 'fullscreen') alternarTelaCheia();
+        else this.s[r.f] = !this.s[r.f];
         if (this.onChange) this.onChange();
         audio.uiConfirm();
       } else {
@@ -320,9 +401,18 @@ export class OptionsPanel {
       size: 15, font: 'serif', color: PAL.uiText, align: 'center', track: 2, shadow: true, alpha: a,
     });
 
+    // ⚠ A ALTURA DA CAIXA SEGUE O NUMERO DE LINHAS, e a tela tem 270px. Com
+    // 16px por linha a lista passou a bater na descricao do rodape assim que
+    // a tela cheia entrou — a caixa terminava DEPOIS do texto que deveria
+    // ficar embaixo dela. Agora o passo diminui sozinho quando a lista
+    // cresce, e o rodape e calculado a partir do fim da caixa em vez de ser
+    // um numero escrito na mao. Assim a proxima opcao nova nao quebra nada.
     const x = 88, w = 304;
-    const y0 = 43, rh = 16;
-    panelBox(ctx, x - 14, y0 - 8, w + 28, this.rows.length * rh + 16, a);
+    const y0 = 43;
+    const rh = this.rows.length > 11 ? 15 : 16;
+    const alturaCaixa = this.rows.length * rh + 16;
+    const fimDaCaixa = y0 - 8 + alturaCaixa;
+    panelBox(ctx, x - 14, y0 - 8, w + 28, alturaCaixa, a);
 
     for (let i = 0; i < this.rows.length; i++) {
       const r = this.rows[i];
@@ -354,10 +444,13 @@ export class OptionsPanel {
           size: 9, font: 'ui', weight: 'bold', color: d.recommended ? PAL.uiAccent : (on ? PAL.uiText : PAL.uiDim),
           align: 'right', track: 1, alpha: a,
         });
-      } else if (r.type === 'bool') {
-        text(ctx, this.s[r.f] ? T('on') : T('off'), vx, y, {
+      } else if (r.type === 'bool' || r.type === 'fullscreen') {
+        // A tela cheia le a JANELA, nao o arquivo de opcoes: se o jogador
+        // sair por Esc ou F11, a linha acompanha sozinha.
+        const ligado = r.type === 'fullscreen' ? telaCheiaAtiva() : !!this.s[r.f];
+        text(ctx, ligado ? T('on') : T('off'), vx, y, {
           size: 9, font: 'ui', weight: 'bold',
-          color: this.s[r.f] ? (on ? PAL.uiAccent : PAL.uiText) : PAL.uiFaint,
+          color: ligado ? (on ? PAL.uiAccent : PAL.uiText) : PAL.uiFaint,
           align: 'right', track: 1, alpha: a,
         });
       } else {
@@ -375,10 +468,18 @@ export class OptionsPanel {
     }
 
     const selected = this.rows[this.sel];
+    const yRodape = fimDaCaixa + 8;
     if (selected && selected.type === 'difficulty') {
       const d = difficulty(this.s.difficulty);
-      text(ctx, T(d.desc), VW / 2, 229, {
+      text(ctx, T(d.desc), VW / 2, yRodape, {
         size: 7, font: 'ui', color: d.recommended ? '#c6a267' : PAL.uiDim,
+        align: 'center', alpha: a, shadow: true,
+      });
+    } else if (selected && selected.type === 'fullscreen') {
+      // A dica aparece com a linha selecionada, ligada ou desligada: ela
+      // ensina o atalho, nao avisa de um efeito colateral.
+      text(ctx, T('opt_fs_hint'), VW / 2, yRodape, {
+        size: 7, font: 'ui', color: PAL.uiDim,
         align: 'center', alpha: a, shadow: true,
       });
     }
