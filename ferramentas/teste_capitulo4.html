@@ -1,0 +1,594 @@
+<!doctype html>
+<html lang="pt-BR">
+<meta charset="utf-8">
+<title>Regressao — Capitulo 4, "A CASA"</title>
+<style>
+  body { background:#111; color:#ddd; font:15px Consolas,monospace; padding:24px }
+  iframe { width:480px; height:270px; border:1px solid #444; display:block; margin-bottom:16px }
+  button { font:inherit; padding:10px 18px; margin-right:8px }
+  #resultado { white-space:pre-wrap; margin-top:16px; line-height:1.5 }
+  .ok { color:#7ee787 } .erro { color:#ff7b72 }
+</style>
+<iframe id="jogo" src="../index.html"></iframe>
+<button id="rodar">RODAR TESTES</button>
+<button id="offline">USAR JOGO_OFFLINE</button>
+<div id="resultado">Aguardando...</div>
+<script type="module">
+// Regressao do Capitulo 4. O que este arquivo cobre, e por que:
+//
+//   · os cinco setores existem, tem nome nos dois idiomas e limites sadios
+//   · CADA UM tem os DOIS estados montados (casa e ruina) — e o bug mais
+//     provavel do capitulo e um setor com meia troca
+//   · toda porta aponta para um setor que existe, NOS DOIS ESTADOS
+//   · a troca de estado troca camada, luz, ambiente, material e paredes
+//   · o maco tem sete, acender e jogar fora gastam UM, e o maco vazio recusa
+//   · o buraco do corredor bloqueia na ruina e nao bloqueia na casa
+//   · os quatro obrigatorios sao alcancaveis com quatro cigarros
+//   · o fim tem as duas versoes, e quem decide e a conta do maco
+//   · nenhuma fala do capitulo usa palavra proibida (lembranca/memoria/...)
+//   · sair para o menu devolve a casa em pe
+const out = document.getElementById('resultado');
+const frame = document.getElementById('jogo');
+const espera = ms => new Promise(r => setTimeout(r, ms));
+
+document.getElementById('offline').onclick = () => { frame.src = '../JOGO_OFFLINE.html'; out.textContent = 'Pacote offline carregado. Rode os testes.'; };
+
+let linhas = [], falhas = 0;
+function sec(t) { linhas.push('\n' + t); }
+function ok(nome, cond, det) {
+  if (cond) linhas.push('  ok    ' + nome);
+  else { falhas++; linhas.push('  FALHA ' + nome + (det !== undefined ? '  -> ' + det : '')); }
+}
+
+async function pronto() {
+  for (let i = 0; i < 200; i++) {
+    const w = frame.contentWindow;
+    if (w.game && w.game.levels && w.game.levels.ch4_quarto && w.game.state === 'waitkey') return w;
+    await espera(100);
+  }
+  throw new Error('O jogo nao terminou o boot.');
+}
+
+const SETORES = ['ch4_rua', 'ch4_sala', 'ch4_cozinha', 'ch4_corredor', 'ch4_quarto'];
+
+// ⚠ AS PALAVRAS QUE O CAPITULO NAO PODE DIZER. E a trava numero 1 do
+// roteiro (PARTE XI.5): o jogo NUNCA explica a casa. Se uma destas aparecer
+// numa fala, alguem escreveu a explicacao que o capitulo existe para negar.
+const PROIBIDAS = ['lembranç', 'lembranc', 'memória', 'memoria', 'alucinaç',
+                   'alucinac', 'sonho', 'memory', 'hallucinat', 'dream'];
+
+document.getElementById('rodar').onclick = async () => {
+  try {
+    out.className = ''; out.textContent = 'Executando...';
+    linhas = []; falhas = 0;
+
+    const w = await pronto();
+    const g = w.game;
+    const i18n = await import('../js/i18n.js');
+    const { LINES, JOURNAL } = i18n;
+    const T = i18n.t;
+    const ch4 = await import('../js/systems/chapter4.js');
+    const mundo4 = await import('../js/world/levels-ch4.js');
+
+    // =================================================================
+    sec('OS CINCO SETORES');
+    // =================================================================
+    for (const k of SETORES) {
+      const lv = g.levels[k];
+      ok(`${k} existe`, !!lv);
+      if (!lv) continue;
+      ok(`${k} tem nome em PT e EN`, T(lv.nameKey) !== '[' + lv.nameKey + ']');
+      ok(`${k} nao gera inimigo`, (lv.maxInimigos || 0) === 0, String(lv.maxInimigos));
+      ok(`${k} tem camada de primeiro plano`, !!(lv.fores && lv.fores.length));
+      ok(`${k} tem chao e limites coerentes`, lv.maxX > lv.minX && lv.maxX <= lv.width);
+    }
+
+    // =================================================================
+    sec('OS DOIS ESTADOS — a coisa que este capitulo tem e nenhum outro tem');
+    // =================================================================
+    for (const k of SETORES) {
+      const lv = g.levels[k];
+      if (!lv) continue;
+      ok(`${k} tem os dois estados montados`, !!(lv.ch4 && lv.ch4.casa && lv.ch4.ruina));
+      if (!lv.ch4) continue;
+      const c = lv.ch4.casa, r = lv.ch4.ruina;
+      // Camadas diferentes: se forem o mesmo canvas, fumar nao muda nada.
+      ok(`${k} desenha camadas diferentes nos dois`,
+        c.layers[c.layers.length - 1].c !== r.layers[r.layers.length - 1].c);
+      ok(`${k} tem luz nos dois estados`, c.lightDefs.length > 0 && r.lightDefs.length > 0,
+        `${c.lightDefs.length} / ${r.lightDefs.length}`);
+      // A ruina e MAIS ESCURA. Se nao for, a troca nao se le.
+      ok(`${k} tem a ruina mais escura que a casa`, r.bloom < c.bloom, `${c.bloom} / ${r.bloom}`);
+      ok(`${k} tem ambiente proprio nos dois`, !!c.ambience && !!r.ambience);
+      // REGRA NUMERICA DE LUZ (M-04) nos DOIS estados, nao so num.
+      const passo = 200;
+      for (const [nome, e] of [['casa', c], ['ruina', r]]) {
+        let buracos = 0;
+        for (let x = passo / 2; x < lv.width; x += passo) {
+          if (!e.lightDefs.some(f => Math.abs(f.x - x) < passo * 0.75)) buracos++;
+        }
+        ok(`${k}/${nome} nao tem trecho sem luz nenhuma`, buracos === 0, String(buracos));
+      }
+    }
+
+    // =================================================================
+    sec('AS PORTAS — nos dois estados');
+    // =================================================================
+    for (const k of SETORES) {
+      const lv = g.levels[k];
+      if (!lv) continue;
+      for (const it of (lv.interactables || [])) {
+        if (it.action !== 'goto') continue;
+        ok(`${k} -> ${it.to} existe`, !!g.levels[it.to], it.to);
+        const alvo = g.levels[it.to];
+        ok(`${k} -> ${it.to} entra dentro do mapa`,
+          !!alvo && it.tox >= alvo.minX - 40 && it.tox <= alvo.maxX + 40, String(it.tox));
+        ok(`${k} -> ${it.to} tem prompt traduzido`, T(it.prompt) !== '[' + it.prompt + ']', it.prompt);
+      }
+    }
+    // ⚠ E CADA ESTADO PRECISA TER SAIDA. Um setor com saida so na casa
+    // prende o jogador do lado errado quando o cigarro acabar dentro dele.
+    for (const k of SETORES) {
+      const lv = g.levels[k];
+      if (!lv) continue;
+      for (const est of ['casa', 'ruina']) {
+        const saidas = lv.interactables.filter(it => it.action === 'goto' && it.so === est);
+        ok(`${k}/${est} tem pelo menos uma saida`, saidas.length > 0, String(saidas.length));
+      }
+    }
+
+    // =================================================================
+    sec('AS FALAS — e a trava que o capitulo inteiro tem');
+    // =================================================================
+    {
+      const chaves = Object.keys(i18n).length ? null : null;
+      // Todas as falas b4_ e todas as linhas c4_ existem nos dois idiomas.
+      const usadas = new Set();
+      for (const k of SETORES) {
+        const lv = g.levels[k];
+        if (!lv) continue;
+        for (const b of (lv.enterBarks || [])) usadas.add(b);
+        for (const b of (lv.barks || [])) {
+          for (const x of (Array.isArray(b.key) ? b.key : [b.key])) usadas.add(x);
+        }
+        for (const it of (lv.interactables || [])) if (it.lines) usadas.add('LINES:' + it.lines);
+      }
+      for (const u of usadas) {
+        if (u.startsWith('LINES:')) {
+          const id = u.slice(6);
+          ok(`LINES ${id} existe e nao esta vazia`, !!(LINES[id] && LINES[id].length), id);
+          for (let i = 0; i < (LINES[id] || []).length; i++) {
+            ok(`LINES ${id}[${i}] tem PT e EN`, !!LINES[id][i].pt && !!LINES[id][i].en);
+          }
+        } else {
+          ok(`fala ${u} tem texto`, T(u) !== '[' + u + ']', u);
+        }
+      }
+      // A trava: nenhuma fala do capitulo explica a casa.
+      let vazadas = [];
+      for (const id of Object.keys(LINES)) {
+        if (!id.startsWith('c4_')) continue;
+        for (const l of LINES[id]) {
+          const txt = ((l.pt || '') + ' ' + (l.en || '')).toLowerCase();
+          for (const p of PROIBIDAS) if (txt.includes(p)) vazadas.push(id + ':' + p);
+        }
+      }
+      ok('nenhuma linha c4_ usa palavra proibida', vazadas.length === 0, vazadas.join(', '));
+      // E o caderno tambem nao.
+      let vazadasJ = [];
+      for (const id of Object.keys(JOURNAL)) {
+        if (!id.startsWith('j4_')) continue;
+        const txt = ((JOURNAL[id].pt || '') + ' ' + (JOURNAL[id].en || '')).toLowerCase();
+        for (const p of PROIBIDAS) if (txt.includes(p)) vazadasJ.push(id + ':' + p);
+      }
+      ok('nenhuma pagina j4_ usa palavra proibida', vazadasJ.length === 0, vazadasJ.join(', '));
+      for (const id of ['j4_conta', 'j4_agenda', 'j4_laudo', 'j4_armario',
+                        'j4_sapato', 'j4_desenho', 'j4_fundos']) {
+        ok(`caderno tem ${id} em PT e EN`, !!(JOURNAL[id] && JOURNAL[id].pt && JOURNAL[id].en), id);
+      }
+    }
+
+    // =================================================================
+    sec('O SELETOR E A ENTRADA DO CAPITULO');
+    // =================================================================
+    {
+      const { CHAPTERS } = await import('../js/ui/panels.js');
+      ok('o seletor tem o Capitulo 4', CHAPTERS.some(c => c.n === 4));
+      const c4 = CHAPTERS.find(c => c.n === 4);
+      ok('o Capitulo 4 tem nome traduzido', c4 && T(c4.nome) !== '[' + c4.nome + ']');
+      ok('o Capitulo 4 tem descricao traduzida', c4 && T(c4.desc) !== '[' + c4.desc + ']');
+      // ⚠ A descricao NAO pode entregar a mecanica.
+      const desc = (T('chap4_desc') + ' ' + T('chap4_name')).toLowerCase();
+      ok('a descricao nao entrega o cigarro', !desc.includes('cigarro') && !desc.includes('cigarette'));
+      ok('a cartela do capitulo existe', T('chapter_4') !== '[chapter_4]');
+      ok('o nome da cartela existe', T('chapter_4_name') !== '[chapter_4_name]');
+    }
+
+    // =================================================================
+    sec('O CIGARRO — o relogio e o maco');
+    // =================================================================
+    {
+      const d = w.__dev;
+      const passo = n => { for (let i = 0; i < n; i++) d.step(1 / 60); };
+
+      g.startChapter(4);
+      for (let i = 0; i < 500 && g.state === 'chapcard'; i++) d.step(1 / 60);
+      ok('[fluxo] o capitulo abre na rua', g.level.key === 'ch4_rua', g.level.key);
+      ok('[fluxo] a casa comeca EM PE', g.cigarro.estado === 'casa', g.cigarro.estado);
+      ok('[fluxo] o maco comeca com sete', g.cigarro.maco === ch4.NO_MACO, String(g.cigarro.maco));
+      ok('[fluxo] ele chega ARMADO', g.player.hasGun === true);
+      ok('[fluxo] o casaco tem a doze', g.inv.has('shotgun'));
+      ok('[fluxo] o casaco tem o maco e o isqueiro', g.inv.has('cigs') && g.inv.has('lighter'));
+      ok('[fluxo] ele ja fuma (degrau 4 do Capitulo 3)', g.flags.cig_livre === true);
+      ok('[fluxo] a sanidade esta ligada', g.sanity.enabled === true);
+
+      // A porta da frente esta trancada, e nao ha outra entrada.
+      const porta = g.level.interactables.find(i => i.id === 'porta_frente');
+      ok('[fluxo] a porta da frente existe e recusa', !!porta && porta.action === 'ch4_porta_trancada');
+      ok('[fluxo] a porta da frente nao leva a lugar nenhum', !porta || porta.to === undefined);
+
+      // ---- acender ----
+      const antes = g.cigarro.maco;
+      g.cigarro.acender(g);
+      passo(4);
+      ok('[cigarro] acender gasta UM', g.cigarro.maco === antes - 1, String(g.cigarro.maco));
+      ok('[cigarro] acender leva a ruina', g.cigarro.estado === 'ruina', g.cigarro.estado);
+      ok('[cigarro] o setor trocou de camada',
+        g.level.layers[g.level.layers.length - 1].c === g.level.ch4.ruina.layers[1].c);
+      ok('[cigarro] a primeira vez trava o controle', g.cigarro.bloqueado === true);
+      ok('[cigarro] o relogio comeca cheio',
+        Math.abs(g.cigarro.t - ch4.DUR_CIGARRO) < 0.2, String(g.cigarro.t));
+      // ⚠ AS LUZES PRECISAM ESTAR ARMADAS. Um conjunto que nunca passou
+      // pelo construtor de Level entra com `cur` indefinido e o setor
+      // inteiro sai PRETO — e isso parece bug de camera, nao de luz.
+      ok('[cigarro] as luzes da ruina estao armadas',
+        g.level.lightDefs.every(f => typeof f.cur === 'number'));
+
+      // ---- o vao da frente so existe na ruina ----
+      const vao = g.level.interactables.find(i => i.id === 'vao_frente');
+      ok('[cigarro] o vao da parede caida esta aberto', !!vao && vao.disabled === false);
+      ok('[cigarro] a porta trancada sumiu', !!porta && porta.disabled === true);
+
+      // ---- jogar fora ----
+      g.cigarro.bloqueado = false;
+      g.player.controllable = true;
+      const antes2 = g.cigarro.maco;
+      g.cigarro.acender(g);
+      passo(2);
+      ok('[cigarro] acender com um aceso nao gasta outro',
+        g.cigarro.maco === antes2, String(g.cigarro.maco));
+      g.cigarro.jogarFora(g);
+      passo(2);
+      ok('[cigarro] jogar fora devolve a casa', g.cigarro.estado === 'casa', g.cigarro.estado);
+      ok('[cigarro] jogar fora NAO devolve o cigarro ao maco',
+        g.cigarro.maco === antes2, String(g.cigarro.maco));
+      ok('[cigarro] a porta trancada voltou', !!porta && porta.disabled === false);
+      ok('[cigarro] o vao sumiu', !!vao && vao.disabled === true);
+
+      // ---- o relogio acaba sozinho ----
+      g.cigarro.acender(g);
+      g.cigarro.t = 0.05;
+      passo(6);
+      ok('[cigarro] o cigarro acaba sozinho e a casa volta',
+        g.cigarro.estado === 'casa', g.cigarro.estado);
+
+      // ---- o maco vazio ----
+      g.cigarro.maco = 0;
+      const deu = g.cigarro.acender(g);
+      ok('[cigarro] maco vazio recusa', deu === false);
+      ok('[cigarro] maco vazio nao troca o estado', g.cigarro.estado === 'casa');
+      ok('[cigarro] o maco nunca fica negativo', g.cigarro.maco === 0, String(g.cigarro.maco));
+    }
+
+    // =================================================================
+    sec('O BURACO DO CORREDOR — o puzzle ao contrario');
+    // =================================================================
+    {
+      const d = w.__dev;
+      const passo = n => { for (let i = 0; i < n; i++) d.step(1 / 60); };
+      const lv = g.levels.ch4_corredor;
+      const bur = lv.props.buraco;
+      ok('[corredor] o setor sabe onde fica o buraco', !!bur && bur.x1 > bur.x0);
+      ok('[corredor] a casa intacta NAO tem parede',
+        (lv.ch4.casa.paredes || []).length === 0);
+      ok('[corredor] a ruina TEM a parede do buraco',
+        (lv.ch4.ruina.paredes || []).length === 1);
+
+      g.cigarro.maco = 7;
+      g.cigarro.primeira = false;
+      d.ir('ch4_corredor', bur.x0 - 30, 1);
+      passo(4);
+      // Na casa intacta ele atravessa.
+      g.cigarro.estado = 'casa';
+      mundo4.aplicarEstadoCh4(lv, 'casa');
+      g.player.x = bur.x0 - 30;
+      g.player._antesX = g.player.x;
+      d.hold('KeyD');
+      for (let i = 0; i < 260 && g.player.x < bur.x1 + 20; i++) d.step(1 / 60);
+      d.release('KeyD'); passo(3);
+      ok('[corredor] na CASA ele atravessa o corredor', g.player.x > bur.x1, String(Math.round(g.player.x)));
+
+      // Na ruina ele bate no vao e para.
+      g.player.x = bur.x0 - 30;
+      g.player._antesX = g.player.x;
+      g.cigarro.acender(g);
+      passo(3);
+      ok('[corredor] acender no corredor leva a ruina', g.cigarro.estado === 'ruina');
+      d.hold('KeyD');
+      for (let i = 0; i < 260; i++) d.step(1 / 60);
+      d.release('KeyD'); passo(3);
+      ok('[corredor] na RUINA o buraco barra', g.player.x <= bur.x0 + 1, String(Math.round(g.player.x)));
+
+      // ⚠ E TROCAR DE ESTADO EM CIMA DO BURACO NAO PODE MATAR NINGUEM: se
+      // ele estiver no meio do vao quando o cigarro acender, o jogo empurra
+      // para a beirada mais proxima.
+      mundo4.aplicarEstadoCh4(lv, 'casa');
+      g.cigarro.estado = 'casa';
+      g.player.x = (bur.x0 + bur.x1) / 2;
+      g.player._antesX = g.player.x;
+      g.cigarro.maco = 5;
+      g.cigarro.acender(g);
+      passo(3);
+      const fora = g.player.x <= bur.x0 + 2 || g.player.x >= bur.x1 - 2;
+      ok('[corredor] trocar em cima do buraco empurra para a beirada', fora,
+        String(Math.round(g.player.x)));
+    }
+
+    // =================================================================
+    sec('OS QUATRO OBRIGATORIOS — o caminho fecha com quatro cigarros');
+    // =================================================================
+    {
+      const d = w.__dev;
+      const passo = n => { for (let i = 0; i < n; i++) d.step(1 / 60); };
+      const acha = (k, id) => g.levels[k].interactables.find(i => i.id === id);
+
+      ok('[rota] 1. o vao da frente e da ruina', acha('ch4_rua', 'vao_frente').so === 'ruina');
+      ok('[rota] 2. o vao da cozinha e da ruina', acha('ch4_sala', 'vao_cozinha').so === 'ruina');
+      ok('[rota] 3. a caixa de papeis e da ruina', acha('ch4_cozinha', 'caixa').so === 'ruina');
+      ok('[rota] 4. o armario e da ruina', acha('ch4_quarto', 'armario').so === 'ruina');
+      // E o corredor e o unico que exige o contrario.
+      ok('[rota] o corredor exige a casa intacta',
+        (g.levels.ch4_corredor.ch4.ruina.paredes || []).length > 0);
+
+      // Os tres opcionais.
+      ok('[rota] o sapato e opcional e da ruina', acha('ch4_rua', 'sapato').so === 'ruina');
+      ok('[rota] os fundos sao opcionais e da ruina', acha('ch4_rua', 'fundos').so === 'ruina');
+      ok('[rota] o homem nasce desligado', acha('ch4_rua', 'homem').disabled === true);
+    }
+
+    // =================================================================
+    sec('A CAIXA DE PAPEIS — o que ele veio buscar');
+    // =================================================================
+    {
+      const d = w.__dev;
+      const passo = n => { for (let i = 0; i < n; i++) d.step(1 / 60); };
+      g.startChapter(4);
+      for (let i = 0; i < 500 && g.state === 'chapcard'; i++) d.step(1 / 60);
+      g.cigarro.primeira = false;
+      d.ir('ch4_cozinha', 380, 1);
+      g.cigarro.acender(g);
+      passo(4);
+      const caixa = g.level.interactables.find(i => i.id === 'caixa');
+      ok('[caixa] a caixa esta alcancavel na ruina', !!caixa && caixa.disabled === false);
+      g.doInteract(caixa);
+      passo(4);
+      ok('[caixa] pegar a caixa da o endereco', g.flags.ch4_endereco === true);
+      ok('[caixa] a conta foi para o caderno', g.journal.has('j4_conta'));
+      ok('[caixa] a agenda foi para o caderno', g.journal.has('j4_agenda'));
+      ok('[caixa] o laudo foi para o caderno', g.journal.has('j4_laudo'));
+      ok('[caixa] a caixa nao pode ser pega duas vezes', caixa.disabled === true);
+    }
+
+    // =================================================================
+    sec('O FIM — as duas versoes, decididas pela conta do maco');
+    // =================================================================
+    {
+      const d = w.__dev;
+      const passo = n => { for (let i = 0; i < n; i++) d.step(1 / 60); };
+
+      // ---- versao A: sobrou cigarro ----
+      g.startChapter(4);
+      for (let i = 0; i < 500 && g.state === 'chapcard'; i++) d.step(1 / 60);
+      g.cigarro.primeira = false;
+      g.flags.ch4_endereco = true;
+      g.cigarro.maco = 3;
+      d.ir('ch4_sala', 200, 1);
+      passo(6);
+      ok('[fim A] o telefone comeca a tocar', g.telefone.tocando === true);
+      const telA = g.level.interactables.find(i => i.id === 'telefone_casa');
+      ok('[fim A] o telefone virou coisa de apertar', !!telA && telA.action === 'ch4_atender');
+      g.doInteract(telA);
+      passo(4);
+      ok('[fim A] atender encerra o capitulo', g.flags.ch4_fim === true);
+      ok('[fim A] com cigarro sobrando o fim e o da CASA',
+        g.flags.ch4_final === 'casa', g.flags.ch4_final);
+
+      // ---- versao B: maco vazio ----
+      g.startChapter(4);
+      for (let i = 0; i < 500 && g.state === 'chapcard'; i++) d.step(1 / 60);
+      g.cigarro.primeira = false;
+      g.flags.ch4_endereco = true;
+      g.cigarro.maco = 0;
+      g.cigarro.estado = 'ruina';
+      d.ir('ch4_sala', 200, 1);
+      passo(6);
+      const telB = g.level.interactables.find(i => i.id === 'telefone_ruina');
+      ok('[fim B] o telefone da ruina tambem atende', !!telB && telB.action === 'ch4_atender');
+      g.doInteract(telB);
+      passo(4);
+      ok('[fim B] com o maco vazio o fim e o da RUINA',
+        g.flags.ch4_final === 'ruina', g.flags.ch4_final);
+
+      // ---- versao B com a casa em pe: a casa para de fingir ----
+      //
+      // O maco pode acabar com o ultimo cigarro queimando ate o fim, e ai o
+      // jogador esta vendo o abajur aceso enquanto o texto fala de uma
+      // cozinha sem telhado. A tela tem que concordar com a fala.
+      g.startChapter(4);
+      for (let i = 0; i < 500 && g.state === 'chapcard'; i++) d.step(1 / 60);
+      g.cigarro.primeira = false;
+      g.flags.ch4_endereco = true;
+      g.cigarro.maco = 0;
+      g.cigarro.estado = 'casa';
+      d.ir('ch4_sala', 200, 1);
+      passo(6);
+      const telC = g.level.interactables.find(i => i.id === 'telefone_casa');
+      g.doInteract(telC);
+      passo(4);
+      ok('[fim B] maco vazio com a casa em pe ainda da o fim da RUINA',
+        g.flags.ch4_final === 'ruina', g.flags.ch4_final);
+      ok('[fim B] e a casa cai para a ruina na hora',
+        g.cigarro.estado === 'ruina' && g.level.estadoCh4 === 'ruina', g.level.estadoCh4);
+    }
+
+    // =================================================================
+    sec('O SOFTLOCK DA CALCADA — achado por este teste, e consertado');
+    // =================================================================
+    {
+      const d = w.__dev;
+      const passo = n => { for (let i = 0; i < n; i++) d.step(1 / 60); };
+      g.startChapter(4);
+      for (let i = 0; i < 500 && g.state === 'chapcard'; i++) d.step(1 / 60);
+      g.cigarro.primeira = false;
+      const pf = () => g.levels.ch4_rua.interactables.find(i => i.id === 'porta_frente');
+      const pa = () => g.levels.ch4_rua.interactables.find(i => i.id === 'porta_aberta');
+      passo(3);
+      ok('[softlock] antes de entrar, a porta recusa', pf().disabled === false);
+      ok('[softlock] antes de entrar, nao ha porta que abre', pa().disabled === true);
+
+      // Ele entra uma vez pelo vao da parede caida.
+      d.ir('ch4_sala', 200, 1);
+      passo(3);
+      ok('[softlock] entrar na sala marca a flag', g.flags.ch4_entrou === true);
+
+      // Volta para a rua com o maco vazio e a casa em pe: tem que conseguir
+      // entrar. Sem o conserto, isto e o fim da partida.
+      g.cigarro.maco = 0;
+      g.cigarro.estado = 'casa';
+      d.ir('ch4_rua', 600, 1);
+      passo(3);
+      ok('[softlock] depois de entrar, a porta abre', pa().disabled === false);
+      ok('[softlock] e a porta trancada sai de cena', pf().disabled === true);
+      ok('[softlock] a porta que abre leva para a sala', pa().to === 'ch4_sala');
+      g.doInteract(pa());
+      for (let i = 0; i < 200 && g.level.key !== 'ch4_sala'; i++) d.step(1 / 60);
+      ok('[softlock] e com o maco vazio ele CONSEGUE entrar',
+        g.level.key === 'ch4_sala', g.level.key);
+    }
+
+    // =================================================================
+    sec('A FIGURA — ela so anda quando ele nao esta olhando');
+    // =================================================================
+    {
+      const d = w.__dev;
+      const passo = n => { for (let i = 0; i < n; i++) d.step(1 / 60); };
+      g.startChapter(4);
+      for (let i = 0; i < 500 && g.state === 'chapcard'; i++) d.step(1 / 60);
+      g.cigarro.primeira = false;
+      d.ir('ch4_corredor', 60, 1);
+      // Dois primeiros cigarros: ela ainda nao existe.
+      for (let n = 0; n < 2; n++) { g.cigarro.acender(g); passo(2); g.cigarro.jogarFora(g); passo(2); }
+      ok('[figura] nos dois primeiros ela nao aparece', g.figura.visivel === false);
+      g.cigarro.acender(g); passo(2);
+      ok('[figura] no terceiro ela esta la', g.figura.visivel === true);
+      ok('[figura] e ela esta no setor certo', g.figura.level === 'ch4_corredor', String(g.figura.level));
+      const d1 = Math.abs(g.figura.x - g.player.x);
+      g.cigarro.jogarFora(g); passo(2);
+      ok('[figura] na casa intacta ela some da tela', g.figura.visivel === false);
+      g.cigarro.acender(g); passo(2);
+      const d2 = Math.abs(g.figura.x - g.player.x);
+      ok('[figura] ela esta MAIS PERTO na proxima', d2 < d1, `${Math.round(d1)} -> ${Math.round(d2)}`);
+    }
+
+    // =================================================================
+    sec('SAIR DO CAPITULO DEVOLVE A CASA EM PE');
+    // =================================================================
+    {
+      const d = w.__dev;
+      const passo = n => { for (let i = 0; i < n; i++) d.step(1 / 60); };
+      g.startChapter(4);
+      for (let i = 0; i < 500 && g.state === 'chapcard'; i++) d.step(1 / 60);
+      g.cigarro.primeira = false;
+      g.cigarro.acender(g); passo(3);
+      ok('[saida] a ruina esta no ar', g.levels.ch4_rua.estadoCh4 === 'ruina');
+      g.toMenu();
+      passo(3);
+      // ⚠ Os setores sao os MESMOS objetos desde o boot. Sair com a ruina no
+      // ar contaminaria a proxima partida — inclusive de outro capitulo.
+      let sujos = SETORES.filter(k => g.levels[k].estadoCh4 !== 'casa');
+      ok('[saida] todos os setores voltaram para a casa', sujos.length === 0, sujos.join(', '));
+      ok('[saida] o jogo voltou ao menu', g.state === 'menu', g.state);
+    }
+
+    // =================================================================
+    sec('SALVAR E CARREGAR NO MEIO DA RUINA');
+    // =================================================================
+    {
+      const d = w.__dev;
+      const passo = n => { for (let i = 0; i < n; i++) d.step(1 / 60); };
+      g.startChapter(4);
+      for (let i = 0; i < 500 && g.state === 'chapcard'; i++) d.step(1 / 60);
+      g.cigarro.primeira = false;
+      d.ir('ch4_quarto', 300, 1);
+      g.cigarro.maco = 4;
+      g.cigarro.acender(g);
+      g.figura.passos = 2;
+      g.marcas.registrar(g, 340);
+      passo(6);
+      const antes = {
+        maco: g.cigarro.maco, estado: g.cigarro.estado,
+        passos: g.figura.passos, marcas: g.marcas.lista.length,
+      };
+      g.saveSlot(9);
+      // Suja tudo o que der, para o carregamento ter o que desfazer.
+      g.cigarro.jogarFora(g);
+      g.cigarro.maco = 7;
+      g.figura.passos = 0;
+      g.marcas.reset();
+      d.ir('ch4_rua', 100, 1);
+      passo(4);
+      g.loadSlot(9);
+      // ⚠ Carregar NAO e imediato: passa pela tela de carregamento, e o
+      // estado so e aplicado quando ela termina. Um laco curto demais aqui
+      // testava o jogo ANTES de ele ter carregado — foi o que aconteceu na
+      // primeira versao deste bloco, e as sete falhas eram do teste.
+      for (let i = 0; i < 1200 && g.state !== 'play'; i++) d.step(1 / 60);
+      for (let i = 0; i < 30; i++) d.step(1 / 60);
+      ok('[save] volta para o setor certo', g.level.key === 'ch4_quarto', g.level.key);
+      ok('[save] o maco volta ao que era', g.cigarro.maco === antes.maco, String(g.cigarro.maco));
+      // ⚠ Sem isto, salvar na ruina e carregar devolvia a casa em pe com o
+      // maco cheio: o save DESFAZIA o puzzle inteiro.
+      ok('[save] a casa continua em RUINA', g.cigarro.estado === 'ruina', g.cigarro.estado);
+      ok('[save] o setor foi desenhado como ruina', g.level.estadoCh4 === 'ruina', g.level.estadoCh4);
+      ok('[save] o cigarro nao apaga no primeiro quadro', g.cigarro.t >= 0.4, String(g.cigarro.t));
+      ok('[save] a figura lembra quanto andou', g.figura.passos === antes.passos, String(g.figura.passos));
+      ok('[save] as marcas de tiro voltam', g.marcas.lista.length === antes.marcas,
+        String(g.marcas.lista.length));
+      try { w.localStorage.removeItem('mc_slot_9'); } catch (e) {}
+    }
+
+    // =================================================================
+    sec('AS REGRESSOES QUE JA EXISTIAM CONTINUAM DE PE');
+    // =================================================================
+    {
+      for (const k of ['ch2_corridor', 'ch3_reception', 'ch3_past', 'ch3_home', 'ch3_room']) {
+        ok(`${k} continua existindo`, !!g.levels[k]);
+      }
+      // ⚠ O Capitulo 4 usa a MESMA casa do flashback do 3. Se o 4 tivesse
+      // mexido nos setores do 3, o flashback quebraria junto.
+      ok('a casa do Capitulo 3 nao virou casa de dois estados', !g.levels.ch3_home.ch4);
+      ok('o quarto do Capitulo 3 continua intocado', !g.levels.ch3_room.ch4);
+    }
+
+    // =================================================================
+    const total = linhas.filter(l => l.startsWith('  ')).length;
+    out.className = falhas ? 'erro' : 'ok';
+    out.textContent = linhas.join('\n') + `\n\n${total - falhas}/${total} passaram.`
+      + (falhas ? `\n${falhas} FALHA(S).` : '\nTUDO VERDE.');
+  } catch (e) {
+    out.className = 'erro';
+    out.textContent = linhas.join('\n') + '\n\nERRO: ' + (e && e.stack ? e.stack : e);
+  }
+};
+</script>
+</html>

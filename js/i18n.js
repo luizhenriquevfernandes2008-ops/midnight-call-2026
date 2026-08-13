@@ -92,6 +92,11 @@ const STR = {
   prompt_look:    { pt: 'OLHAR',      en: 'LOOK' },
   prompt_talk:    { pt: 'FALAR',      en: 'TALK' },
   prompt_use:     { pt: 'USAR',       en: 'USE' },
+  // Capitulo 4: a ruina tem vao onde a casa tem parede, entao ENTRAR e
+  // SAIR sao verbos de porta que nao e porta.
+  prompt_enter:   { pt: 'ENTRAR',     en: 'ENTER' },
+  prompt_exit:    { pt: 'SAIR',       en: 'GO OUT' },
+  prompt_take:    { pt: 'PEGAR',      en: 'TAKE' },
   skip_hold:      { pt: 'SEGURE ESC PARA PULAR', en: 'HOLD ESC TO SKIP' },
   loc_street:     { pt: 'RUA HOLLAND, 2h14',    en: 'HOLLAND STREET, 2:14 AM' },
   loc_alley:      { pt: 'BECO DOS FUNDOS',      en: 'BACK ALLEY' },
@@ -192,6 +197,8 @@ const STR = {
   chapter_2_name: { pt: 'Gentileza',            en: 'Kindness' },
   chapter_3:      { pt: 'CAPITULO TRES',        en: 'CHAPTER THREE' },
   chapter_3_name: { pt: 'Gaveta D',             en: 'Drawer D' },
+  chapter_4:      { pt: 'CAPITULO QUATRO',      en: 'CHAPTER FOUR' },
+  chapter_4_name: { pt: 'A Casa',               en: 'The House' },
 
   // ---------- CAPITULO 3: os seis setores ----------
   loc_reception:  { pt: 'RECEPCAO',             en: 'FRONT DESK' },
@@ -205,6 +212,16 @@ const STR = {
   loc_room:       { pt: 'O QUARTO',             en: 'HER ROOM' },
   loc_inside:     { pt: 'DENTRO',               en: 'INSIDE' },
   loc_cell:       { pt: 'CUSTODIA',             en: 'HOLDING' },
+
+  // ---------- CAPITULO 4: a casa ----------
+  // ⚠ Nenhum cartao daqui pode dizer "sete anos atras", "lembranca" ou
+  // qualquer coisa que explique o que esta acontecendo. Sao os nomes dos
+  // comodos de uma casa, e so.
+  loc_ch4_rua:      { pt: 'RUA HOLLAND, 3h',   en: 'HOLLAND STREET, 3 AM' },
+  loc_ch4_sala:     { pt: 'A SALA',            en: 'THE LIVING ROOM' },
+  loc_ch4_cozinha:  { pt: 'A COZINHA',         en: 'THE KITCHEN' },
+  loc_ch4_corredor: { pt: 'O CORREDOR',        en: 'THE HALLWAY' },
+  loc_ch4_quarto:   { pt: 'O QUARTO',          en: 'HER ROOM' },
 
   loc_corridor:   { pt: 'CORREDOR DE CARGA',    en: 'LOADING CORRIDOR' },
   loc_office:     { pt: 'ESCRITORIO',           en: 'FRONT OFFICE' },
@@ -682,6 +699,12 @@ const STR = {
                     en: 'The whole warehouse. With the slat, without the gun.' },
   chap3_desc:     { pt: 'A delegacia. Sem combate — so conversa.',
                     en: 'The precinct. No combat — talk only.' },
+  chap4_name:     { pt: 'A Casa',               en: 'The House' },
+  // ⚠ A descricao NAO pode entregar a mecanica. "Ele volta na casa" e tudo
+  // o que o seletor tem direito de dizer: descobrir o que o cigarro faz e
+  // o tutorial inteiro do capitulo.
+  chap4_desc:     { pt: 'Ele volta na casa. Com tudo o que devolveram.',
+                    en: 'He goes back to the house. With everything they gave back.' },
 
   // ---------- falas soltas: recepcao ----------
   b3_rec_1:   { pt: 'Sete anos sem subir essa escada.',
@@ -908,6 +931,134 @@ const STR = {
                    en: 'As you wish. Good night, David.' },
   ch3_end_1:     { pt: 'Chamaram a senha dele.', en: 'They called his number.' },
   ch3_end_2:     { pt: 'E ele nao estava mais la.', en: 'And he was not there anymore.' },
+
+  // =====================================================================
+  // CAPITULO 4 — "A CASA"
+  //
+  // ⚠ REGRA DE ESCRITA DO CAPITULO INTEIRO: o David NAO explica a casa.
+  // Nenhuma fala daqui pode conter as palavras lembranca, memoria,
+  // alucinacao ou sonho. Ele constata e volta ao servico. No instante em
+  // que ele perguntar "como", o capitulo morre.
+  // =====================================================================
+
+  // ---------- a rua ----------
+  b4_rua_1:   { pt: 'A casa tá em pé.',
+                en: 'The house is standing.' },
+  b4_rua_2:   { pt: 'Ela não tá em pé faz sete anos.',
+                en: 'It has not been standing for seven years.' },
+  b4_rua_3:   { pt: '...',                       en: '...' },
+  b4_rua_4:   { pt: 'A conta de telefone ficava na gaveta da cozinha.',
+                en: 'The phone bill was in the kitchen drawer.' },
+  b4_trancada_1:{ pt: 'Trancada.',               en: 'Locked.' },
+  b4_trancada_2:{ pt: 'Claro que tá trancada.',  en: 'Of course it is locked.' },
+  // A UNICA dica do capitulo, e ela so aparece depois de 90 segundos de
+  // jogador parado. Nao tem segunda.
+  b4_dica:    { pt: 'Sete anos sem.',            en: 'Seven years without.' },
+  b4_maco_vazio:{ pt: '...',                     en: '...' },
+
+  // ---------- a sala ----------
+  b4_sala_1:  { pt: '...',                       en: '...' },
+  b4_sala_2:  { pt: 'A gaveta da cozinha. É só isso.',
+                en: 'The kitchen drawer. That is all.' },
+  b4_julie:   { pt: 'Julie.',                    en: 'Julie.' },
+  b4_radio_mudo:{ pt: 'Parou.',                  en: 'It stopped.' },
+
+  // ---------- a cozinha ----------
+  b4_coz_1:   { pt: 'A gaveta de baixo. Sempre a de baixo.',
+                en: 'The bottom drawer. Always the bottom one.' },
+  b4_gaveta_1:{ pt: 'Tá tudo aqui.',             en: 'It is all here.' },
+  b4_gaveta_2:{ pt: 'E eu não consigo pegar nada.',
+                en: 'And I cannot pick up a single thing.' },
+  b4_caixa_1: { pt: 'A conta. Ela tava aqui.',   en: 'The bill. It was here.' },
+  b4_caixa_2: { pt: 'Sete anos nessa gaveta.',   en: 'Seven years in that drawer.' },
+  b4_caixa_3: { pt: 'Eu procurei em todo lugar menos dentro de casa.',
+                en: 'I looked everywhere except inside my own house.' },
+  b4_agenda_1:{ pt: 'Andrade.',                  en: 'Andrade.' },
+  b4_agenda_2:{ pt: 'Turno da noite. Mesa dos fundos.',
+                en: 'Night shift. Back desk.' },
+  // ⚠ ELE NAO COMEMORA. Le, fecha a agenda e guarda no bolso.
+  b4_agenda_3:{ pt: 'Achei.',                    en: 'Found it.' },
+  b4_agenda_4:{ pt: '...',                       en: '...' },
+  b4_laudo:   { pt: 'Origem indeterminada.',     en: 'Cause undetermined.' },
+  // ⚠ D-12: A ORIGEM DO INCENDIO NAO E RESPONDIDA. Nem aqui, nem no 5,
+  // nem no 6. Enquanto nao ha resposta, o cigarro na mao dele e a
+  // acusacao que ele faz a si mesmo — e e disso que o 5 vive.
+  b4_laudo_2: { pt: 'Sete anos e é isso que tá escrito.',
+                en: 'Seven years and that is what it says.' },
+  b4_nada_dela:{ pt: 'Não tem nada dela nessa caixa.',
+                en: 'There is nothing of hers in this box.' },
+
+  // ---------- o corredor ----------
+  b4_corr_1:  { pt: 'O chão daqui não existe mais.',
+                en: 'The floor here is gone.' },
+  b4_figura_1:{ pt: 'Tem alguém ali.',           en: 'Someone is there.' },
+  b4_figura_2:{ pt: 'Não dá pra ver a roupa dele. Não dá pra ver nada dele.',
+                en: 'I cannot see his clothes. I cannot see anything of him.' },
+  b4_figura_3:{ pt: '...',                       en: '...' },
+  b4_figura_senta:{ pt: '...',                   en: '...' },
+
+  // ---------- o quarto ----------
+  b4_qrt_1:   { pt: '...',                       en: '...' },
+  b4_qrt_2:   { pt: 'Ela arrumava a cama sozinha. Ninguém mandou ela fazer isso.',
+                en: 'She made her own bed. Nobody told her to.' },
+  b4_des_1:   { pt: 'Uma casa. Um sol. Três bonecos.',
+                en: 'A house. A sun. Three little people.' },
+  b4_des_2:   { pt: 'Um dos bonecos tá do lado de fora da casa.',
+                en: 'One of them is outside the house.' },
+  b4_des_3:   { pt: 'Fumando.',                  en: 'Smoking.' },
+  // ★★★ AS MARCAS. Ele constata; quem conclui e o jogador.
+  b4_arm_1:   { pt: '...',                       en: '...' },
+  b4_arm_2:   { pt: 'Isso é por dentro.',        en: 'That is from the inside.' },
+  b4_arm_3:   { pt: 'Ela se escondeu aqui.',     en: 'She hid in here.' },
+  b4_arm_4:   { pt: 'E ficou um tempo.',         en: 'And she stayed a while.' },
+  b4_arm_casa:{ pt: 'Roupa. Só roupa.',          en: 'Clothes. Just clothes.' },
+
+  // ---------- a varanda ----------
+  // ⚠ NAO ESCREVER MAIS NENHUMA LINHA NESSA CENA. A tentacao de explicar
+  // aqui vai ser enorme e ela mata a cena.
+  b4_sapato_1:{ pt: '...',                       en: '...' },
+  b4_sapato_2:{ pt: 'Isso tava do lado de fora.',
+                en: 'That was outside.' },
+  b4_sapato_3:{ pt: 'O fogo não chegou aqui.',   en: 'The fire never reached here.' },
+
+  // ---------- os fundos ----------
+  b4_fundos_1:{ pt: 'Alguém dorme aqui.',        en: 'Someone sleeps here.' },
+  b4_fundos_2:{ pt: '...',                       en: '...' },
+  b4_fundos_3:{ pt: 'Alguém dorme aqui faz tempo.',
+                en: 'Someone has been sleeping here a long time.' },
+  // ⚠ ELE NAO COMPLETA. Nem aqui, nem no 5. Quem completa e quem joga.
+  b4_cartaz_nome_1:{ pt: 'Esse é novo.',         en: 'This one is new.' },
+  b4_cartaz_nome_2:{ pt: 'Esse é de hoje.',      en: 'This one is from today.' },
+  b4_cartaz_sem_1:{ pt: 'Essa letra é minha.',   en: 'That is my handwriting.' },
+  b4_cartaz_sem_2:{ pt: 'E eu parei no meio.',   en: 'And I stopped halfway.' },
+
+  // ---------- o homem de sobretudo ----------
+  b4_homem_1: { pt: 'Eu também dizia isso.',     en: 'I used to say that too.' },
+  b4_homem_2: { pt: 'Dizia o quê?',              en: 'Say what?' },
+  b4_homem_3: { pt: 'Hoje não.',                 en: 'Not today.' },
+  b4_homem_4: { pt: 'Só uma guimba acesa na beirada.',
+                en: 'Just a lit stub on the edge.' },
+
+  // ---------- o telefone: o fim ----------
+  b4_tel_alo: { pt: 'Alô.',                      en: 'Hello.' },
+  b4_tel_nada:{ pt: '...',                       en: '...' },
+  b4_tel_end_1:{ pt: 'Andrade. Rua Vinte e Dois, 114.',
+                 en: 'Andrade. Twenty-Second Street, 114.' },
+  b4_tel_end_2:{ pt: 'Tá bom.',                  en: 'All right.' },
+  b4_doze_1:  { pt: '...',                       en: '...' },
+  // ⚠ REPETICAO EXATA da fala do fim do Capitulo 3. Ele disse isso na
+  // delegacia sem arma nenhuma; agora diz com dois cartuchos na mao, e o
+  // jogador ouve a diferenca.
+  b4_doze_2:  { pt: 'De um jeito ou de outro, ele me diz.',
+                en: 'One way or another, he tells me.' },
+
+  // ---------- avisos ----------
+  aviso_ch4_caixa:  { pt: 'A CAIXA DE PAPEIS — CONTA, AGENDA E LAUDO',
+                      en: 'THE BOX OF PAPERS — BILL, ADDRESS BOOK, REPORT' },
+  aviso_ch4_maco:   { pt: 'O MACO ESTA VAZIO',
+                      en: 'THE PACK IS EMPTY' },
+  aviso_ch4_devolve:{ pt: 'ELE TE DEU UM',
+                      en: 'HE GAVE YOU ONE' },
 };
 
 export function t(key) {
@@ -1425,6 +1576,110 @@ export const LINES = {
       en: 'The shelf of things she lets nobody tidy.' },
     { pt: 'Tem uma ordem aí. Eu nunca entendi qual é, e nunca mexi.',
       en: 'There is an order to it. I never worked out which, and I never touched it.' },
+  ],
+
+  // =====================================================================
+  // CAPITULO 4 — "A CASA"
+  //
+  // ⚠ CADA OBJETO TEM DUAS DESCRICOES, uma por estado, e e por isso que
+  // este bloco e o dobro do tamanho dos outros. Metade do trabalho de
+  // escrita do capitulo esta aqui: a mesma coisa vista dos dois lados.
+  //
+  // A regra vale em todas: ele NAO explica a casa, e nao usa as palavras
+  // lembranca, memoria, alucinacao ou sonho.
+  // =====================================================================
+
+  c4_varanda_casa: [
+    { pt: 'O banco. E o cinzeiro que ela punha aqui pra eu não sujar o chão.',
+      en: 'The bench. And the ashtray she kept out here so I would not dirty the floor.' },
+    { pt: 'Daqui dá pra ver a rua inteira.',
+      en: 'From here you can see the whole street.' },
+  ],
+  c4_varanda_ruina: [
+    { pt: 'O assoalho cedeu no meio.',
+      en: 'The decking gave way in the middle.' },
+    { pt: 'O banco virou carvão. O resto ficou.',
+      en: 'The bench turned to charcoal. The rest stayed.' },
+  ],
+  c4_fundos_casa: [
+    { pt: 'A garagem. Fechada, como sempre.',
+      en: 'The garage. Shut, like always.' },
+  ],
+  c4_tel_casa: [
+    { pt: 'Esse é o daqui de dentro.',
+      en: 'That is the inside line.' },
+    { pt: 'O da varanda toca junto.',
+      en: 'The one on the porch rings with it.' },
+  ],
+  c4_tel_ruina: [
+    { pt: 'Fio derretido.',
+      en: 'The cord is melted.' },
+    { pt: 'Ele não toca faz sete anos.',
+      en: 'It has not rung in seven years.' },
+  ],
+  c4_sofa_casa: [
+    { pt: 'Ela dormia aqui quando eu chegava tarde.',
+      en: 'She used to sleep here when I got in late.' },
+    { pt: 'Pra eu não subir no escuro e me achar sozinho.',
+      en: 'So I would not walk up in the dark and find myself alone.' },
+  ],
+  c4_sofa_ruina: [
+    { pt: 'Sobraram as molas.',
+      en: 'The springs are what is left.' },
+    { pt: '...',
+      en: '...' },
+  ],
+  c4_retrato_casa: [
+    { pt: 'Nós três.',
+      en: 'The three of us.' },
+    { pt: 'Eu tô rindo nessa foto.',
+      en: 'I am laughing in that picture.' },
+  ],
+  // ⚠ REGRA DO ROSTO: nem aqui, nem no cartaz, nem no desenho. O rosto
+  // dela nao e legivel em lugar nenhum do capitulo.
+  c4_retrato_ruina: [
+    { pt: 'O vidro estourou pra dentro.',
+      en: 'The glass blew inward.' },
+    { pt: 'Dá pra ver as três formas. Não dá pra ver mais nada.',
+      en: 'You can make out three shapes. Nothing else.' },
+  ],
+  c4_pia_casa: [
+    { pt: 'Louça lavada, escorrendo.',
+      en: 'Dishes washed, draining.' },
+    { pt: 'Ela nunca deixou pro dia seguinte.',
+      en: 'She never left it for the next day.' },
+  ],
+  c4_pia_ruina: [
+    { pt: 'Arrancaram a pia da parede. Ou ela caiu sozinha.',
+      en: 'The sink was torn off the wall. Or it fell on its own.' },
+  ],
+  c4_buraco: [
+    { pt: 'Dois metros de vão. Terra e ferro no fundo.',
+      en: 'Six feet of nothing. Dirt and iron at the bottom.' },
+    { pt: 'Não dá pra pular e não dá pra descer.',
+      en: 'Cannot jump it, cannot climb down.' },
+  ],
+  c4_cama_casa: [
+    { pt: 'A cama está feita.',
+      en: 'The bed is made.' },
+  ],
+  c4_cama_ruina: [
+    { pt: 'Sobrou o estrado.',
+      en: 'The frame is all that is left.' },
+  ],
+  c4_desenhos_ruina: [
+    { pt: 'Aqui era onde ficavam os desenhos.',
+      en: 'This is where the drawings were.' },
+    { pt: 'Papel não sobrevive a isso.',
+      en: 'Paper does not survive that.' },
+  ],
+  c4_radio_casa: [
+    { pt: 'Tocando. A estação que ela ouvia.',
+      en: 'Playing. The station she used to listen to.' },
+  ],
+  c4_radio_ruina: [
+    { pt: 'Derretido em cima da estante.',
+      en: 'Melted on top of the shelf.' },
   ],
 };
 
@@ -2856,6 +3111,27 @@ export const JOURNAL = {
              en: 'I had a lit cigarette in my hand when my house started to burn. The report says undetermined origin and Michael says it was not me. Both can be right and it changes nothing: for seven years I have not been able to light one without lighting that one.' },
   c_visita:{ cat: 'deduc', pt: 'Sete anos de assinaturas minhas no livro da custódia, e a porta da cela nunca esteve trancada. Ninguém me trouxe aqui. Eu venho. Toda noite. E toda noite eu esqueço que vim.',
              en: 'Seven years of my signatures in the holding book, and the cell door was never locked. Nobody brought me here. I come. Every night. And every night I forget that I came.' },
+
+  // ---------- CAPITULO 4: a casa ----------
+  //
+  // ⚠ O caderno e o unico lugar do capitulo em que o David escreve mais do
+  // que ele fala. Ele constata em voz alta e anota o resto — e mesmo aqui
+  // ele nao usa as palavras lembranca, memoria ou alucinacao.
+  j4_conta:  { cat: 'clue', pt: 'A conta de telefone do mês estava na gaveta da cozinha o tempo todo. Uma chamada recebida às 02h14, e o número de origem é um ramal da delegacia. Sete anos procurando isso em todo lugar menos dentro de casa.',
+               en: 'That month\'s phone bill was in the kitchen drawer the whole time. One incoming call at 2:14, and the originating number is a precinct extension. Seven years looking for that everywhere except inside my own house.' },
+  j4_agenda: { cat: 'people', pt: 'Andrade está na minha agenda, na letra A, com a minha letra. Turno da noite, mesa dos fundos, e um endereço. Eu escrevi esse endereço com a minha mão e nunca fui lá.',
+               en: 'Andrade is in my address book, under A, in my handwriting. Night shift, back desk, and an address. I wrote that address with my own hand and never went there.' },
+  j4_laudo:  { cat: 'clue', pt: 'Cópia carbonada do laudo do incêndio: ORIGEM INDETERMINADA. Sete anos e é isso que está escrito. Não diz que fui eu. Não diz que não fui.',
+               en: 'Carbon copy of the fire report: CAUSE UNDETERMINED. Seven years and that is what it says. It does not say it was me. It does not say it was not.' },
+  // ★★★ A anotacao mais importante do capitulo, e ela nao conclui nada.
+  j4_armario:{ cat: 'clue', pt: 'A porta do armário do quarto dela está caída com a face de dentro para cima. Marcas de unha, por dentro, quatro grupos. Quem faz isso está do lado de dentro e está puxando.',
+               en: 'The door of her bedroom closet lies with its inner face up. Fingernail marks, on the inside, four sets. Whoever does that is on the inside, and pulling.' },
+  j4_sapato: { cat: 'clue', pt: 'Um sapato dela na soleira da frente, do lado de fora. O fogo não chegou àquele degrau. Ninguém deixa um sapato ali entrando.',
+               en: 'One of her shoes on the front threshold, outside. The fire never reached that step. Nobody leaves a shoe there on the way in.' },
+  j4_desenho:{ cat: 'self', pt: 'Uma casa, um sol, três bonecos. Um dos bonecos está do lado de fora da casa, e tem uma risca laranja na mão dele. Ela desenhou isso antes.',
+               en: 'A house, a sun, three little figures. One of them is outside the house, with an orange line in his hand. She drew that before.' },
+  j4_fundos: { cat: 'place', pt: 'Tem um colchão nos fundos da garagem queimada, cinzas frescas numa lata e maços vazios da minha marca. E um bolo de cartazes de desaparecida, impressos, amarrados com barbante. Alguém dorme ali faz tempo.',
+               en: 'There is a mattress at the back of the burnt garage, fresh ash in a can and empty packs of my brand. And a stack of missing-person posters, printed, tied with string. Someone has been sleeping there a long time.' },
 };
 
 // ---------------------------------------------------------------------------

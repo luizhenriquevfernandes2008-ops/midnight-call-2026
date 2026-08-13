@@ -12000,6 +12000,1289 @@ function buildChapter3() {
   Object.defineProperty(__exp, "buildInsideCell", { get: function(){ return buildInsideCell; }, enumerable: true });
   Object.defineProperty(__exp, "buildChapter3", { get: function(){ return buildChapter3; }, enumerable: true });
 };
+__mods["world/levels-ch4.js"] = function(__exp){
+// levels-ch4.js — os setores do Capitulo 4, "A CASA".
+//
+// O Capitulo 3 termina com ele decidindo achar o Andrade. Ele precisa de um
+// endereco, e o unico papel dele de sete anos atras esta na casa. Ele vai la
+// POR MOTIVO DE DETETIVE — nao vai visitar a dor, vai buscar uma conta de
+// telefone. Chega, e A CASA ESTA EM PE.
+//
+// ⚠ ISTO NAO E FLASHBACK. Sem cartela, sem sepia, sem troca de roupa, sem
+// tirar o controle da mao. O jogo NUNCA explica o que esta acontecendo, e o
+// David nao especula. Ver ROTEIRO.txt, PARTE XI.
+//
+// ----------------------------------------------------------------------
+// A ESTRUTURA DESTE ARQUIVO — e ela e diferente de todos os outros
+// ----------------------------------------------------------------------
+// Cada setor daqui e UM setor com DOIS ESTADOS desenhados por cima da mesma
+// geometria:
+//
+//   casa .... a casa como ela era. Luz, movel, papel de parede. E o PADRAO.
+//   ruina ... sete anos depois do fogo. E o que aparece enquanto ele fuma.
+//
+// Os dois estados moram em `lvl.ch4.casa` e `lvl.ch4.ruina`, e quem troca e
+// `aplicarEstadoCh4()`, no fim deste arquivo. Trocar de estado nao recria
+// nada: os canvas dos dois ja estao prontos desde o boot.
+//
+// A REGRA QUE FAZ O PUZZLE: cada estado tem uma topologia propria.
+//   · parede caida na ruina = PASSAGEM que a casa intacta nao tem
+//   · assoalho do corredor na ruina = BURACO que so a casa intacta cobre
+// Entao o jogador e obrigado a acender de proposito E a apagar de proposito.
+//
+// A REGRA NUMERICA DE LUZ (erro M-04) vale aqui como em todo lugar, e vale
+// NOS DOIS ESTADOS: `preencher()` e chamada duas vezes por setor.
+// ----------------------------------------------------------------------
+
+const { VW, VH, makeBuffer, mulberry32 } = __req("core/gfx.js");
+const { rect, grainRect, ditherV } = __req("art/pixel.js");
+const M = __req("world/materials.js");
+const { Level } = __req("world/levels.js");
+
+const GY = 214;
+
+// ---------------------------------------------------------------------------
+// pinceis da ruina — so existem aqui
+// ---------------------------------------------------------------------------
+
+// Preenchimento fraco na altura do chao, a cada ~200px. Mesma funcao que o
+// Capitulo 3 usa; ela vive nos dois arquivos de proposito, porque a do 3 nao
+// e exportada e importar por importar acopla dois capitulos sem motivo.
+function preencher(lights, W, cor = '#8a7a60', i = 0.2, passo = 200, y = GY - 30) {
+  for (let x = passo / 2; x < W; x += passo) {
+    lights.push({ x, y, r: passo * 0.9, color: cor, i, falloff: 1.25 });
+  }
+}
+
+// ---- A LUZ DA RUINA ----
+//
+// ⚠ ERRO M-04, COMETIDO PELA TERCEIRA VEZ NESTE PROJETO E PEGO OLHANDO A
+// TELA, nao pelo teste: a primeira versao da ruina estava com ambiente
+// #141c26 e preenchimento 0.16, e o resultado era uma tela PRETA com um
+// boneco no meio. O teste passava — ele conta lampadas, nao enxerga.
+//
+// A ruina precisa ser MAIS ESCURA E MAIS FRIA que a casa, nao invisivel:
+// tudo o que o capitulo tem para contar de verdade esta do lado destruido,
+// e o jogador precisa LER marca de unha, sapato e cartaz ali dentro.
+//
+// A fonte de luz da ruina e uma so, e ela justifica o resto: o telhado nao
+// existe mais, entao o ceu entra. Por isso a luz vem DE CIMA e e azul.
+function luzDoCeu(lights, W, forca = 1) {
+  for (let x = 120; x < W + 120; x += 240) {
+    lights.push({ x, y: 24, r: 250, color: '#54708f', i: 0.42 * forca, falloff: 1.05 });
+  }
+  preencher(lights, W, '#4a6280', 0.34 * forca, 190, GY - 26);
+  // uma segunda camada rasteira, so no chao: sem ela o pe do cenario — que
+  // e onde estao o sapato, os cartazes e a porta do armario — some.
+  preencher(lights, W, '#3e5068', 0.26 * forca, 150, GY - 6);
+}
+
+// Madeira queimada: tabua com a face carbonizada e o veio ainda visivel por
+// baixo. E o material da casa inteira depois do fogo.
+function madeiraQueimada(g, x, y, w, h, seed) {
+  const rnd = mulberry32(seed);
+  rect(g, x, y, w, h, '#1a1512');
+  for (let i = 0; i < w * h * 0.05; i++) {
+    const px = x + rnd() * w, py = y + rnd() * h;
+    const c = rnd() < 0.7 ? '#0e0b09' : (rnd() < 0.6 ? '#2a2019' : '#3a2c20');
+    rect(g, px, py, 1 + (rnd() < 0.2 ? 1 : 0), 1, c);
+  }
+  // as rachaduras do carvao: sempre verticais, sempre curtas
+  for (let i = 0; i < w * 0.06; i++) {
+    const px = x + rnd() * w, py = y + rnd() * h * 0.8;
+    rect(g, px, py, 1, 3 + rnd() * 5, '#070505');
+  }
+}
+
+// Papel de parede descascado: o que sobra de uma parede que teve papel. A
+// mancha de fuligem sobe, porque fumaca sobe.
+function paredeDescascada(g, x, y, w, h, seed) {
+  const rnd = mulberry32(seed);
+  rect(g, x, y, w, h, '#332a22');
+  grainRect(g, x, y, w, h, ['#41352b', '#241c17', '#4e3c2c'], 0.05, seed + 1);
+  // pedacos de papel que aguentaram, sempre na parte de baixo
+  for (let i = 0; i < w * 0.03; i++) {
+    const px = x + rnd() * w;
+    const py = y + h * 0.4 + rnd() * h * 0.5;
+    const pw = 5 + rnd() * 16, ph = 6 + rnd() * 18;
+    rect(g, px, py, pw, ph, '#5a4632');
+    rect(g, px, py, pw, 1, '#70573e');
+  }
+  // Fuligem subindo — fumaca sobe. Ela para no terco de cima e NAO chega a
+  // preto: parede preta multiplicada pela luz da fase vira buraco, e o
+  // jogador precisa ler marca de unha e cartaz em cima dela.
+  ditherV(g, x, y, w, Math.round(h * 0.34), '#171210', '#332a22', 6);
+}
+
+// Mato crescendo dentro de casa. Sete anos sem telhado fazem isso, e e a
+// coisa que mais rapido diz ao olho "faz muito tempo".
+function mato(g, x, gy, w, seed, alt = 16) {
+  const rnd = mulberry32(seed);
+  for (let i = 0; i < w * 0.28; i++) {
+    const px = x + rnd() * w;
+    const h = 4 + rnd() * alt;
+    const c = rnd() < 0.5 ? '#2a3320' : (rnd() < 0.6 ? '#37421f' : '#1e2618');
+    rect(g, px, gy - h, 1, h, c);
+    if (rnd() < 0.3) rect(g, px + (rnd() < 0.5 ? -1 : 1), gy - h + 2, 1, 2, c);
+  }
+}
+
+// Ceu aberto onde havia telhado. Nao e uma cor: e o buraco, com as pontas do
+// caibro que sobraram mordendo a borda.
+function telhadoAberto(g, x, y, w, seed) {
+  const rnd = mulberry32(seed);
+  rect(g, x, 0, w, y, '#0d1622');
+  ditherV(g, x, Math.max(0, y - 44), w, 44, '#1b2a3e', '#0d1622', 5);
+  // O fio de luz na linha do telhado. Sem ele o dentro e o ceu viram o
+  // mesmo borrao escuro e a casa nao parece aberta, parece apagada.
+  rect(g, x, y - 1, w, 1, '#40587a');
+  for (let i = 0; i < 60; i++) {
+    if (rnd() < 0.5) rect(g, x + rnd() * w, rnd() * Math.max(1, y - 12), 1, 1, '#8fa5c8');
+  }
+  // caibros partidos pendurados na borda de cima
+  let cx = x + 6;
+  while (cx < x + w - 6) {
+    const ch = 5 + rnd() * 13;
+    rect(g, cx, y - ch, 3, ch, '#160f0b');
+    rect(g, cx, y - ch, 1, ch, '#241a12');
+    cx += 12 + rnd() * 26;
+  }
+}
+
+// Vidro estourado PARA DENTRO. A direcao importa: para dentro e fogo e
+// bombeiro; para fora seria explosao. Nesta casa foi fogo.
+function janelaQuebrada(g, x, y, w, h, seed) {
+  const rnd = mulberry32(seed);
+  rect(g, x, y, w, h, '#0c1116');
+  rect(g, x, y, w, 1, '#241a14');
+  rect(g, x, y + h - 1, w, 1, '#241a14');
+  for (let i = 0; i < 14; i++) {
+    const sx = x + 1 + rnd() * (w - 2);
+    const sh = 2 + rnd() * 6;
+    rect(g, sx, y + 1, 1, sh, '#3e4a52');
+  }
+  M.glassShards(g, x + 2, y + h + 10, w - 4, seed + 7);
+}
+
+// ---------------------------------------------------------------------------
+// 1 — A RUA E O PORTAO   (cenas 1, 6 do roteiro)
+// ---------------------------------------------------------------------------
+// Onde ele chega, onde esta a varanda, e onde estao os fundos.
+//
+// ⚠ NA CASA (intacta) a porta da frente esta TRANCADA e a chave acabou com a
+// casa. Nao ha outra entrada. O jogo nao sugere nada — o unico item do
+// casaco que faz alguma coisa aqui e o maco. Isso e o tutorial inteiro.
+
+function buildRuaDaCasa() {
+  const W = 1150;
+
+  // ---- fundo comum aos dois estados: o resto da rua, sem uma janela acesa
+  const back = makeBuffer(Math.ceil(VW + (W - VW) * 0.4) + 8, VH);
+  {
+    const b = back.x;
+    rect(b, 0, 0, b.canvas.width, VH, '#080d14');
+    ditherV(b, 0, 20, b.canvas.width, 140, '#101c2c', '#080d14', 6);
+    for (let i = 0; i < 7; i++) {
+      M.buildingSilhouette(b, i * 132 - 30, 158, 100, 82 + i * 9, '#0c141f', 12001 + i, false);
+    }
+  }
+
+  const CASA = 500, PORTA = CASA + 148, VAR = CASA + 210, FUNDOS = 940;
+
+  // =========================== A CASA (intacta) ===========================
+  const mCasa = makeBuffer(W, VH);
+  const iCasa = [];
+  const lCasa = [];
+  {
+    const g = mCasa.x;
+    rect(g, 0, 0, W, VH, '#12202e');
+    M.brickWall(g, 0, 26, W, GY - 26, 12011, { hi: '#6a5442', mid: '#4e3d30', dk: '#33281f' });
+    rect(g, 0, 0, W, 26, '#0b1420');
+    M.asphalt(g, 0, GY, W, VH - GY, 12021, { hi: '#454a44', mid: '#343833', dk: '#232622' });
+    rect(g, 0, GY, W, 1, '#0d100e');
+
+    // a fachada, igual a do flashback do Capitulo 3 — e de proposito
+    M.brickWall(g, CASA, GY - 150, 340, 150, 12041, { hi: '#7a5f46', mid: '#5a4534', dk: '#3a2c21' });
+    rect(g, CASA - 8, GY - 156, 356, 8, '#4a3a2c');
+    rect(g, CASA - 8, GY - 158, 356, 3, '#63503c');
+    for (const wx of [CASA + 26, CASA + 250]) {
+      const wy = GY - 128;
+      rect(g, wx, wy, 44, 38, '#22303c');
+      rect(g, wx + 3, wy + 3, 38, 32, '#ffd9a0');
+      rect(g, wx + 20, wy + 3, 2, 32, '#c9a870');
+      rect(g, wx + 3, wy + 18, 38, 2, '#c9a870');
+      lCasa.push({ x: wx + 22, y: wy + 18, r: 132, color: '#ffcf90', i: 0.7, falloff: 1.0 });
+    }
+
+    // A PORTA DA FRENTE, trancada. Ele mexe na macaneta e ela nao vai.
+    rect(g, PORTA - 4, GY - 80, 42, 80, '#33261a');
+    rect(g, PORTA, GY - 76, 34, 76, '#43331f');
+    rect(g, PORTA + 26, GY - 44, 3, 3, '#c8b070');
+    lCasa.push({ x: PORTA + 17, y: GY - 40, r: 108, color: '#ffcf90', i: 0.5, falloff: 1.1 });
+    iCasa.push({
+      x: PORTA - 4, y: GY - 80, w: 42, h: 80, prompt: 'prompt_open',
+      action: 'ch4_porta_trancada', range: 32, id: 'porta_frente', prio: 1, so: 'casa',
+    });
+    // ⚠ E DEPOIS QUE ELE JA ENTROU UMA VEZ, ELA ABRE.
+    //
+    // Isto nao e conveniencia, e o conserto de um SOFTLOCK que o teste de
+    // regressao pegou: sem esta porta, o setor da rua nao tinha saida
+    // nenhuma no estado "casa". Quem gastasse o ultimo cigarro na calcada
+    // ficava do lado de fora para sempre, com o capitulo por terminar.
+    //
+    // A ficcao ja dava a resposta: a porta da frente abre POR DENTRO sem
+    // chave — e o roteiro conta com isso no fim do capitulo. Se ele abriu
+    // por dentro uma vez, ela esta aberta. Quem liga e `updateCh4`.
+    iCasa.push({
+      x: PORTA - 4, y: GY - 80, w: 42, h: 80, prompt: 'prompt_open',
+      action: 'goto', to: 'ch4_sala', tox: 70, tofacing: 1, range: 32,
+      isDoor: true, prio: 2, id: 'porta_aberta', so: 'casa', disabled: true,
+    });
+
+    // a varanda: o banco e o cinzeiro. E o lugar dele.
+    rect(g, VAR, GY - 8, 110, 8, '#4a3a2c');
+    rect(g, VAR, GY - 10, 110, 2, '#63503c');
+    rect(g, VAR + 6, GY - 42, 3, 34, '#3a2c21');
+    rect(g, VAR + 96, GY - 42, 3, 34, '#3a2c21');
+    rect(g, VAR + 6, GY - 44, 96, 3, '#4a3a2c');
+    rect(g, VAR + 30, GY - 24, 40, 5, '#54402a');
+    rect(g, VAR + 33, GY - 19, 4, 19, '#3a2c1d');
+    rect(g, VAR + 63, GY - 19, 4, 19, '#3a2c1d');
+    iCasa.push({
+      x: VAR + 26, y: GY - 30, w: 50, h: 30, prompt: 'prompt_look',
+      lines: 'c4_varanda_casa', range: 26, so: 'casa',
+    });
+
+    // a garagem dos fundos, fechada e inteira
+    rect(g, FUNDOS, GY - 96, 150, 96, '#4e3d2e');
+    M.woodPanel(g, FUNDOS + 8, GY - 84, 134, 84, 12051, { hi: '#6a5236', mid: '#4a3826', dk: '#2e2318' });
+    rect(g, FUNDOS + 8, GY - 86, 134, 3, '#7a6042');
+    iCasa.push({
+      x: FUNDOS, y: GY - 96, w: 150, h: 96, prompt: 'prompt_look',
+      lines: 'c4_fundos_casa', range: 30, so: 'casa',
+    });
+
+    for (let x = 200; x < W; x += 380) {
+      M.streetLampPost(g, x, GY, 92);
+      lCasa.push({ x, y: GY - 92, r: 186, color: '#e0c088', i: 0.6, falloff: 1.0 });
+      lCasa.push({ x, y: GY - 92, r: 24, color: '#fff0c8', i: 0.58 });
+    }
+    preencher(lCasa, W, '#9a8a68', 0.2);
+  }
+
+  // ============================== A RUINA ==============================
+  const mRuina = makeBuffer(W, VH);
+  const iRuina = [];
+  const lRuina = [];
+  {
+    const g = mRuina.x;
+    rect(g, 0, 0, W, VH, '#070b10');
+    M.brickWall(g, 0, 26, W, GY - 26, 12011, { hi: '#3a2f26', mid: '#2a231c', dk: '#171310' });
+    rect(g, 0, 0, W, 26, '#04070b');
+    M.asphalt(g, 0, GY, W, VH - GY, 12021, { hi: '#2a2d2a', mid: '#1e211e', dk: '#141614' });
+    rect(g, 0, GY, W, 1, '#070907');
+    mato(g, 0, GY, CASA - 20, 12061, 9);
+
+    // A FACHADA CAIDA. A parede da frente nao existe mais: o vao e a entrada,
+    // e e a unica que existe no capitulo inteiro.
+    paredeDescascada(g, CASA, GY - 150, 340, 150, 12071);
+    telhadoAberto(g, CASA - 8, GY - 150, 356, 12081);
+    janelaQuebrada(g, CASA + 26, GY - 128, 44, 38, 12091);
+    janelaQuebrada(g, CASA + 250, GY - 128, 44, 38, 12095);
+    // o vao: onde estava a parede, agora ha escombro e passagem
+    const VAO = PORTA - 30;
+    rect(g, VAO, GY - 96, 96, 96, '#05070a');
+    M.wallHole(g, VAO, GY - 96, 96, 96, 12101);
+    M.debris(g, VAO + 4, GY, 88, 12111);
+    mato(g, VAO + 10, GY, 76, 12121, 12);
+    iRuina.push({
+      x: VAO, y: GY - 96, w: 96, h: 96, prompt: 'prompt_enter',
+      action: 'goto', to: 'ch4_sala', tox: 70, tofacing: 1, range: 34,
+      isDoor: true, prio: 1, id: 'vao_frente', so: 'ruina',
+    });
+
+    // a varanda: o assoalho cedeu no meio, o banco virou carvao. E a SOLEIRA
+    // continua ali — e e nela que esta o sapato.
+    madeiraQueimada(g, VAR, GY - 8, 110, 8, 12131);
+    rect(g, VAR + 40, GY - 8, 26, 8, '#05070a');
+    madeiraQueimada(g, VAR + 30, GY - 22, 40, 4, 12141);
+    rect(g, VAR + 6, GY - 40, 3, 32, '#160f0b');
+    iRuina.push({
+      x: VAR + 26, y: GY - 30, w: 50, h: 30, prompt: 'prompt_look',
+      lines: 'c4_varanda_ruina', range: 26, so: 'ruina',
+    });
+    // O HOMEM DE SOBRETUDO senta no degrau da varanda. Ele so existe se ele
+    // chegar aqui com o ULTIMO cigarro aceso — quem liga e desliga isto e
+    // `updateCh4`, entao aqui o gancho ja nasce desligado.
+    iRuina.push({
+      x: VAR + 10, y: GY - 60, w: 40, h: 60, prompt: 'prompt_talk',
+      action: 'ch4_homem', range: 30, id: 'homem', prio: 3, disabled: true,
+    });
+
+    // ★ O SAPATO. Na soleira, fora do alcance que o fogo teve.
+    const SAP = PORTA + 46;
+    rect(g, SAP, GY - 7, 11, 7, '#3a2a20');
+    rect(g, SAP + 1, GY - 8, 8, 2, '#4e392b');
+    rect(g, SAP + 7, GY - 5, 4, 5, '#2a1e17');
+    iRuina.push({
+      x: SAP - 6, y: GY - 22, w: 24, h: 22, prompt: 'prompt_look',
+      action: 'ch4_sapato', range: 24, id: 'sapato', prio: 2, so: 'ruina',
+    });
+
+    // ---- OS FUNDOS: o que sobrou da garagem, e o que mora nela ----
+    paredeDescascada(g, FUNDOS, GY - 96, 150, 96, 12151);
+    telhadoAberto(g, FUNDOS, GY - 96, 150, 12161);
+    M.debris(g, FUNDOS + 6, GY, 60, 12171);
+    // o colchao no chao, com cobertor
+    rect(g, FUNDOS + 74, GY - 9, 56, 9, '#3a3038');
+    rect(g, FUNDOS + 74, GY - 10, 56, 2, '#4a3f48');
+    rect(g, FUNDOS + 88, GY - 13, 34, 5, '#2e3a34');
+    // a lata com cinzas
+    rect(g, FUNDOS + 44, GY - 16, 18, 16, '#26221e');
+    rect(g, FUNDOS + 45, GY - 17, 16, 2, '#39332c');
+    rect(g, FUNDOS + 47, GY - 14, 12, 4, '#5a5048');
+    // os macos vazios, amassados
+    for (const mx of [FUNDOS + 66, FUNDOS + 70, FUNDOS + 78, FUNDOS + 136]) {
+      rect(g, mx, GY - 5, 5, 5, '#6a2620');
+      rect(g, mx, GY - 5, 5, 1, '#8d3128');
+    }
+    // ★ o bolo de cartazes, amarrado com barbante
+    rect(g, FUNDOS + 106, GY - 20, 26, 20, '#b8b0a0');
+    rect(g, FUNDOS + 106, GY - 20, 26, 1, '#d0c8b6');
+    rect(g, FUNDOS + 106, GY - 13, 26, 1, '#5a5248');
+    rect(g, FUNDOS + 117, GY - 20, 2, 20, '#4a4238');
+    lRuina.push({ x: FUNDOS + 100, y: GY - 40, r: 74, color: '#5a6a80', i: 0.2, falloff: 1.3 });
+    iRuina.push({
+      x: FUNDOS + 40, y: GY - 30, w: 100, h: 30, prompt: 'prompt_look',
+      action: 'ch4_fundos', range: 34, id: 'fundos', prio: 2, so: 'ruina',
+    });
+
+    // os postes: um so ainda acende, e pisca
+    // Um unico poste ainda acende nesta rua, e ele pisca.
+    for (let x = 200; x < W; x += 380) {
+      M.streetLampPost(g, x, GY, 92);
+      if (x === 580) {
+        lRuina.push({ x, y: GY - 92, r: 172, color: '#c8b088', i: 0.5, falloff: 1.05, flick: 'bulb' });
+      }
+    }
+    luzDoCeu(lRuina, W, 1.0);
+  }
+
+  const fore = makeBuffer(Math.ceil(VW + (W - VW) * 1.15) + 8, VH);
+  {
+    const f = fore.x;
+    rect(f, 0, 0, f.canvas.width, 10, '#050708');
+    rect(f, 0, VH - 8, f.canvas.width, 8, '#050708');
+    for (const cx of [90, 800]) { rect(f, cx, 0, 12, VH, '#0a0e0c'); rect(f, cx, 0, 2, VH, '#161d18'); }
+  }
+
+  const lvl = new Level({
+    key: 'ch4_rua',
+    nameKey: 'loc_ch4_rua',
+    width: W, groundY: GY,
+    ambient: '#3a4658',
+    layers: [{ c: back.c, par: 0.4 }, { c: mCasa.c, par: 1 }],
+    fores: [{ c: fore.c, par: 1.15 }],
+    lightDefs: lCasa,
+    interactables: iCasa.concat(iRuina),
+    weather: 'none',
+    reflect: 0.08,
+    minX: 26, maxX: W - 44,
+    spawn: { x: 60, facing: 1 },
+    bloom: 0.5,
+    indoor: false,
+    material: 'concrete',
+    ambience: [{ n: 'wind', g: 0.03 }, { n: 'roomtone', g: 0.04 }],
+    randomSfx: [],
+    maxInimigos: 0,
+    enterBarks: ['b4_rua_1', 'b4_rua_2', 'b4_rua_3', 'b4_rua_4'],
+  });
+  lvl.ch4 = {
+    casa: {
+      layers: [{ c: back.c, par: 0.4 }, { c: mCasa.c, par: 1 }],
+      lightDefs: lCasa, ambient: '#3a4658', bloom: 0.5, material: 'concrete',
+      ambience: [{ n: 'wind', g: 0.03 }, { n: 'roomtone', g: 0.04 }],
+      minX: 26, maxX: W - 44, paredes: [],
+    },
+    ruina: {
+      layers: [{ c: back.c, par: 0.4 }, { c: mRuina.c, par: 1 }],
+      lightDefs: lRuina, ambient: '#2c3a4c', bloom: 0.4, material: 'concrete',
+      ambience: [{ n: 'wind', g: 0.05 }, { n: 'roomtone', g: 0.03 }],
+      minX: 26, maxX: W - 44, paredes: [],
+    },
+  };
+  lvl.props.varandaX = VAR + 55;
+  lvl.props.portaX = PORTA + 17;
+  return lvl;
+}
+
+// ---------------------------------------------------------------------------
+// 2 — A SALA   (cena 2 do roteiro)
+// ---------------------------------------------------------------------------
+// A sala do flashback do Capitulo 3, sete anos depois. E o setor onde o
+// jogador aprende que os dois estados servem para coisas diferentes: a
+// Julie atravessa o fundo na casa intacta, e nao ha NADA para pegar ali.
+//
+// ⚠ O TELEFONE DA MESINHA e onde o capitulo termina. Ele fica mudo o
+// capitulo inteiro ate la.
+
+function buildSalaCh4() {
+  const W = 820;
+
+  const back = makeBuffer(Math.ceil(VW + (W - VW) * 0.5) + 8, VH);
+  {
+    const b = back.x;
+    rect(b, 0, 0, b.canvas.width, VH, '#241a12');
+    ditherV(b, 0, 30, b.canvas.width, 130, '#3a2a1c', '#241a12', 6);
+  }
+  const backR = makeBuffer(Math.ceil(VW + (W - VW) * 0.5) + 8, VH);
+  {
+    const b = backR.x;
+    rect(b, 0, 0, b.canvas.width, VH, '#0a0f14');
+    ditherV(b, 0, 30, b.canvas.width, 130, '#141c26', '#0a0f14', 6);
+  }
+
+  const TV = 210, SOFA = 290, ABJ = 460, MESA = 620, TEL = 168, COZ = 762;
+
+  // =========================== A CASA (intacta) ===========================
+  const mCasa = makeBuffer(W, VH);
+  const iCasa = [];
+  const lCasa = [];
+  {
+    const g = mCasa.x;
+    rect(g, 0, 0, W, VH, '#4a3524');
+    ditherV(g, 0, 20, W, GY - 60, '#7a5c3c', '#54402a', 6);
+    grainRect(g, 0, 20, W, GY - 60, ['#8a6a44', '#4a3524', '#63492e'], 0.05, 12201);
+    for (let x = 0; x < W; x += 12) rect(g, x, 20, 2, GY - 78, '#63492e');
+    M.woodPanel(g, 0, GY - 44, W, 44, 12211, { hi: '#6f5436', mid: '#54402a', dk: '#33261a' });
+    rect(g, 0, GY - 46, W, 3, '#7d6142');
+    rect(g, 0, 0, W, 20, '#2a1e14');
+    M.woodPanel(g, 0, GY, W, VH - GY, 12221, { hi: '#7a5c3c', mid: '#5a422a', dk: '#3a2a1c' });
+    rect(g, 0, GY, W, 1, '#221812');
+
+    // ---- a porta da frente, por dentro. Abre sem chave, e o jogo deixa. ----
+    const ex0 = M.doorFrame(g, 34, GY, 12231);
+    iCasa.push({
+      x: ex0.x, y: ex0.y, w: ex0.w, h: ex0.h, prompt: 'prompt_open',
+      action: 'goto', to: 'ch4_rua', tox: 680, tofacing: 1, range: 30,
+      isDoor: true, prio: 1, so: 'casa',
+    });
+
+    // ---- O TELEFONE DA MESINHA ----
+    rect(g, TEL, GY - 26, 30, 5, '#6f5436');
+    rect(g, TEL + 3, GY - 21, 4, 21, '#4a3524');
+    rect(g, TEL + 23, GY - 21, 4, 21, '#4a3524');
+    M.wallPhone(g, TEL + 6, GY - 42, 12241);
+    iCasa.push({
+      x: TEL, y: GY - 44, w: 30, h: 44, prompt: 'prompt_look',
+      lines: 'c4_tel_casa', range: 26, id: 'telefone_casa', so: 'casa',
+    });
+
+    // ---- o radio na estante. Ele TOCA — ate a quarta tragada. ----
+    rect(g, TV, GY - 46, 46, 40, '#3a3128');
+    rect(g, TV + 4, GY - 42, 38, 16, '#2a231c');
+    rect(g, TV + 7, GY - 39, 14, 10, '#6a5a3c');
+    for (let i = 0; i < 5; i++) rect(g, TV + 24, GY - 38 + i * 3, 14, 1, '#4a4034');
+    rect(g, TV + 8, GY - 6, 6, 6, '#2a231c');
+    rect(g, TV + 32, GY - 6, 6, 6, '#2a231c');
+    lCasa.push({ x: TV + 23, y: GY - 34, r: 76, color: '#e8b46a', i: 0.26, falloff: 1.2 });
+    iCasa.push({
+      x: TV, y: GY - 46, w: 46, h: 46, prompt: 'prompt_look',
+      action: 'ch4_radio', range: 26, id: 'radio', so: 'casa',
+    });
+
+    // ---- o sofa ----
+    rect(g, SOFA, GY - 30, 96, 24, '#5c4a58');
+    rect(g, SOFA, GY - 30, 96, 2, '#756070');
+    rect(g, SOFA - 6, GY - 40, 10, 34, '#4e3e4a');
+    rect(g, SOFA + 92, GY - 40, 10, 34, '#4e3e4a');
+    rect(g, SOFA + 4, GY - 40, 84, 12, '#6b5666');
+    iCasa.push({
+      x: SOFA, y: GY - 42, w: 96, h: 42, prompt: 'prompt_look',
+      lines: 'c4_sofa_casa', range: 28, so: 'casa',
+    });
+
+    // ---- o abajur: a luz mais quente do jogo ----
+    rect(g, ABJ, GY - 40, 4, 40, '#4a3524');
+    rect(g, ABJ - 10, GY - 54, 24, 14, '#c9a06a');
+    rect(g, ABJ - 8, GY - 52, 20, 10, '#ffdca8');
+    lCasa.push({ x: ABJ + 2, y: GY - 48, r: 168, color: '#ffcf90', i: 0.82, falloff: 0.9 });
+    lCasa.push({ x: ABJ + 2, y: GY - 48, r: 26, color: '#fff2d8', i: 0.68 });
+
+    // ---- O RETRATO. Nos tres. E ele esta rindo nessa foto. ----
+    rect(g, 380, GY - 118, 34, 28, '#3a2a1c');
+    rect(g, 383, GY - 115, 28, 22, '#8a7d6b');
+    rect(g, 387, GY - 111, 6, 8, '#a89a86');
+    rect(g, 395, GY - 111, 6, 8, '#a89a86');
+    // ⚠ REGRA DO NOME: o rosto da menina nao e legivel. Nem aqui, nem na
+    // ruina, nem no cartaz. Ela e tres pixels e uma mancha, de proposito.
+    rect(g, 403, GY - 109, 5, 6, '#a89a86');
+    iCasa.push({
+      x: 380, y: GY - 118, w: 34, h: 28, prompt: 'prompt_look',
+      lines: 'c4_retrato_casa', range: 26, id: 'retrato', so: 'casa',
+    });
+
+    // ---- a mesa posta ----
+    rect(g, MESA, GY - 34, 110, 6, '#6f5436');
+    rect(g, MESA, GY - 34, 110, 1, '#8a6844');
+    rect(g, MESA + 6, GY - 28, 6, 28, '#4a3524');
+    rect(g, MESA + 98, GY - 28, 6, 28, '#4a3524');
+    for (const px of [MESA + 16, MESA + 48, MESA + 80]) {
+      rect(g, px, GY - 38, 18, 4, '#c9c1a8');
+      rect(g, px + 2, GY - 37, 14, 2, '#a89f88');
+    }
+
+    // ---- A PORTA DA COZINHA: inchou de umidade. Ele empurra e nao vai. ----
+    rect(g, COZ - 4, GY - 82, 42, 82, '#3a2a1c');
+    rect(g, COZ, GY - 78, 34, 78, '#4e3a24');
+    rect(g, COZ + 26, GY - 44, 3, 3, '#c8b070');
+    iCasa.push({
+      x: COZ - 4, y: GY - 82, w: 42, h: 82, prompt: 'prompt_open',
+      action: 'ch4_porta_cozinha', range: 30, id: 'porta_cozinha', prio: 1, so: 'casa',
+    });
+
+    for (let x = 160; x < W; x += 300) {
+      lCasa.push({ x, y: 40, r: 176, color: '#e8bc80', i: 0.46, falloff: 1.05 });
+    }
+    preencher(lCasa, W, '#b08a5c', 0.24);
+  }
+
+  // ============================== A RUINA ==============================
+  const mRuina = makeBuffer(W, VH);
+  const iRuina = [];
+  const lRuina = [];
+  {
+    const g = mRuina.x;
+    rect(g, 0, 0, W, VH, '#0c0a08');
+    paredeDescascada(g, 0, 92, W, GY - 92, 12251);
+    telhadoAberto(g, 0, 96, W, 12261);
+    madeiraQueimada(g, 0, GY, W, VH - GY, 12271);
+    rect(g, 0, GY, W, 1, '#050403');
+    mato(g, 0, GY, W, 12281, 13);
+
+    // o vao da frente, do lado de dentro
+    rect(g, 30, GY - 96, 70, 96, '#05070a');
+    M.wallHole(g, 26, GY - 96, 76, 96, 12291);
+    M.debris(g, 30, GY, 66, 12295);
+    iRuina.push({
+      x: 26, y: GY - 96, w: 76, h: 96, prompt: 'prompt_exit',
+      action: 'goto', to: 'ch4_rua', tox: 660, tofacing: 1, range: 32,
+      isDoor: true, prio: 1, so: 'ruina',
+    });
+
+    // A MESINHA E O TELEFONE, derretidos. O fio nao existe mais.
+    madeiraQueimada(g, TEL, GY - 24, 30, 5, 12301);
+    rect(g, TEL + 8, GY - 34, 14, 10, '#1e1a18');
+    rect(g, TEL + 9, GY - 33, 11, 3, '#2c2724');
+    iRuina.push({
+      x: TEL, y: GY - 40, w: 30, h: 40, prompt: 'prompt_look',
+      lines: 'c4_tel_ruina', range: 26, id: 'telefone_ruina', so: 'ruina',
+    });
+
+    // o radio derretido em cima da estante caida
+    M.debris(g, TV - 6, GY, 58, 12311);
+    rect(g, TV + 10, GY - 9, 22, 9, '#1a1614');
+    rect(g, TV + 12, GY - 10, 14, 2, '#282320');
+    iRuina.push({
+      x: TV, y: GY - 20, w: 46, h: 20, prompt: 'prompt_look',
+      action: 'ch4_radio', range: 26, so: 'ruina',
+    });
+
+    // o sofa: carcaca de molas
+    rect(g, SOFA, GY - 20, 96, 14, '#171310');
+    for (let i = 0; i < 9; i++) {
+      const sx = SOFA + 6 + i * 10;
+      rect(g, sx, GY - 30, 1, 12, '#3a332c');
+      rect(g, sx - 1, GY - 31, 3, 1, '#4a4238');
+    }
+    mato(g, SOFA + 10, GY, 76, 12321, 18);
+    iRuina.push({
+      x: SOFA, y: GY - 34, w: 96, h: 34, prompt: 'prompt_look',
+      lines: 'c4_sofa_ruina', range: 28, so: 'ruina',
+    });
+
+    // O RETRATO: o vidro estourou PARA DENTRO. Da para ver as tres formas.
+    rect(g, 380, GY - 118, 34, 28, '#181210');
+    rect(g, 383, GY - 115, 28, 22, '#241c18');
+    for (let i = 0; i < 9; i++) rect(g, 384 + i * 3, GY - 114, 1, 2 + (i % 3) * 4, '#3e4a52');
+    rect(g, 388, GY - 106, 5, 5, '#2e2822');
+    rect(g, 396, GY - 106, 5, 5, '#2e2822');
+    rect(g, 403, GY - 104, 4, 4, '#2e2822');
+    iRuina.push({
+      x: 380, y: GY - 118, w: 34, h: 28, prompt: 'prompt_look',
+      lines: 'c4_retrato_ruina', range: 26, so: 'ruina',
+    });
+
+    // a mesa: tombada, e um prato inteiro no meio do carvao
+    madeiraQueimada(g, MESA, GY - 26, 110, 5, 12331);
+    rect(g, MESA + 40, GY - 5, 16, 4, '#8a8474');
+    M.debris(g, MESA - 10, GY, 60, 12341);
+
+    // ---- ONDE ERA A PORTA DA COZINHA: o batente caiu. Passagem. ----
+    rect(g, COZ - 10, GY - 100, 60, 100, '#05070a');
+    M.wallHole(g, COZ - 12, GY - 100, 64, 100, 12351);
+    M.debris(g, COZ - 8, GY, 54, 12355);
+    iRuina.push({
+      x: COZ - 12, y: GY - 100, w: 64, h: 100, prompt: 'prompt_enter',
+      action: 'goto', to: 'ch4_cozinha', tox: 60, tofacing: 1, range: 32,
+      isDoor: true, prio: 1, id: 'vao_cozinha', so: 'ruina',
+    });
+
+    // uma unica claridade: a lua pelo telhado aberto
+    luzDoCeu(lRuina, W, 1.0);
+  }
+
+  const fore = makeBuffer(Math.ceil(VW + (W - VW) * 1.2) + 8, VH);
+  {
+    const f = fore.x;
+    rect(f, 0, 0, f.canvas.width, 10, '#0a0705');
+    rect(f, 0, VH - 8, f.canvas.width, 8, '#0a0705');
+    rect(f, 300, 0, 14, VH, '#120c08');
+    rect(f, 300, 0, 2, VH, '#1e150e');
+  }
+
+  const lvl = new Level({
+    key: 'ch4_sala',
+    nameKey: 'loc_ch4_sala',
+    width: W, groundY: GY,
+    ambient: '#6a5a48',
+    layers: [{ c: back.c, par: 0.5 }, { c: mCasa.c, par: 1 }],
+    fores: [{ c: fore.c, par: 1.2 }],
+    lightDefs: lCasa,
+    interactables: iCasa.concat(iRuina),
+    weather: 'none',
+    reflect: 0.06,
+    minX: 26, maxX: W - 44,
+    spawn: { x: 70, facing: 1 },
+    bloom: 0.6,
+    indoor: true,
+    material: 'wood',
+    ambience: [{ n: 'roomtone', g: 0.08 }],
+    randomSfx: [],
+    maxInimigos: 0,
+    enterBarks: ['b4_sala_1', 'b4_sala_2'],
+  });
+  lvl.ch4 = {
+    casa: {
+      layers: [{ c: back.c, par: 0.5 }, { c: mCasa.c, par: 1 }],
+      lightDefs: lCasa, ambient: '#6a5a48', bloom: 0.6, material: 'wood',
+      ambience: [{ n: 'roomtone', g: 0.08 }],
+      minX: 26, maxX: W - 44, paredes: [],
+    },
+    ruina: {
+      layers: [{ c: backR.c, par: 0.5 }, { c: mRuina.c, par: 1 }],
+      lightDefs: lRuina, ambient: '#2a3646', bloom: 0.38, material: 'concrete',
+      ambience: [{ n: 'wind', g: 0.03 }, { n: 'roomtone', g: 0.04 }],
+      minX: 26, maxX: W - 44, paredes: [],
+    },
+  };
+  // Onde a Julie atravessa o fundo da tela, na casa intacta. Ela nao
+  // interage, nao olha e nao responde: esta fazendo uma noite comum.
+  lvl.props.julie = { x0: 500, x1: 770, y: GY - 4 };
+  lvl.props.telefoneX = TEL + 14;
+  return lvl;
+}
+
+// ---------------------------------------------------------------------------
+// 3 — A COZINHA   (cena 3 do roteiro)
+// ---------------------------------------------------------------------------
+// O que ele veio buscar esta aqui, e ele acha CEDO — no primeiro terco do
+// capitulo, de proposito. Nao faca o jogador esperar 40 minutos pelo obvio.
+//
+// Na casa intacta a gaveta abre e esta cheia, e a mao atravessa tudo.
+// Na ruina a gaveta e um buraco no armario caido, e dentro esta A CAIXA.
+
+function buildCozinhaCh4() {
+  const W = 620;
+
+  const back = makeBuffer(Math.ceil(VW + (W - VW) * 0.5) + 8, VH);
+  { const b = back.x; rect(b, 0, 0, b.canvas.width, VH, '#2a2118'); }
+  const backR = makeBuffer(Math.ceil(VW + (W - VW) * 0.5) + 8, VH);
+  { const b = backR.x; rect(b, 0, 0, b.canvas.width, VH, '#090d11'); }
+
+  const PIA = 180, ARM = 330, GAV = 366, CORR = 560;
+
+  // =========================== A CASA (intacta) ===========================
+  const mCasa = makeBuffer(W, VH);
+  const iCasa = [];
+  const lCasa = [];
+  {
+    const g = mCasa.x;
+    rect(g, 0, 0, W, VH, '#3e4a42');
+    grainRect(g, 0, 20, W, GY - 40, ['#4e5c52', '#38443c', '#5a6a5e'], 0.05, 12401);
+    // azulejo ate a meia altura
+    for (let y = GY - 96; y < GY - 40; y += 12) {
+      for (let x = 0; x < W; x += 12) {
+        rect(g, x, y, 11, 11, (x / 12 + y / 12) % 2 ? '#6a7a6e' : '#5e6e62');
+      }
+    }
+    rect(g, 0, 0, W, 20, '#1e2620');
+    M.woodPanel(g, 0, GY, W, VH - GY, 12411, { hi: '#6a5c44', mid: '#4e4432', dk: '#302a20' });
+    rect(g, 0, GY, W, 1, '#1e1a14');
+
+    const ex0 = M.doorFrame(g, 30, GY, 12421);
+    iCasa.push({
+      x: ex0.x, y: ex0.y, w: ex0.w, h: ex0.h, prompt: 'prompt_open',
+      action: 'goto', to: 'ch4_sala', tox: 740, tofacing: -1, range: 30,
+      isDoor: true, prio: 1, so: 'casa',
+    });
+
+    // a pia, com louca lavada e escorrendo
+    rect(g, PIA, GY - 40, 90, 40, '#54604e');
+    rect(g, PIA, GY - 42, 90, 3, '#6e7a68');
+    rect(g, PIA + 12, GY - 38, 40, 8, '#3a443a');
+    rect(g, PIA + 62, GY - 52, 4, 12, '#8a9086');
+    for (let i = 0; i < 4; i++) rect(g, PIA + 58 + i * 6, GY - 46, 5, 5, '#c9c1a8');
+    iCasa.push({
+      x: PIA, y: GY - 52, w: 90, h: 52, prompt: 'prompt_look',
+      lines: 'c4_pia_casa', range: 28, so: 'casa',
+    });
+
+    // O ARMARIO E A GAVETA. Ela abre. E a mao atravessa tudo.
+    M.woodPanel(g, ARM, GY - 92, 130, 52, 12431, { hi: '#7a6242', mid: '#5a4832', dk: '#3a2e20' });
+    rect(g, ARM, GY - 94, 130, 3, '#8a7048');
+    rect(g, GAV, GY - 36, 66, 14, '#5a4832');
+    rect(g, GAV, GY - 36, 66, 2, '#7a6242');
+    rect(g, GAV + 28, GY - 31, 10, 3, '#c8b070');
+    iCasa.push({
+      x: GAV - 4, y: GY - 40, w: 74, h: 40, prompt: 'prompt_open',
+      action: 'ch4_gaveta_casa', range: 28, id: 'gaveta_casa', prio: 2, so: 'casa',
+    });
+
+    // a porta do corredor
+    rect(g, CORR - 4, GY - 82, 42, 82, '#3a2a1c');
+    rect(g, CORR, GY - 78, 34, 78, '#4e3a24');
+    rect(g, CORR + 26, GY - 44, 3, 3, '#c8b070');
+    iCasa.push({
+      x: CORR - 4, y: GY - 82, w: 42, h: 82, prompt: 'prompt_open',
+      action: 'goto', to: 'ch4_corredor', tox: 50, tofacing: 1, range: 30,
+      isDoor: true, prio: 1, so: 'casa',
+    });
+
+    lCasa.push({ x: 160, y: 44, r: 178, color: '#e8dcb0', i: 0.62, falloff: 1.0 });
+    lCasa.push({ x: 440, y: 44, r: 178, color: '#e8dcb0', i: 0.56, falloff: 1.0 });
+    preencher(lCasa, W, '#a8a078', 0.24);
+  }
+
+  // ============================== A RUINA ==============================
+  const mRuina = makeBuffer(W, VH);
+  const iRuina = [];
+  const lRuina = [];
+  {
+    const g = mRuina.x;
+    rect(g, 0, 0, W, VH, '#0b0c0a');
+    paredeDescascada(g, 0, 92, W, GY - 92, 12451);
+    telhadoAberto(g, 0, 96, W, 12461);
+    // o azulejo aguentou. E a unica coisa desta casa que aguentou.
+    for (let y = GY - 96; y < GY - 40; y += 12) {
+      for (let x = 0; x < W; x += 12) {
+        if ((x * 7 + y * 13) % 11 < 7) {
+          rect(g, x, y, 11, 11, (x / 12 + y / 12) % 2 ? '#3a423a' : '#333b34');
+        }
+      }
+    }
+    madeiraQueimada(g, 0, GY, W, VH - GY, 12471);
+    mato(g, 0, GY, W, 12481, 11);
+
+    rect(g, 26, GY - 96, 60, 96, '#05070a');
+    M.wallHole(g, 22, GY - 96, 68, 96, 12491);
+    iRuina.push({
+      x: 22, y: GY - 96, w: 68, h: 96, prompt: 'prompt_exit',
+      action: 'goto', to: 'ch4_sala', tox: 730, tofacing: -1, range: 32,
+      isDoor: true, prio: 1, so: 'ruina',
+    });
+
+    // a pia arrancada da parede
+    rect(g, PIA + 10, GY - 16, 70, 16, '#2a302a');
+    rect(g, PIA + 10, GY - 17, 70, 2, '#3a423a');
+    M.debris(g, PIA, GY, 50, 12501);
+    iRuina.push({
+      x: PIA, y: GY - 24, w: 90, h: 24, prompt: 'prompt_look',
+      lines: 'c4_pia_ruina', range: 28, so: 'ruina',
+    });
+
+    // ★ O ARMARIO CAIDO, E A GAVETA QUE VIROU BURACO. A caixa esta dentro.
+    madeiraQueimada(g, ARM - 10, GY - 30, 150, 30, 12511);
+    rect(g, GAV, GY - 26, 52, 22, '#05060a');
+    rect(g, GAV + 4, GY - 20, 40, 14, '#4a4236');
+    rect(g, GAV + 4, GY - 20, 40, 2, '#5e5646');
+    rect(g, GAV + 8, GY - 16, 30, 1, '#6a6250');
+    lRuina.push({ x: GAV + 26, y: GY - 30, r: 58, color: '#6a7a90', i: 0.2, falloff: 1.3 });
+    iRuina.push({
+      x: GAV - 6, y: GY - 34, w: 66, h: 34, prompt: 'prompt_take',
+      action: 'ch4_caixa', range: 28, id: 'caixa', prio: 2, so: 'ruina',
+    });
+
+    // a porta do corredor virou vao
+    rect(g, CORR - 6, GY - 96, 54, 96, '#05070a');
+    M.wallHole(g, CORR - 8, GY - 96, 58, 96, 12521);
+    iRuina.push({
+      x: CORR - 8, y: GY - 96, w: 58, h: 96, prompt: 'prompt_enter',
+      action: 'goto', to: 'ch4_corredor', tox: 50, tofacing: 1, range: 30,
+      isDoor: true, prio: 1, so: 'ruina',
+    });
+
+    luzDoCeu(lRuina, W, 1.0);
+  }
+
+  const fore = makeBuffer(Math.ceil(VW + (W - VW) * 1.2) + 8, VH);
+  {
+    const f = fore.x;
+    rect(f, 0, 0, f.canvas.width, 10, '#0a0705');
+    rect(f, 0, VH - 8, f.canvas.width, 8, '#0a0705');
+  }
+
+  const lvl = new Level({
+    key: 'ch4_cozinha',
+    nameKey: 'loc_ch4_cozinha',
+    width: W, groundY: GY,
+    ambient: '#5e6a58',
+    layers: [{ c: back.c, par: 0.5 }, { c: mCasa.c, par: 1 }],
+    fores: [{ c: fore.c, par: 1.2 }],
+    lightDefs: lCasa,
+    interactables: iCasa.concat(iRuina),
+    weather: 'none',
+    reflect: 0.05,
+    minX: 26, maxX: W - 40,
+    spawn: { x: 60, facing: 1 },
+    bloom: 0.5,
+    indoor: true,
+    material: 'wood',
+    ambience: [{ n: 'roomtone', g: 0.07 }],
+    randomSfx: [],
+    maxInimigos: 0,
+    enterBarks: ['b4_coz_1'],
+  });
+  lvl.ch4 = {
+    casa: {
+      layers: [{ c: back.c, par: 0.5 }, { c: mCasa.c, par: 1 }],
+      lightDefs: lCasa, ambient: '#5e6a58', bloom: 0.5, material: 'wood',
+      ambience: [{ n: 'roomtone', g: 0.07 }],
+      minX: 26, maxX: W - 40, paredes: [],
+    },
+    ruina: {
+      layers: [{ c: backR.c, par: 0.5 }, { c: mRuina.c, par: 1 }],
+      lightDefs: lRuina, ambient: '#293444', bloom: 0.36, material: 'concrete',
+      ambience: [{ n: 'wind', g: 0.025 }, { n: 'roomtone', g: 0.04 }],
+      minX: 26, maxX: W - 40, paredes: [],
+    },
+  };
+  return lvl;
+}
+
+// ---------------------------------------------------------------------------
+// 4 — O CORREDOR   (cena 4 do roteiro)
+// ---------------------------------------------------------------------------
+// ⚠ ESTE SETOR E O INVERSO DE TODOS OS OUTROS, e e a razao de ele existir.
+//
+// Na ruina o assoalho cedeu: um vao de dois metros com terra e ferro no
+// fundo. Nao da para pular e nao da para descer. Na casa intacta o corredor
+// e um corredor. Com tapete.
+//
+// Entao ele tem que JOGAR O CIGARRO FORA DE PROPOSITO, no escuro, sabendo
+// que a unica coisa que ele controla naquela casa vai acabar. E e aqui que a
+// figura aparece pela primeira vez.
+
+function buildCorredorCh4() {
+  const W = 520;
+
+  const back = makeBuffer(Math.ceil(VW + (W - VW) * 0.5) + 8, VH);
+  { const b = back.x; rect(b, 0, 0, b.canvas.width, VH, '#221a12'); }
+  const backR = makeBuffer(Math.ceil(VW + (W - VW) * 0.5) + 8, VH);
+  { const b = backR.x; rect(b, 0, 0, b.canvas.width, VH, '#080b0f'); }
+
+  // O BURACO. As duas bordas sao as paredes da ruina.
+  const BUR0 = 210, BUR1 = 330;
+
+  const mCasa = makeBuffer(W, VH);
+  const iCasa = [];
+  const lCasa = [];
+  {
+    const g = mCasa.x;
+    rect(g, 0, 0, W, VH, '#4a3524');
+    ditherV(g, 0, 20, W, GY - 60, '#6e5236', '#4a3524', 6);
+    for (let x = 0; x < W; x += 12) rect(g, x, 20, 2, GY - 78, '#5a422a');
+    M.woodPanel(g, 0, GY - 44, W, 44, 12611, { hi: '#6f5436', mid: '#54402a', dk: '#33261a' });
+    rect(g, 0, GY - 46, W, 3, '#7d6142');
+    rect(g, 0, 0, W, 20, '#241a12');
+    M.woodPanel(g, 0, GY, W, VH - GY, 12621, { hi: '#7a5c3c', mid: '#5a422a', dk: '#3a2a1c' });
+    // ---- O TAPETE. E ele que existe aqui e nao existe na ruina. ----
+    rect(g, BUR0 - 30, GY, BUR1 - BUR0 + 60, 14, '#6a3a34');
+    rect(g, BUR0 - 30, GY, BUR1 - BUR0 + 60, 2, '#8a4e44');
+    for (let x = BUR0 - 26; x < BUR1 + 26; x += 10) rect(g, x, GY + 4, 5, 5, '#4e2a26');
+    rect(g, 0, GY, W, 1, '#221812');
+
+    const ex0 = M.doorFrame(g, 26, GY, 12631);
+    iCasa.push({
+      x: ex0.x, y: ex0.y, w: ex0.w, h: ex0.h, prompt: 'prompt_open',
+      action: 'goto', to: 'ch4_cozinha', tox: 540, tofacing: -1, range: 30,
+      isDoor: true, prio: 1, so: 'casa',
+    });
+
+    // ---- a porta do quarto dela, no fim do corredor ----
+    const QRT = 450;
+    rect(g, QRT - 4, GY - 82, 42, 82, '#3a2a1c');
+    rect(g, QRT, GY - 78, 34, 78, '#4e3a24');
+    rect(g, QRT + 26, GY - 44, 3, 3, '#c8b070');
+    rect(g, QRT, GY - 3, 34, 3, '#ffd9a0');
+    lCasa.push({ x: QRT + 17, y: GY - 2, r: 54, color: '#ffcf90', i: 0.4, falloff: 1.2 });
+    iCasa.push({
+      x: QRT - 4, y: GY - 82, w: 42, h: 82, prompt: 'prompt_open',
+      action: 'goto', to: 'ch4_quarto', tox: 60, tofacing: 1, range: 30,
+      isDoor: true, prio: 1, so: 'casa',
+    });
+
+    lCasa.push({ x: 120, y: 42, r: 150, color: '#e8bc80', i: 0.44, falloff: 1.1 });
+    lCasa.push({ x: 360, y: 42, r: 150, color: '#e8bc80', i: 0.4, falloff: 1.1 });
+    preencher(lCasa, W, '#a8875c', 0.22);
+  }
+
+  const mRuina = makeBuffer(W, VH);
+  const iRuina = [];
+  const lRuina = [];
+  {
+    const g = mRuina.x;
+    rect(g, 0, 0, W, VH, '#0a0a0c');
+    paredeDescascada(g, 0, 104, W, GY - 104, 12651);
+    telhadoAberto(g, 0, 108, W, 12661);
+    madeiraQueimada(g, 0, GY, W, VH - GY, 12671);
+
+    // ---- O BURACO: terra e ferro no fundo, e as duas bordas mordidas ----
+    rect(g, BUR0, GY, BUR1 - BUR0, VH - GY, '#050506');
+    ditherV(g, BUR0, GY, BUR1 - BUR0, 26, '#0e0d0c', '#050506', 5);
+    for (let i = 0; i < 9; i++) {
+      const bx = BUR0 + 8 + i * 13;
+      rect(g, bx, GY + 12 + (i % 3) * 5, 2, 12 + (i % 4) * 6, '#221d18');
+    }
+    // as tabuas partidas nas duas beiradas
+    for (let i = 0; i < 6; i++) {
+      rect(g, BUR0 - 6 + i * 2, GY, 2, 3 + i * 2, '#160f0b');
+      rect(g, BUR1 + 4 - i * 2, GY, 2, 3 + i * 2, '#160f0b');
+    }
+    mato(g, 0, GY, BUR0 - 10, 12681, 8);
+    mato(g, BUR1 + 10, GY, W - BUR1 - 10, 12685, 8);
+
+    rect(g, 22, GY - 96, 60, 96, '#05070a');
+    M.wallHole(g, 18, GY - 96, 68, 96, 12691);
+    iRuina.push({
+      x: 18, y: GY - 96, w: 68, h: 96, prompt: 'prompt_exit',
+      action: 'goto', to: 'ch4_cozinha', tox: 540, tofacing: -1, range: 30,
+      isDoor: true, prio: 1, so: 'ruina',
+    });
+
+    // a porta do quarto: caida, e o vao continua ali
+    const QRT = 450;
+    rect(g, QRT - 6, GY - 92, 50, 92, '#05070a');
+    M.wallHole(g, QRT - 8, GY - 92, 54, 92, 12695);
+    iRuina.push({
+      x: QRT - 8, y: GY - 92, w: 54, h: 92, prompt: 'prompt_enter',
+      action: 'goto', to: 'ch4_quarto', tox: 60, tofacing: 1, range: 30,
+      isDoor: true, prio: 1, so: 'ruina',
+    });
+    iRuina.push({
+      x: BUR0, y: GY - 30, w: BUR1 - BUR0, h: 40, prompt: 'prompt_look',
+      lines: 'c4_buraco', range: 40, so: 'ruina',
+    });
+
+    // O corredor e o mais escuro dos cinco, e de proposito: e o setor da
+    // figura. Escuro, nao invisivel — o buraco tem que se ver.
+    luzDoCeu(lRuina, W, 0.82);
+  }
+
+  const fore = makeBuffer(Math.ceil(VW + (W - VW) * 1.2) + 8, VH);
+  {
+    const f = fore.x;
+    rect(f, 0, 0, f.canvas.width, 10, '#0a0705');
+    rect(f, 0, VH - 8, f.canvas.width, 8, '#0a0705');
+  }
+
+  const lvl = new Level({
+    key: 'ch4_corredor',
+    nameKey: 'loc_ch4_corredor',
+    width: W, groundY: GY,
+    ambient: '#6a5a48',
+    layers: [{ c: back.c, par: 0.5 }, { c: mCasa.c, par: 1 }],
+    fores: [{ c: fore.c, par: 1.2 }],
+    lightDefs: lCasa,
+    interactables: iCasa.concat(iRuina),
+    weather: 'none',
+    reflect: 0.05,
+    minX: 26, maxX: W - 40,
+    spawn: { x: 50, facing: 1 },
+    bloom: 0.5,
+    indoor: true,
+    material: 'wood',
+    ambience: [{ n: 'roomtone', g: 0.07 }],
+    randomSfx: [],
+    maxInimigos: 0,
+    enterBarks: ['b4_corr_1'],
+  });
+  lvl.ch4 = {
+    casa: {
+      layers: [{ c: back.c, par: 0.5 }, { c: mCasa.c, par: 1 }],
+      lightDefs: lCasa, ambient: '#6a5a48', bloom: 0.5, material: 'wood',
+      ambience: [{ n: 'roomtone', g: 0.07 }],
+      minX: 26, maxX: W - 40, paredes: [],
+    },
+    ruina: {
+      // ⚠ AQUI ESTA O PUZZLE INTEIRO DO SETOR, e sao dois numeros.
+      layers: [{ c: backR.c, par: 0.5 }, { c: mRuina.c, par: 1 }],
+      lightDefs: lRuina, ambient: '#26313f', bloom: 0.34, material: 'concrete',
+      ambience: [{ n: 'wind', g: 0.03 }, { n: 'roomtone', g: 0.03 }],
+      minX: 26, maxX: W - 40, paredes: [{ x0: BUR0 - 4, x1: BUR1 + 4 }],
+    },
+  };
+  lvl.props.buraco = { x0: BUR0, x1: BUR1 };
+  // Onde a figura para, na primeira vez: no fim do corredor arruinado.
+  lvl.props.figuraX = 470;
+  return lvl;
+}
+
+// ---------------------------------------------------------------------------
+// 5 — O QUARTO DELA   (cena 5 do roteiro)
+// ---------------------------------------------------------------------------
+// ⚠ A DIFERENCA MAIS CRUEL DO JOGO, E ELA E DE GRACA: no Capitulo 3 a menina
+// estava sentada no chao desenhando. Aqui o quarto e IDENTICO e vazio. Mesmo
+// na versao boa da casa, ela nao volta.
+//
+// ★ E na ruina, a porta do armario esta caida no chao com a face de dentro
+// para cima. MARCAS DE UNHA. POR DENTRO.
+
+function buildQuartoCh4() {
+  const W = 560;
+
+  const back = makeBuffer(Math.ceil(VW + (W - VW) * 0.5) + 8, VH);
+  { const b = back.x; rect(b, 0, 0, b.canvas.width, VH, '#2a2036'); }
+  const backR = makeBuffer(Math.ceil(VW + (W - VW) * 0.5) + 8, VH);
+  { const b = backR.x; rect(b, 0, 0, b.canvas.width, VH, '#0a0a10'); }
+
+  const CAMA = 150, ARM = 380, DES = 280;
+
+  const mCasa = makeBuffer(W, VH);
+  const iCasa = [];
+  const lCasa = [];
+  {
+    const g = mCasa.x;
+    rect(g, 0, 0, W, VH, '#5a4a62');
+    ditherV(g, 0, 20, W, GY - 60, '#7a6482', '#5a4a62', 6);
+    for (let x = 0; x < W; x += 16) rect(g, x, 20, 3, GY - 78, '#6a5672');
+    M.woodPanel(g, 0, GY - 40, W, 40, 12711, { hi: '#6f5436', mid: '#54402a', dk: '#33261a' });
+    rect(g, 0, 0, W, 20, '#2a2036');
+    M.woodPanel(g, 0, GY, W, VH - GY, 12721, { hi: '#7a5c3c', mid: '#5a422a', dk: '#3a2a1c' });
+    rect(g, 0, GY, W, 1, '#221812');
+
+    const ex0 = M.doorFrame(g, 26, GY, 12731);
+    iCasa.push({
+      x: ex0.x, y: ex0.y, w: ex0.w, h: ex0.h, prompt: 'prompt_open',
+      action: 'goto', to: 'ch4_corredor', tox: 470, tofacing: -1, range: 30,
+      isDoor: true, prio: 1, so: 'casa',
+    });
+
+    // ---- A CAMA. Feita. Ela arrumava sozinha. ----
+    rect(g, CAMA, GY - 26, 92, 20, '#4e3a2a');
+    rect(g, CAMA, GY - 32, 92, 8, '#8a94a8');
+    rect(g, CAMA, GY - 33, 92, 2, '#a2acc0');
+    rect(g, CAMA + 4, GY - 38, 26, 7, '#c4ccdc');
+    rect(g, CAMA - 4, GY - 44, 8, 38, '#3e2e20');
+    rect(g, CAMA + 88, GY - 40, 8, 34, '#3e2e20');
+    iCasa.push({
+      x: CAMA, y: GY - 44, w: 92, h: 44, prompt: 'prompt_look',
+      lines: 'c4_cama_casa', range: 28, so: 'casa',
+    });
+
+    // ---- OS DESENHOS NO CHAO. Uma casa, um sol, tres bonecos. ----
+    rect(g, DES, GY - 4, 30, 4, '#d8d0bc');
+    rect(g, DES + 6, GY - 3, 8, 2, '#8a6a3c');
+    rect(g, DES + 20, GY - 3, 4, 2, '#c8a030');
+    rect(g, DES + 34, GY - 4, 26, 4, '#d8d0bc');
+    for (let i = 0; i < 3; i++) rect(g, DES + 38 + i * 6, GY - 3, 2, 2, '#5a6a8a');
+    // o giz de cera, espalhado
+    for (const c of [['#8d3128', 0], ['#3a6a4a', 7], ['#c8a030', 13]]) {
+      rect(g, DES + 66 + c[1], GY - 2, 4, 2, c[0]);
+    }
+    iCasa.push({
+      x: DES - 6, y: GY - 16, w: 100, h: 16, prompt: 'prompt_look',
+      action: 'ch4_desenhos', range: 30, id: 'desenhos', prio: 2, so: 'casa',
+    });
+
+    // ---- o armario, fechado, com roupa dentro. Nada. ----
+    M.woodPanel(g, ARM, GY - 96, 74, 96, 12741, { hi: '#7a6242', mid: '#5a4832', dk: '#3a2e20' });
+    rect(g, ARM, GY - 98, 74, 3, '#8a7048');
+    rect(g, ARM + 36, GY - 96, 2, 96, '#3a2e20');
+    rect(g, ARM + 30, GY - 52, 4, 3, '#c8b070');
+    rect(g, ARM + 40, GY - 52, 4, 3, '#c8b070');
+    iCasa.push({
+      x: ARM, y: GY - 96, w: 74, h: 96, prompt: 'prompt_open',
+      action: 'ch4_armario_casa', range: 28, id: 'armario_casa', prio: 2, so: 'casa',
+    });
+
+    // o abajur dela
+    rect(g, 500, GY - 34, 4, 34, '#4a3524');
+    rect(g, 492, GY - 46, 20, 12, '#c9a06a');
+    lCasa.push({ x: 502, y: GY - 42, r: 148, color: '#ffcf90', i: 0.74, falloff: 0.95 });
+    lCasa.push({ x: 240, y: 40, r: 168, color: '#e8bc80', i: 0.44, falloff: 1.05 });
+    preencher(lCasa, W, '#a888a0', 0.24);
+  }
+
+  const mRuina = makeBuffer(W, VH);
+  const iRuina = [];
+  const lRuina = [];
+  {
+    const g = mRuina.x;
+    rect(g, 0, 0, W, VH, '#0a0a0c');
+    paredeDescascada(g, 0, 92, W, GY - 92, 12751);
+    telhadoAberto(g, 0, 96, W, 12761);
+    madeiraQueimada(g, 0, GY, W, VH - GY, 12771);
+    mato(g, 0, GY, W, 12781, 12);
+
+    rect(g, 22, GY - 92, 56, 92, '#05070a');
+    M.wallHole(g, 18, GY - 92, 62, 92, 12791);
+    iRuina.push({
+      x: 18, y: GY - 92, w: 62, h: 92, prompt: 'prompt_exit',
+      action: 'goto', to: 'ch4_corredor', tox: 470, tofacing: -1, range: 30,
+      isDoor: true, prio: 1, so: 'ruina',
+    });
+
+    // a cama: o estrado, e o colchao que virou pó
+    rect(g, CAMA, GY - 18, 92, 12, '#171310');
+    for (let i = 0; i < 8; i++) rect(g, CAMA + 4 + i * 11, GY - 22, 8, 4, '#221c16');
+    rect(g, CAMA - 4, GY - 36, 8, 30, '#160f0b');
+    iRuina.push({
+      x: CAMA, y: GY - 36, w: 92, h: 36, prompt: 'prompt_look',
+      lines: 'c4_cama_ruina', range: 28, so: 'ruina',
+    });
+
+    // ★★★ O ARMARIO. A porta caida, face de dentro para cima.
+    madeiraQueimada(g, ARM - 20, GY - 34, 96, 34, 12801);
+    // a porta no chao — mais clara que o resto, porque a face de dentro nao
+    // pegou fogo: ela estava fechada.
+    rect(g, ARM - 6, GY - 12, 84, 12, '#4a3a2a');
+    rect(g, ARM - 6, GY - 13, 84, 2, '#5e4a34');
+    // AS MARCAS. Quatro grupos de quatro riscos, e eles vao de dentro
+    // para fora — quem estava ali dentro puxava a porta.
+    for (let gI = 0; gI < 4; gI++) {
+      for (let i = 0; i < 4; i++) {
+        const mx = ARM + 6 + gI * 18 + i * 3;
+        rect(g, mx, GY - 11, 1, 5 + (i % 2) * 3, '#2a1e16');
+        rect(g, mx, GY - 11, 1, 2, '#1a1210');
+      }
+    }
+    lRuina.push({ x: ARM + 30, y: GY - 26, r: 70, color: '#6a7a90', i: 0.24, falloff: 1.25 });
+    iRuina.push({
+      x: ARM - 8, y: GY - 22, w: 88, h: 22, prompt: 'prompt_look',
+      action: 'ch4_armario', range: 30, id: 'armario', prio: 2, so: 'ruina',
+    });
+
+    // onde estavam os desenhos: chao queimado, e nada
+    iRuina.push({
+      x: DES - 6, y: GY - 16, w: 100, h: 16, prompt: 'prompt_look',
+      lines: 'c4_desenhos_ruina', range: 30, so: 'ruina',
+    });
+
+    luzDoCeu(lRuina, W, 1.05);
+  }
+
+  const fore = makeBuffer(Math.ceil(VW + (W - VW) * 1.2) + 8, VH);
+  {
+    const f = fore.x;
+    rect(f, 0, 0, f.canvas.width, 10, '#0a0705');
+    rect(f, 0, VH - 8, f.canvas.width, 8, '#0a0705');
+  }
+
+  const lvl = new Level({
+    key: 'ch4_quarto',
+    nameKey: 'loc_ch4_quarto',
+    width: W, groundY: GY,
+    ambient: '#6a5a70',
+    layers: [{ c: back.c, par: 0.5 }, { c: mCasa.c, par: 1 }],
+    fores: [{ c: fore.c, par: 1.2 }],
+    lightDefs: lCasa,
+    interactables: iCasa.concat(iRuina),
+    weather: 'none',
+    reflect: 0.05,
+    minX: 26, maxX: W - 40,
+    spawn: { x: 60, facing: 1 },
+    bloom: 0.55,
+    indoor: true,
+    material: 'wood',
+    ambience: [{ n: 'roomtone', g: 0.06 }],
+    randomSfx: [],
+    maxInimigos: 0,
+    enterBarks: ['b4_qrt_1', 'b4_qrt_2'],
+  });
+  lvl.ch4 = {
+    casa: {
+      layers: [{ c: back.c, par: 0.5 }, { c: mCasa.c, par: 1 }],
+      lightDefs: lCasa, ambient: '#6a5a70', bloom: 0.55, material: 'wood',
+      ambience: [{ n: 'roomtone', g: 0.06 }],
+      minX: 26, maxX: W - 40, paredes: [],
+    },
+    ruina: {
+      layers: [{ c: backR.c, par: 0.5 }, { c: mRuina.c, par: 1 }],
+      lightDefs: lRuina, ambient: '#26313f', bloom: 0.34, material: 'concrete',
+      ambience: [{ n: 'wind', g: 0.028 }, { n: 'roomtone', g: 0.03 }],
+      minX: 26, maxX: W - 40, paredes: [],
+    },
+  };
+  return lvl;
+}
+
+// ---------------------------------------------------------------------------
+// A TROCA
+// ---------------------------------------------------------------------------
+
+// Aplica um dos dois estados a um setor do Capitulo 4. Nao recria nada: os
+// canvas dos dois estados existem desde o boot, e isto so aponta o setor
+// para um deles.
+//
+// ⚠ AS LUZES PRECISAM SER REARMADAS. `Level` prepara `cur`, `tt` e `k` de
+// cada lampada no construtor; um conjunto de luzes que nunca passou por la
+// entra com `cur` indefinido, e `addLights` desenha `undefined` — ou seja,
+// nada. O setor inteiro fica preto e parece bug de camera.
+function aplicarEstadoCh4(lv, estado) {
+  if (!lv || !lv.ch4) return false;
+  const e = lv.ch4[estado] || lv.ch4.casa;
+  lv.layers = e.layers;
+  lv.lightDefs = e.lightDefs;
+  lv.ambient = e.ambient;
+  lv.bloom = e.bloom;
+  lv.material = e.material;
+  lv.ambience = e.ambience;
+  lv.minX = e.minX;
+  lv.maxX = e.maxX;
+  lv.paredes = e.paredes || [];
+  for (const f of lv.lightDefs) {
+    if (f.cur === undefined) { f.cur = f.i; f.tt = 0; f.k = 1; }
+  }
+  // Interagivel marcado com `so` existe apenas no seu estado. Quem nao tem
+  // marca existe nos dois — e nao ha nenhum hoje, mas a regra fica.
+  for (const it of lv.interactables) {
+    if (it.so) it.disabled = it.so !== estado;
+  }
+  lv.estadoCh4 = estado;
+  return true;
+}
+
+// ---------------------------------------------------------------------------
+
+function buildChapter4() {
+  return {
+    ch4_rua: buildRuaDaCasa(),
+    ch4_sala: buildSalaCh4(),
+    ch4_cozinha: buildCozinhaCh4(),
+    ch4_corredor: buildCorredorCh4(),
+    ch4_quarto: buildQuartoCh4(),
+  };
+}
+
+  Object.defineProperty(__exp, "buildRuaDaCasa", { get: function(){ return buildRuaDaCasa; }, enumerable: true });
+  Object.defineProperty(__exp, "buildSalaCh4", { get: function(){ return buildSalaCh4; }, enumerable: true });
+  Object.defineProperty(__exp, "buildCozinhaCh4", { get: function(){ return buildCozinhaCh4; }, enumerable: true });
+  Object.defineProperty(__exp, "buildCorredorCh4", { get: function(){ return buildCorredorCh4; }, enumerable: true });
+  Object.defineProperty(__exp, "buildQuartoCh4", { get: function(){ return buildQuartoCh4; }, enumerable: true });
+  Object.defineProperty(__exp, "aplicarEstadoCh4", { get: function(){ return aplicarEstadoCh4; }, enumerable: true });
+  Object.defineProperty(__exp, "buildChapter4", { get: function(){ return buildChapter4; }, enumerable: true });
+};
 __mods["world/levels-chase.js"] = function(__exp){
 // levels-chase.js — o segundo ato compacto da fuga do Capitulo 2.
 //
@@ -12342,6 +13625,11 @@ const STR = {
   prompt_look:    { pt: 'OLHAR',      en: 'LOOK' },
   prompt_talk:    { pt: 'FALAR',      en: 'TALK' },
   prompt_use:     { pt: 'USAR',       en: 'USE' },
+  // Capitulo 4: a ruina tem vao onde a casa tem parede, entao ENTRAR e
+  // SAIR sao verbos de porta que nao e porta.
+  prompt_enter:   { pt: 'ENTRAR',     en: 'ENTER' },
+  prompt_exit:    { pt: 'SAIR',       en: 'GO OUT' },
+  prompt_take:    { pt: 'PEGAR',      en: 'TAKE' },
   skip_hold:      { pt: 'SEGURE ESC PARA PULAR', en: 'HOLD ESC TO SKIP' },
   loc_street:     { pt: 'RUA HOLLAND, 2h14',    en: 'HOLLAND STREET, 2:14 AM' },
   loc_alley:      { pt: 'BECO DOS FUNDOS',      en: 'BACK ALLEY' },
@@ -12442,6 +13730,8 @@ const STR = {
   chapter_2_name: { pt: 'Gentileza',            en: 'Kindness' },
   chapter_3:      { pt: 'CAPITULO TRES',        en: 'CHAPTER THREE' },
   chapter_3_name: { pt: 'Gaveta D',             en: 'Drawer D' },
+  chapter_4:      { pt: 'CAPITULO QUATRO',      en: 'CHAPTER FOUR' },
+  chapter_4_name: { pt: 'A Casa',               en: 'The House' },
 
   // ---------- CAPITULO 3: os seis setores ----------
   loc_reception:  { pt: 'RECEPCAO',             en: 'FRONT DESK' },
@@ -12455,6 +13745,16 @@ const STR = {
   loc_room:       { pt: 'O QUARTO',             en: 'HER ROOM' },
   loc_inside:     { pt: 'DENTRO',               en: 'INSIDE' },
   loc_cell:       { pt: 'CUSTODIA',             en: 'HOLDING' },
+
+  // ---------- CAPITULO 4: a casa ----------
+  // ⚠ Nenhum cartao daqui pode dizer "sete anos atras", "lembranca" ou
+  // qualquer coisa que explique o que esta acontecendo. Sao os nomes dos
+  // comodos de uma casa, e so.
+  loc_ch4_rua:      { pt: 'RUA HOLLAND, 3h',   en: 'HOLLAND STREET, 3 AM' },
+  loc_ch4_sala:     { pt: 'A SALA',            en: 'THE LIVING ROOM' },
+  loc_ch4_cozinha:  { pt: 'A COZINHA',         en: 'THE KITCHEN' },
+  loc_ch4_corredor: { pt: 'O CORREDOR',        en: 'THE HALLWAY' },
+  loc_ch4_quarto:   { pt: 'O QUARTO',          en: 'HER ROOM' },
 
   loc_corridor:   { pt: 'CORREDOR DE CARGA',    en: 'LOADING CORRIDOR' },
   loc_office:     { pt: 'ESCRITORIO',           en: 'FRONT OFFICE' },
@@ -12932,6 +14232,12 @@ const STR = {
                     en: 'The whole warehouse. With the slat, without the gun.' },
   chap3_desc:     { pt: 'A delegacia. Sem combate — so conversa.',
                     en: 'The precinct. No combat — talk only.' },
+  chap4_name:     { pt: 'A Casa',               en: 'The House' },
+  // ⚠ A descricao NAO pode entregar a mecanica. "Ele volta na casa" e tudo
+  // o que o seletor tem direito de dizer: descobrir o que o cigarro faz e
+  // o tutorial inteiro do capitulo.
+  chap4_desc:     { pt: 'Ele volta na casa. Com tudo o que devolveram.',
+                    en: 'He goes back to the house. With everything they gave back.' },
 
   // ---------- falas soltas: recepcao ----------
   b3_rec_1:   { pt: 'Sete anos sem subir essa escada.',
@@ -13158,6 +14464,134 @@ const STR = {
                    en: 'As you wish. Good night, David.' },
   ch3_end_1:     { pt: 'Chamaram a senha dele.', en: 'They called his number.' },
   ch3_end_2:     { pt: 'E ele nao estava mais la.', en: 'And he was not there anymore.' },
+
+  // =====================================================================
+  // CAPITULO 4 — "A CASA"
+  //
+  // ⚠ REGRA DE ESCRITA DO CAPITULO INTEIRO: o David NAO explica a casa.
+  // Nenhuma fala daqui pode conter as palavras lembranca, memoria,
+  // alucinacao ou sonho. Ele constata e volta ao servico. No instante em
+  // que ele perguntar "como", o capitulo morre.
+  // =====================================================================
+
+  // ---------- a rua ----------
+  b4_rua_1:   { pt: 'A casa tá em pé.',
+                en: 'The house is standing.' },
+  b4_rua_2:   { pt: 'Ela não tá em pé faz sete anos.',
+                en: 'It has not been standing for seven years.' },
+  b4_rua_3:   { pt: '...',                       en: '...' },
+  b4_rua_4:   { pt: 'A conta de telefone ficava na gaveta da cozinha.',
+                en: 'The phone bill was in the kitchen drawer.' },
+  b4_trancada_1:{ pt: 'Trancada.',               en: 'Locked.' },
+  b4_trancada_2:{ pt: 'Claro que tá trancada.',  en: 'Of course it is locked.' },
+  // A UNICA dica do capitulo, e ela so aparece depois de 90 segundos de
+  // jogador parado. Nao tem segunda.
+  b4_dica:    { pt: 'Sete anos sem.',            en: 'Seven years without.' },
+  b4_maco_vazio:{ pt: '...',                     en: '...' },
+
+  // ---------- a sala ----------
+  b4_sala_1:  { pt: '...',                       en: '...' },
+  b4_sala_2:  { pt: 'A gaveta da cozinha. É só isso.',
+                en: 'The kitchen drawer. That is all.' },
+  b4_julie:   { pt: 'Julie.',                    en: 'Julie.' },
+  b4_radio_mudo:{ pt: 'Parou.',                  en: 'It stopped.' },
+
+  // ---------- a cozinha ----------
+  b4_coz_1:   { pt: 'A gaveta de baixo. Sempre a de baixo.',
+                en: 'The bottom drawer. Always the bottom one.' },
+  b4_gaveta_1:{ pt: 'Tá tudo aqui.',             en: 'It is all here.' },
+  b4_gaveta_2:{ pt: 'E eu não consigo pegar nada.',
+                en: 'And I cannot pick up a single thing.' },
+  b4_caixa_1: { pt: 'A conta. Ela tava aqui.',   en: 'The bill. It was here.' },
+  b4_caixa_2: { pt: 'Sete anos nessa gaveta.',   en: 'Seven years in that drawer.' },
+  b4_caixa_3: { pt: 'Eu procurei em todo lugar menos dentro de casa.',
+                en: 'I looked everywhere except inside my own house.' },
+  b4_agenda_1:{ pt: 'Andrade.',                  en: 'Andrade.' },
+  b4_agenda_2:{ pt: 'Turno da noite. Mesa dos fundos.',
+                en: 'Night shift. Back desk.' },
+  // ⚠ ELE NAO COMEMORA. Le, fecha a agenda e guarda no bolso.
+  b4_agenda_3:{ pt: 'Achei.',                    en: 'Found it.' },
+  b4_agenda_4:{ pt: '...',                       en: '...' },
+  b4_laudo:   { pt: 'Origem indeterminada.',     en: 'Cause undetermined.' },
+  // ⚠ D-12: A ORIGEM DO INCENDIO NAO E RESPONDIDA. Nem aqui, nem no 5,
+  // nem no 6. Enquanto nao ha resposta, o cigarro na mao dele e a
+  // acusacao que ele faz a si mesmo — e e disso que o 5 vive.
+  b4_laudo_2: { pt: 'Sete anos e é isso que tá escrito.',
+                en: 'Seven years and that is what it says.' },
+  b4_nada_dela:{ pt: 'Não tem nada dela nessa caixa.',
+                en: 'There is nothing of hers in this box.' },
+
+  // ---------- o corredor ----------
+  b4_corr_1:  { pt: 'O chão daqui não existe mais.',
+                en: 'The floor here is gone.' },
+  b4_figura_1:{ pt: 'Tem alguém ali.',           en: 'Someone is there.' },
+  b4_figura_2:{ pt: 'Não dá pra ver a roupa dele. Não dá pra ver nada dele.',
+                en: 'I cannot see his clothes. I cannot see anything of him.' },
+  b4_figura_3:{ pt: '...',                       en: '...' },
+  b4_figura_senta:{ pt: '...',                   en: '...' },
+
+  // ---------- o quarto ----------
+  b4_qrt_1:   { pt: '...',                       en: '...' },
+  b4_qrt_2:   { pt: 'Ela arrumava a cama sozinha. Ninguém mandou ela fazer isso.',
+                en: 'She made her own bed. Nobody told her to.' },
+  b4_des_1:   { pt: 'Uma casa. Um sol. Três bonecos.',
+                en: 'A house. A sun. Three little people.' },
+  b4_des_2:   { pt: 'Um dos bonecos tá do lado de fora da casa.',
+                en: 'One of them is outside the house.' },
+  b4_des_3:   { pt: 'Fumando.',                  en: 'Smoking.' },
+  // ★★★ AS MARCAS. Ele constata; quem conclui e o jogador.
+  b4_arm_1:   { pt: '...',                       en: '...' },
+  b4_arm_2:   { pt: 'Isso é por dentro.',        en: 'That is from the inside.' },
+  b4_arm_3:   { pt: 'Ela se escondeu aqui.',     en: 'She hid in here.' },
+  b4_arm_4:   { pt: 'E ficou um tempo.',         en: 'And she stayed a while.' },
+  b4_arm_casa:{ pt: 'Roupa. Só roupa.',          en: 'Clothes. Just clothes.' },
+
+  // ---------- a varanda ----------
+  // ⚠ NAO ESCREVER MAIS NENHUMA LINHA NESSA CENA. A tentacao de explicar
+  // aqui vai ser enorme e ela mata a cena.
+  b4_sapato_1:{ pt: '...',                       en: '...' },
+  b4_sapato_2:{ pt: 'Isso tava do lado de fora.',
+                en: 'That was outside.' },
+  b4_sapato_3:{ pt: 'O fogo não chegou aqui.',   en: 'The fire never reached here.' },
+
+  // ---------- os fundos ----------
+  b4_fundos_1:{ pt: 'Alguém dorme aqui.',        en: 'Someone sleeps here.' },
+  b4_fundos_2:{ pt: '...',                       en: '...' },
+  b4_fundos_3:{ pt: 'Alguém dorme aqui faz tempo.',
+                en: 'Someone has been sleeping here a long time.' },
+  // ⚠ ELE NAO COMPLETA. Nem aqui, nem no 5. Quem completa e quem joga.
+  b4_cartaz_nome_1:{ pt: 'Esse é novo.',         en: 'This one is new.' },
+  b4_cartaz_nome_2:{ pt: 'Esse é de hoje.',      en: 'This one is from today.' },
+  b4_cartaz_sem_1:{ pt: 'Essa letra é minha.',   en: 'That is my handwriting.' },
+  b4_cartaz_sem_2:{ pt: 'E eu parei no meio.',   en: 'And I stopped halfway.' },
+
+  // ---------- o homem de sobretudo ----------
+  b4_homem_1: { pt: 'Eu também dizia isso.',     en: 'I used to say that too.' },
+  b4_homem_2: { pt: 'Dizia o quê?',              en: 'Say what?' },
+  b4_homem_3: { pt: 'Hoje não.',                 en: 'Not today.' },
+  b4_homem_4: { pt: 'Só uma guimba acesa na beirada.',
+                en: 'Just a lit stub on the edge.' },
+
+  // ---------- o telefone: o fim ----------
+  b4_tel_alo: { pt: 'Alô.',                      en: 'Hello.' },
+  b4_tel_nada:{ pt: '...',                       en: '...' },
+  b4_tel_end_1:{ pt: 'Andrade. Rua Vinte e Dois, 114.',
+                 en: 'Andrade. Twenty-Second Street, 114.' },
+  b4_tel_end_2:{ pt: 'Tá bom.',                  en: 'All right.' },
+  b4_doze_1:  { pt: '...',                       en: '...' },
+  // ⚠ REPETICAO EXATA da fala do fim do Capitulo 3. Ele disse isso na
+  // delegacia sem arma nenhuma; agora diz com dois cartuchos na mao, e o
+  // jogador ouve a diferenca.
+  b4_doze_2:  { pt: 'De um jeito ou de outro, ele me diz.',
+                en: 'One way or another, he tells me.' },
+
+  // ---------- avisos ----------
+  aviso_ch4_caixa:  { pt: 'A CAIXA DE PAPEIS — CONTA, AGENDA E LAUDO',
+                      en: 'THE BOX OF PAPERS — BILL, ADDRESS BOOK, REPORT' },
+  aviso_ch4_maco:   { pt: 'O MACO ESTA VAZIO',
+                      en: 'THE PACK IS EMPTY' },
+  aviso_ch4_devolve:{ pt: 'ELE TE DEU UM',
+                      en: 'HE GAVE YOU ONE' },
 };
 
 function t(key) {
@@ -13675,6 +15109,110 @@ const LINES = {
       en: 'The shelf of things she lets nobody tidy.' },
     { pt: 'Tem uma ordem aí. Eu nunca entendi qual é, e nunca mexi.',
       en: 'There is an order to it. I never worked out which, and I never touched it.' },
+  ],
+
+  // =====================================================================
+  // CAPITULO 4 — "A CASA"
+  //
+  // ⚠ CADA OBJETO TEM DUAS DESCRICOES, uma por estado, e e por isso que
+  // este bloco e o dobro do tamanho dos outros. Metade do trabalho de
+  // escrita do capitulo esta aqui: a mesma coisa vista dos dois lados.
+  //
+  // A regra vale em todas: ele NAO explica a casa, e nao usa as palavras
+  // lembranca, memoria, alucinacao ou sonho.
+  // =====================================================================
+
+  c4_varanda_casa: [
+    { pt: 'O banco. E o cinzeiro que ela punha aqui pra eu não sujar o chão.',
+      en: 'The bench. And the ashtray she kept out here so I would not dirty the floor.' },
+    { pt: 'Daqui dá pra ver a rua inteira.',
+      en: 'From here you can see the whole street.' },
+  ],
+  c4_varanda_ruina: [
+    { pt: 'O assoalho cedeu no meio.',
+      en: 'The decking gave way in the middle.' },
+    { pt: 'O banco virou carvão. O resto ficou.',
+      en: 'The bench turned to charcoal. The rest stayed.' },
+  ],
+  c4_fundos_casa: [
+    { pt: 'A garagem. Fechada, como sempre.',
+      en: 'The garage. Shut, like always.' },
+  ],
+  c4_tel_casa: [
+    { pt: 'Esse é o daqui de dentro.',
+      en: 'That is the inside line.' },
+    { pt: 'O da varanda toca junto.',
+      en: 'The one on the porch rings with it.' },
+  ],
+  c4_tel_ruina: [
+    { pt: 'Fio derretido.',
+      en: 'The cord is melted.' },
+    { pt: 'Ele não toca faz sete anos.',
+      en: 'It has not rung in seven years.' },
+  ],
+  c4_sofa_casa: [
+    { pt: 'Ela dormia aqui quando eu chegava tarde.',
+      en: 'She used to sleep here when I got in late.' },
+    { pt: 'Pra eu não subir no escuro e me achar sozinho.',
+      en: 'So I would not walk up in the dark and find myself alone.' },
+  ],
+  c4_sofa_ruina: [
+    { pt: 'Sobraram as molas.',
+      en: 'The springs are what is left.' },
+    { pt: '...',
+      en: '...' },
+  ],
+  c4_retrato_casa: [
+    { pt: 'Nós três.',
+      en: 'The three of us.' },
+    { pt: 'Eu tô rindo nessa foto.',
+      en: 'I am laughing in that picture.' },
+  ],
+  // ⚠ REGRA DO ROSTO: nem aqui, nem no cartaz, nem no desenho. O rosto
+  // dela nao e legivel em lugar nenhum do capitulo.
+  c4_retrato_ruina: [
+    { pt: 'O vidro estourou pra dentro.',
+      en: 'The glass blew inward.' },
+    { pt: 'Dá pra ver as três formas. Não dá pra ver mais nada.',
+      en: 'You can make out three shapes. Nothing else.' },
+  ],
+  c4_pia_casa: [
+    { pt: 'Louça lavada, escorrendo.',
+      en: 'Dishes washed, draining.' },
+    { pt: 'Ela nunca deixou pro dia seguinte.',
+      en: 'She never left it for the next day.' },
+  ],
+  c4_pia_ruina: [
+    { pt: 'Arrancaram a pia da parede. Ou ela caiu sozinha.',
+      en: 'The sink was torn off the wall. Or it fell on its own.' },
+  ],
+  c4_buraco: [
+    { pt: 'Dois metros de vão. Terra e ferro no fundo.',
+      en: 'Six feet of nothing. Dirt and iron at the bottom.' },
+    { pt: 'Não dá pra pular e não dá pra descer.',
+      en: 'Cannot jump it, cannot climb down.' },
+  ],
+  c4_cama_casa: [
+    { pt: 'A cama está feita.',
+      en: 'The bed is made.' },
+  ],
+  c4_cama_ruina: [
+    { pt: 'Sobrou o estrado.',
+      en: 'The frame is all that is left.' },
+  ],
+  c4_desenhos_ruina: [
+    { pt: 'Aqui era onde ficavam os desenhos.',
+      en: 'This is where the drawings were.' },
+    { pt: 'Papel não sobrevive a isso.',
+      en: 'Paper does not survive that.' },
+  ],
+  c4_radio_casa: [
+    { pt: 'Tocando. A estação que ela ouvia.',
+      en: 'Playing. The station she used to listen to.' },
+  ],
+  c4_radio_ruina: [
+    { pt: 'Derretido em cima da estante.',
+      en: 'Melted on top of the shelf.' },
   ],
 };
 
@@ -15106,6 +16644,27 @@ const JOURNAL = {
              en: 'I had a lit cigarette in my hand when my house started to burn. The report says undetermined origin and Michael says it was not me. Both can be right and it changes nothing: for seven years I have not been able to light one without lighting that one.' },
   c_visita:{ cat: 'deduc', pt: 'Sete anos de assinaturas minhas no livro da custódia, e a porta da cela nunca esteve trancada. Ninguém me trouxe aqui. Eu venho. Toda noite. E toda noite eu esqueço que vim.',
              en: 'Seven years of my signatures in the holding book, and the cell door was never locked. Nobody brought me here. I come. Every night. And every night I forget that I came.' },
+
+  // ---------- CAPITULO 4: a casa ----------
+  //
+  // ⚠ O caderno e o unico lugar do capitulo em que o David escreve mais do
+  // que ele fala. Ele constata em voz alta e anota o resto — e mesmo aqui
+  // ele nao usa as palavras lembranca, memoria ou alucinacao.
+  j4_conta:  { cat: 'clue', pt: 'A conta de telefone do mês estava na gaveta da cozinha o tempo todo. Uma chamada recebida às 02h14, e o número de origem é um ramal da delegacia. Sete anos procurando isso em todo lugar menos dentro de casa.',
+               en: 'That month\'s phone bill was in the kitchen drawer the whole time. One incoming call at 2:14, and the originating number is a precinct extension. Seven years looking for that everywhere except inside my own house.' },
+  j4_agenda: { cat: 'people', pt: 'Andrade está na minha agenda, na letra A, com a minha letra. Turno da noite, mesa dos fundos, e um endereço. Eu escrevi esse endereço com a minha mão e nunca fui lá.',
+               en: 'Andrade is in my address book, under A, in my handwriting. Night shift, back desk, and an address. I wrote that address with my own hand and never went there.' },
+  j4_laudo:  { cat: 'clue', pt: 'Cópia carbonada do laudo do incêndio: ORIGEM INDETERMINADA. Sete anos e é isso que está escrito. Não diz que fui eu. Não diz que não fui.',
+               en: 'Carbon copy of the fire report: CAUSE UNDETERMINED. Seven years and that is what it says. It does not say it was me. It does not say it was not.' },
+  // ★★★ A anotacao mais importante do capitulo, e ela nao conclui nada.
+  j4_armario:{ cat: 'clue', pt: 'A porta do armário do quarto dela está caída com a face de dentro para cima. Marcas de unha, por dentro, quatro grupos. Quem faz isso está do lado de dentro e está puxando.',
+               en: 'The door of her bedroom closet lies with its inner face up. Fingernail marks, on the inside, four sets. Whoever does that is on the inside, and pulling.' },
+  j4_sapato: { cat: 'clue', pt: 'Um sapato dela na soleira da frente, do lado de fora. O fogo não chegou àquele degrau. Ninguém deixa um sapato ali entrando.',
+               en: 'One of her shoes on the front threshold, outside. The fire never reached that step. Nobody leaves a shoe there on the way in.' },
+  j4_desenho:{ cat: 'self', pt: 'Uma casa, um sol, três bonecos. Um dos bonecos está do lado de fora da casa, e tem uma risca laranja na mão dele. Ela desenhou isso antes.',
+               en: 'A house, a sun, three little figures. One of them is outside the house, with an orange line in his hand. She drew that before.' },
+  j4_fundos: { cat: 'place', pt: 'Tem um colchão nos fundos da garagem queimada, cinzas frescas numa lata e maços vazios da minha marca. E um bolo de cartazes de desaparecida, impressos, amarrados com barbante. Alguém dorme ali faz tempo.',
+               en: 'There is a mattress at the back of the burnt garage, fresh ash in a can and empty packs of my brand. And a stack of missing-person posters, printed, tied with string. Someone has been sleeping there a long time.' },
 };
 
 // ---------------------------------------------------------------------------
@@ -16180,6 +17739,550 @@ function esticarCorredor(lvl, game) {
   Object.defineProperty(__exp, "Fogo", { get: function(){ return Fogo; }, enumerable: true });
   Object.defineProperty(__exp, "NamePrompt", { get: function(){ return NamePrompt; }, enumerable: true });
   Object.defineProperty(__exp, "esticarCorredor", { get: function(){ return esticarCorredor; }, enumerable: true });
+};
+__mods["systems/chapter4.js"] = function(__exp){
+// chapter4.js — o que so existe no Capitulo 4, "A CASA".
+//
+// O capitulo inteiro se apoia numa mecanica so, e ela e do Luiz:
+//
+//   O CIGARRO TROCA A CASA.
+//
+// O padrao e a casa EM PE — quente, com luz, com o radio tocando. Acender um
+// cigarro mostra a RUINA, que e o que a casa e ha sete anos. Quem joga entra
+// num lugar acolhedor e tem que se envenenar de proposito para ver a
+// verdade. Ao contrario, seria so uma lanterna.
+//
+// O maco tem SETE. O jogo nunca diz quantos vao ser precisos, nao tem
+// contador na tela, e nao avisa que acabou: ele aperta F, e so amassa o maco
+// vazio.
+//
+// ⚠ E O FIM DO CAPITULO SAI DESSA CONTA, sem tela de escolha nenhuma. Quem
+// chegar no telefone com cigarro na mao atende na casa iluminada e vai
+// embora sem saber. Quem gastou os sete atende na ruina, e ouve.
+//
+// O que mora aqui:
+//   1. CIGARRO ......... o relogio, o maco, e a troca dos dois estados
+//   2. APARICAO ........ a figura que anda quando ele nao esta olhando, e o
+//                        homem de sobretudo da varanda
+//   3. MARCAS .......... tiro dado na ruina estraga a casa intacta
+//   4. TELEFONE ........ o fim, nas duas versoes
+
+const { VW, VH, clamp, gfx } = __req("core/gfx.js");
+const { PAL } = __req("art/palette.js");
+const { audio } = __req("core/audio.js");
+const { Detective } = __req("art/detective.js");
+const { aplicarEstadoCh4 } = __req("world/levels-ch4.js");
+
+// Quanto tempo um cigarro dura, em segundos.
+//
+// ⚠ D-15: ESTE NUMERO NAO FOI DECIDIDO OLHANDO A TELA. 40s e o que estava no
+// papel. Curto demais vira corrida contra o relogio; longo demais tira a
+// tensao. E o primeiro numero a mexer depois do teste humano.
+const DUR_CIGARRO = 40;
+
+// Quantos vem no maco. Sete anos, sete cigarros.
+const NO_MACO = 7;
+
+// Nos ultimos segundos a brasa aparece no canto da tela e a ruina comeca a
+// "respirar" de volta. Sem numero e sem barra.
+const AVISO_FIM = 8;
+
+// ---------------------------------------------------------------------------
+// 1 — O CIGARRO
+// ---------------------------------------------------------------------------
+
+class Cigarro {
+  constructor() { this.reset(); }
+
+  reset() {
+    this.maco = NO_MACO;
+    this.estado = 'casa';
+    this.t = 0;             // quanto resta do cigarro aceso
+    this.trans = 0;         // 0..1, o veu da troca
+    this.transLonga = false;
+    this.primeira = true;   // a primeira vez a casa desaba em tempo real
+    this.brasa = 0;
+    this.runId = -1;
+    this.bloqueado = false; // durante a cena do desabamento
+  }
+
+  get acesso() { return this.estado === 'ruina'; }
+  get vazio() { return this.maco <= 0; }
+
+  // ---- acender ----
+  //
+  // Devolve false quando nao ha o que acender. O jogo NAO avisa que o maco
+  // acabou antes de ele tentar: descobrir de mao vazia e o ponto.
+  acender(game) {
+    if (this.acesso || this.bloqueado) return false;
+    if (this.maco <= 0) {
+      game.player.say('b4_maco_vazio', 2.4, true);
+      audio.pageTurn(0.5);
+      return false;
+    }
+    this.maco--;
+    audio.lighterFlick(1);
+    if (audio.flameWhoosh) audio.flameWhoosh(0.5);
+    this._trocar(game, 'ruina');
+    // A PRIMEIRA VEZ A CASA DESABA EM TEMPO REAL, e ele nao fala nada. A
+    // primeira tragada e MUDA — ver o roteiro, cena 1.
+    if (this.primeira) {
+      this.primeira = false;
+      this.transLonga = true;
+      this.trans = 1;
+      this.bloqueado = true;
+      const p = game.player;
+      p.controllable = false;
+      p.vx = 0;
+      const agora = game.runId;
+      setTimeout(() => {
+        if (game.runId !== agora) return;
+        this.bloqueado = false;
+        game.player.controllable = true;
+      }, 4000);
+    } else {
+      this.trans = 1;
+    }
+    return true;
+  }
+
+  // ---- jogar fora ----
+  //
+  // ⚠ E EXATAMENTE A ANIMACAO DE OCIO DO CAPITULO 1, a do "hoje nao...", que
+  // o jogador ja viu mil vezes. O gesto que define o personagem desde a
+  // primeira tela do jogo virou um verbo — e o cigarro e gasto do mesmo
+  // jeito, porque jogar fora custa igual a fumar ate o fim.
+  jogarFora(game) {
+    if (!this.acesso || this.bloqueado) return false;
+    this.t = 0;
+    audio.whoosh(0.28);
+    this._trocar(game, 'casa');
+    return true;
+  }
+
+  // Alterna. E o que a tecla F faz.
+  alternar(game) {
+    return this.acesso ? this.jogarFora(game) : this.acender(game);
+  }
+
+  _trocar(game, estado) {
+    this.estado = estado;
+    this.t = estado === 'ruina' ? DUR_CIGARRO : 0;
+    this.trans = Math.max(this.trans, 0.85);
+    const lv = game.level;
+    if (lv && lv.ch4) {
+      aplicarEstadoCh4(lv, estado);
+      // O som do lugar muda junto: a casa tem tom de sala, a ruina tem
+      // vento. Trocar sem trocar o ouvido deixa a ilusao pela metade.
+      audio.stopAllLoops(0.35);
+      for (const a of (lv.ambience || [])) audio.startLoop(a.n, { gain: a.g, fade: 0.5 });
+      // ⚠ Se ele estava dentro de um vao que a casa intacta nao tem, ou em
+      // cima de um buraco que virou chao, o jogo empurra ele para o espaco
+      // livre mais proximo. Nunca mata por isso.
+      this._desencalhar(game, lv);
+    }
+    // A musica da casa so existe do lado bom. Ela morre na fumaca.
+    if (estado === 'casa') {
+      if (!audio.tocarMusicaArquivo(0.16)) audio.startMusic('casa');
+    } else {
+      audio.pararMusicaArquivo(0.5);
+      audio.stopMusic(0.6);
+    }
+    if (game.figura) game.figura.aoTrocar(game, estado);
+  }
+
+  _desencalhar(game, lv) {
+    const p = game.player;
+    p.x = clamp(p.x, lv.minX, lv.maxX);
+    for (const par of (lv.paredes || [])) {
+      if (p.x > par.x0 && p.x < par.x1) {
+        const dEsq = p.x - par.x0, dDir = par.x1 - p.x;
+        p.x = dEsq < dDir ? par.x0 - 2 : par.x1 + 2;
+        p.vx = 0;
+      }
+    }
+  }
+
+  update(dt, game) {
+    if (this.trans > 0) this.trans = Math.max(0, this.trans - dt * (this.transLonga ? 0.25 : 3.2));
+    if (this.trans <= 0) this.transLonga = false;
+
+    // ⚠ DEPOIS QUE ELE ATENDE, O RELOGIO PARA.
+    //
+    // Sem isto a cena final se desfazia sozinha: o fim da versao B derruba
+    // a casa para a ruina de proposito, e o relogio — que estava zerado —
+    // achava que o cigarro tinha acabado e devolvia a casa em pe no quadro
+    // seguinte. O jogador ouvia a respiracao de crianca com o abajur aceso.
+    // De quebra, a sanidade parava de ser cobrada durante a cena, que e o
+    // certo: ele nao esta mais jogando.
+    if (game.flags && game.flags.ch4_fim) { this.brasa = 0; return; }
+
+    if (!this.acesso) { this.brasa = Math.max(0, this.brasa - dt * 2); return; }
+
+    this.t -= dt;
+    // A brasa no canto: so nos ultimos segundos, e sem numero.
+    this.brasa = this.t < AVISO_FIM ? clamp(1 - this.t / AVISO_FIM, 0, 1) : 0;
+
+    // A ruina custa. A casa nao devolve — ela so nao cobra.
+    if (game.sanity) game.sanity.drain(dt * 0.85);
+
+    if (this.t <= 0) {
+      this.t = 0;
+      this._trocar(game, 'casa');
+    }
+  }
+
+  // O veu da troca. Nao e corte de tela: e cinza caindo, e ela cai muito
+  // mais tempo na primeira vez.
+  draw(ctx, game) {
+    if (this.trans <= 0) return;
+    const a = this.trans;
+    ctx.save();
+    ctx.globalAlpha = a * (this.transLonga ? 0.62 : 0.42);
+    ctx.fillStyle = this.acesso ? '#05070a' : '#241a12';
+    ctx.fillRect(0, 0, VW, VH);
+    ctx.restore();
+    // a cinza
+    const n = this.transLonga ? 90 : 34;
+    const t = game.level ? game.level.t : 0;
+    ctx.save();
+    ctx.globalAlpha = a * 0.6;
+    for (let i = 0; i < n; i++) {
+      const px = (i * 97 + Math.floor(t * 13)) % VW;
+      const py = (i * 53 + Math.floor(t * 70 + i * 11)) % VH;
+      ctx.fillStyle = i % 3 ? '#6a6055' : '#3a352e';
+      ctx.fillRect(px, py, 1, 1);
+    }
+    ctx.restore();
+  }
+
+  // A brasa. E o unico elemento de interface que este capitulo acrescenta —
+  // e ela nao diz quantos sobraram, so que ESTE esta acabando.
+  drawBrasa(ctx) {
+    if (this.brasa <= 0) return;
+    const a = this.brasa;
+    const x = VW - 22, y = VH - 30;
+    const pulso = 0.6 + 0.4 * Math.sin(a * 22);
+    ctx.save();
+    ctx.globalAlpha = a * 0.9;
+    ctx.fillStyle = '#2a1c14';
+    ctx.fillRect(x, y, 10, 3);
+    ctx.fillStyle = '#c8c0b0';
+    ctx.fillRect(x, y, 10 - Math.round(a * 7), 3);
+    ctx.fillStyle = a > 0.7 ? '#ff8a3c' : '#d86a28';
+    ctx.globalAlpha = a * pulso;
+    ctx.fillRect(x + 10 - Math.round(a * 7) - 1, y, 2, 3);
+    ctx.restore();
+  }
+}
+
+// ---------------------------------------------------------------------------
+// 2 — AS APARICOES
+// ---------------------------------------------------------------------------
+// Duas, e as duas sao o rig do detetive pintado de uma cor so. Sem rosto,
+// sem informacao, e sem luz de contorno — contorno em cima delas devolveria
+// justamente o volume que elas nao podem ter.
+
+class Aparicao {
+  constructor(cor, anim, escala) {
+    const d = this.det = new Detective();
+    d.parts = null;
+    d.silhouette = cor;
+    d.rimAlpha = 0;
+    d.reflect = 0;
+    d.flipT = 1;
+    if (escala) { d.scaleX = escala; d.scaleY = escala; }
+    d.play(anim, { blend: 0 });
+    this.anim = anim;
+    this.level = null;
+    this.x = 0;
+    this.facing = -1;
+    this.visivel = false;
+  }
+
+  por(level, x, facing) {
+    this.level = level;
+    this.x = x;
+    this.facing = facing === undefined ? -1 : facing;
+    this.det.setFacing(this.facing);
+    this.det.flipT = 1;
+    this.visivel = true;
+  }
+
+  sumir() { this.visivel = false; this.level = null; }
+
+  update(dt) { if (this.visivel) this.det.update(dt); }
+
+  draw(ctx, cam, groundY, lvKey) {
+    if (!this.visivel || this.level !== lvKey) return;
+    this.det.draw(ctx, this.x - cam.ix, groundY - cam.iy);
+  }
+}
+
+// ---- A FIGURA NEGRA ----
+//
+// A mesma do deposito do Capitulo 1 e a mesma da sala de espera do
+// Capitulo 3. A partir do TERCEIRO cigarro ela esta na casa.
+//
+// ⚠ A REGRA E UNICA, E E TODA A MECANICA: ELA SO SE MEXE ENQUANTO ELE NAO
+// ESTA FUMANDO. Na ruina ela esta parada onde voce a viu. Na casa intacta
+// ela some da tela — e quando voce acender de novo, ela esta mais perto.
+//
+// Isto nao precisa de IA nenhuma: e uma posicao que anda quando o estado
+// troca. E faz o cigarro ser as duas coisas ao mesmo tempo, o mapa e a unica
+// protecao. Os dois acabam juntos.
+class Figura extends Aparicao {
+  constructor() {
+    super('#050507', 'idle', 1.1);
+    this.reset();
+  }
+
+  reset() {
+    this.sumir();
+    this.acesas = 0;      // quantas vezes ele acendeu
+    this.passos = 0;      // quantos passos ela ja deu na direcao dele
+    this.sentada = false;
+    this.vistaUmaVez = false;
+  }
+
+  aoTrocar(game, estado) {
+    if (estado !== 'ruina') {
+      // Na casa intacta ela NAO EXISTE na tela. E enquanto ela nao esta na
+      // tela e que ela anda.
+      this.sumir();
+      if (this.acesas >= 3) this.passos++;
+      return;
+    }
+    this.acesas++;
+    if (this.acesas < 3) return;
+
+    const lv = game.level;
+    if (!lv) return;
+    // Ela nasce longe, no ponto que o setor indicar, e vai encurtando a
+    // distancia a cada troca. 62px por passo: quatro trocas para chegar.
+    const alvo = game.player.x;
+    const longe = lv.props && lv.props.figuraX !== undefined
+      ? lv.props.figuraX
+      : (alvo + (alvo < lv.width / 2 ? 200 : -200));
+    const dist = Math.max(18, Math.abs(longe - alvo) - this.passos * 62);
+    const lado = longe >= alvo ? 1 : -1;
+    const x = clamp(alvo + lado * dist, lv.minX, lv.maxX);
+    this.por(lv.key, x, alvo >= x ? 1 : -1);
+
+    // ENCOSTOU: ela nao mata. Ela SENTA. Do lado dele. E fica.
+    if (dist <= 20 && !this.sentada) {
+      this.sentada = true;
+      this.det.play('sitChair', { blend: 0.3 });
+      audio.heartbeat(0.9);
+      if (game.sanity) game.sanity.drain(26, true);
+      game.player.say('b4_figura_senta', 3.2, true);
+    }
+
+    if (!this.vistaUmaVez) {
+      this.vistaUmaVez = true;
+      // As tres falas da primeira vez sao as MESMAS tres da sala de espera
+      // do Capitulo 3, palavra por palavra. Repetir e o ponto.
+      game.player.sayAll(['b4_figura_1', 'b4_figura_2', 'b4_figura_3'], true);
+    }
+    // ⚠ E O DAVID NAO COMENTA QUE ELA ANDOU. Nunca, no capitulo inteiro.
+    // Quem conta a distancia e o jogador.
+  }
+}
+
+// ---- A JULIE ----
+//
+// Ela atravessa o fundo da tela indo para a cozinha, de costas, com um copo
+// na mao. UMA vez, na casa intacta.
+//
+// ⚠ ELA NAO INTERAGE. Nao olha, nao fala com ele, nao responde. Esta fazendo
+// uma noite comum, e e pior assim. E o David chama UMA vez e volta ao
+// servico — ele ja sabe o que isso e; ele so nao vai dizer em voz alta.
+class Julie extends Aparicao {
+  constructor() {
+    super('#141018', 'walk', 0.94);
+    this.reset();
+  }
+
+  reset() {
+    this.sumir();
+    this.andando = false;
+    this.x0 = 0; this.x1 = 0;
+    this.jaPassou = false;
+  }
+
+  atravessar(lv) {
+    if (this.jaPassou || !lv.props || !lv.props.julie) return false;
+    this.jaPassou = true;
+    const j = lv.props.julie;
+    this.x0 = j.x0; this.x1 = j.x1;
+    this.por(lv.key, j.x0, 1);
+    this.andando = true;
+    this.det.play('walk', { blend: 0 });
+    return true;
+  }
+
+  update(dt) {
+    super.update(dt);
+    if (!this.andando) return;
+    this.x += 26 * dt;
+    if (this.x >= this.x1) { this.andando = false; this.sumir(); }
+  }
+}
+
+// ---- O HOMEM DE SOBRETUDO ----
+//
+// Recuperado da PARTE IV do roteiro (opcao 2), arquivada em 06/08 com o
+// motivo "entrega o Credor cedo demais". No Capitulo 4 ja nao e cedo.
+//
+// Sentado no degrau da varanda, de costas, com sobretudo IGUAL AO DELE,
+// fumando. So aparece se ele chegar la com o ULTIMO cigarro aceso.
+class HomemDoSobretudo extends Aparicao {
+  constructor() {
+    super('#0e0a08', 'sitChair', 1.0);
+    this.reset();
+  }
+
+  reset() {
+    this.sumir();
+    this.ofereceu = false;
+    this.aceitou = false;
+  }
+}
+
+// ---------------------------------------------------------------------------
+// 3 — AS MARCAS DE TIRO
+// ---------------------------------------------------------------------------
+// ⚠ TIRO DADO DENTRO DA RUINA ESTRAGA A CASA INTACTA. Cada disparo deixa uma
+// marca que fica: o vidro trincado, o radio que emudece e nao volta, uma
+// mancha no papel de parede.
+//
+// Ele atira no escuro, e quando a casa volta a ficar boa, ela esta um pouco
+// menos boa. E o David nao comenta nenhuma dessas marcas. Nenhuma vez.
+//
+// (nota de design: e a licao do Capitulo 5 sendo ensinada com a mao do
+//  jogador, um capitulo antes de ela ser cobrada. Violencia contra a coisa
+//  que te assombra estraga a lembranca, nao a assombracao.)
+//
+// D-17: elas NAO atravessam para o Capitulo 5. Zeram no fim do 4.
+class Marcas {
+  constructor() { this.reset(); }
+
+  reset() { this.lista = []; this.radioMudo = false; }
+
+  registrar(game, x) {
+    const lv = game.level;
+    if (!lv || !lv.ch4) return;
+    this.lista.push({ lv: lv.key, x: Math.round(x), y: 60 + (this.lista.length * 37) % 90 });
+    // O radio e a primeira coisa que morre. Depois dele, so parede.
+    if (!this.radioMudo) {
+      this.radioMudo = true;
+      game.flags.ch4_radio_mudo = true;
+    }
+  }
+
+  // Desenhadas so na casa intacta, e por cima do cenario: elas sao o que a
+  // ruina deixou na lembranca.
+  draw(ctx, cam, lvKey, estado) {
+    if (estado !== 'casa') return;
+    for (const m of this.lista) {
+      if (m.lv !== lvKey) continue;
+      const sx = Math.round(m.x - cam.ix), sy = m.y;
+      ctx.save();
+      ctx.globalAlpha = 0.82;
+      ctx.fillStyle = '#0b0806';
+      ctx.fillRect(sx - 2, sy - 2, 5, 5);
+      ctx.fillStyle = '#1c1410';
+      ctx.fillRect(sx - 4, sy - 1, 9, 3);
+      ctx.fillRect(sx - 1, sy - 4, 3, 9);
+      ctx.globalAlpha = 0.5;
+      ctx.fillStyle = '#2e2018';
+      ctx.fillRect(sx - 7, sy, 15, 1);
+      ctx.restore();
+    }
+  }
+}
+
+// ---------------------------------------------------------------------------
+// 4 — O TELEFONE
+// ---------------------------------------------------------------------------
+// O fim do capitulo, em duas versoes, e o jogador nao escolhe numa tela de
+// escolha: ele ja escolheu, fumando ou nao fumando, durante 45 minutos.
+//
+// ⚠ O QUE A LIGACAO DIZ, NAS DUAS: nenhuma palavra, nenhum nome, nenhuma voz
+// de mulher. A regra de 10/08 continua de pe — se sair palavra dali, o
+// Capitulo 6 fica sem ter o que dizer. RESPIRACAO NAO E PALAVRA, e e por
+// isso que ela pode.
+
+class Telefone {
+  constructor() { this.reset(); }
+
+  reset() {
+    this.tocando = false;
+    this.atendido = false;
+    this.ringT = 0;
+    this.runId = -1;
+  }
+
+  comecarATocar(game) {
+    if (this.tocando || this.atendido) return false;
+    this.tocando = true;
+    this.ringT = 0;
+    this.runId = game.runId;
+    return true;
+  }
+
+  update(dt, game) {
+    if (!this.tocando || this.atendido) return;
+    if (game.runId !== this.runId) { this.reset(); return; }
+    this.ringT -= dt;
+    if (this.ringT <= 0) {
+      this.ringT = 4.2;
+      // Casa sem luz, fio derretido ha sete anos. E ele toca.
+      audio.phoneRing(game.level && game.level.key === 'ch4_sala' ? 0.75 : 0.3);
+    }
+  }
+}
+
+// ---------------------------------------------------------------------------
+// entrada e saida do capitulo
+// ---------------------------------------------------------------------------
+
+// Ele chega na casa com TUDO que o escaninho 214 devolveu na saida da
+// delegacia. E a primeira vez no jogo inteiro em que o casaco esta cheio, e
+// isso paga uma promessa que o Capitulo 3 fez por escrito: "quando a arma
+// voltar, no Capitulo 4, ela vai pesar."
+function equiparParaCapitulo4(game) {
+  const p = game.player;
+  p.idleMode = null;
+  p.det.parts = null;
+  p.hasGun = true;
+  p.ammo = 6;
+  p.reserve = 12;
+  p.det.props.gun = 'holstered';
+  p.segurarPorrete(false);
+  p.club = false;
+  p.hp = 100;
+  p.det.coatTorn = true;
+  p.det.blood = 0.3;
+  p.det.injury = 0;
+  game.inv.add('cigs');
+  game.inv.add('lighter');
+  game.inv.add('gun');
+  game.inv.add('shotgun');   // a calibre doze da mesa dele, do Capitulo 3
+  game.inv.add('map');
+  game.flags.caderno = true;
+}
+
+  Object.defineProperty(__exp, "DUR_CIGARRO", { get: function(){ return DUR_CIGARRO; }, enumerable: true });
+  Object.defineProperty(__exp, "NO_MACO", { get: function(){ return NO_MACO; }, enumerable: true });
+  Object.defineProperty(__exp, "Cigarro", { get: function(){ return Cigarro; }, enumerable: true });
+  Object.defineProperty(__exp, "Aparicao", { get: function(){ return Aparicao; }, enumerable: true });
+  Object.defineProperty(__exp, "Figura", { get: function(){ return Figura; }, enumerable: true });
+  Object.defineProperty(__exp, "Julie", { get: function(){ return Julie; }, enumerable: true });
+  Object.defineProperty(__exp, "HomemDoSobretudo", { get: function(){ return HomemDoSobretudo; }, enumerable: true });
+  Object.defineProperty(__exp, "Marcas", { get: function(){ return Marcas; }, enumerable: true });
+  Object.defineProperty(__exp, "Telefone", { get: function(){ return Telefone; }, enumerable: true });
+  Object.defineProperty(__exp, "equiparParaCapitulo4", { get: function(){ return equiparParaCapitulo4; }, enumerable: true });
 };
 __mods["systems/interrogatorio.js"] = function(__exp){
 // interrogatorio.js — a cela, e a unica coisa no Capitulo 3 que se JOGA.
@@ -17416,6 +19519,27 @@ class Player {
     this.x += this.vx * dt;
 
     if (level) this.x = clamp(this.x, level.minX, level.maxX);
+
+    // ---- PAREDES: vaos bloqueados dentro do setor ----
+    //
+    // `minX`/`maxX` so sabem fechar as duas pontas. O Capitulo 4 precisa de
+    // bloqueio NO MEIO da fase: na ruina o assoalho do corredor e um buraco
+    // de dois metros, e na casa intacta aquele mesmo chao existe. E o que
+    // obriga o jogador a apagar o cigarro de proposito.
+    //
+    // O empurrao e para o lado de onde ele veio: entrar num vao proibido
+    // por um quadro de fisica nao pode teleportar ninguem para o outro
+    // lado do buraco.
+    if (level && level.paredes) {
+      for (const par of level.paredes) {
+        if (this.x > par.x0 && this.x < par.x1) {
+          this.x = this._antesX <= par.x0 ? par.x0 : par.x1;
+          this.vx = 0;
+          break;
+        }
+      }
+    }
+    this._antesX = this.x;
 
     // ---- estados de animacao ----
     if (this.state === 'punch') {
@@ -23749,6 +25873,7 @@ const CHAPTERS = [
   { n: 1, nome: 'chap1_name', desc: 'chap1_desc' },
   { n: 2, nome: 'chap2_name', desc: 'chap2_desc' },
   { n: 3, nome: 'chap3_name', desc: 'chap3_desc' },
+  { n: 4, nome: 'chap4_name', desc: 'chap4_desc' },
 ];
 
 class ChapterPicker {
@@ -24022,8 +26147,10 @@ const { Rain, Fog, Particles, DustMotes } = __req("world/fx.js");
 const { buildAlley, buildBar, buildBackroom, buildWarehouse, buildRoad, buildCar } = __req("world/levels.js");
 const { buildChapter2 } = __req("world/levels-ch2.js");
 const { buildChapter3 } = __req("world/levels-ch3.js");
+const { buildChapter4, aplicarEstadoCh4 } = __req("world/levels-ch4.js");
 const { buildChaseExtension } = __req("world/levels-chase.js");
 const { degrauDoCigarro, usarCigarro, liberarCigarro, TicketBoard, entrarFlashback, sairFlashback, NamePrompt, esticarCorredor, Fogo } = __req("systems/chapter3.js");
+const { Cigarro, Figura, HomemDoSobretudo, Julie, Marcas, Telefone, equiparParaCapitulo4 } = __req("systems/chapter4.js");
 const { Interrogatorio } = __req("systems/interrogatorio.js");
 const { NoteScene } = __req("systems/scene-nota.js");
 const { MirrorScene } = __req("systems/scene-espelho.js");
@@ -24132,6 +26259,14 @@ class Game {
     await frame();
     Object.assign(this.levels, buildChapter3());
 
+    // O Capitulo 4 e a casa dele — a MESMA do flashback, sete anos depois,
+    // e cada setor e montado DUAS vezes: a casa em pe e a ruina. Os dois
+    // estados existem desde aqui, entao acender um cigarro nao constroi
+    // nada, so aponta o setor para o outro conjunto de camadas.
+    set('levantando a casa...');
+    await frame();
+    Object.assign(this.levels, buildChapter4());
+
     const materiais = {
       ch2_corridor: 'concrete', ch2_office: 'wood', ch2_arquivo: 'concrete',
       ch2_evidence: 'tile', ch2_comms: 'tile', ch2_security: 'metal',
@@ -24141,6 +26276,11 @@ class Game {
       ch3_reception: 'tile', ch3_plantao: 'wood', ch3_desk: 'wood',
       ch3_archive: 'concrete', ch3_past: 'concrete', ch3_cell: 'concrete',
       ch3_home: 'wood', ch3_room: 'wood',
+      // O Capitulo 4 troca o material junto com o estado (a casa e madeira,
+      // a ruina e concreto queimado), entao aqui fica so o valor de
+      // partida — `aplicarEstadoCh4` manda no resto.
+      ch4_rua: 'concrete', ch4_sala: 'wood', ch4_cozinha: 'wood',
+      ch4_corredor: 'wood', ch4_quarto: 'wood',
     };
     for (const [key, mat] of Object.entries(materiais)) if (this.levels[key]) this.levels[key].material = mat;
 
@@ -24211,6 +26351,13 @@ class Game {
     this.namePrompt = new NamePrompt();
     this.fogo = new Fogo();
     this.interrog = new Interrogatorio();
+    // ---- Capitulo 4 ----
+    this.cigarro = new Cigarro();
+    this.figura = new Figura();
+    this.homem = new HomemDoSobretudo();
+    this.julie = new Julie();
+    this.marcas = new Marcas();
+    this.telefone = new Telefone();
     // Identidade da partida em curso. Cenas roteirizadas que dependem de
     // `setTimeout` congelam este numero e conferem depois: sem isso, sair
     // para o menu, carregar um save ou trocar de capitulo no meio de uma
@@ -24370,6 +26517,11 @@ class Game {
     this.runId++;   // invalida qualquer cena roteirizada ainda no relogio
     this.fogo.parar(); this.fogo.reset();
     this.interrog.reset();
+    // O Capitulo 4 deixa a casa em dois estados. Sair para o menu com a
+    // ruina no ar deixaria o setor apontando para as camadas erradas na
+    // proxima partida — inclusive numa partida de OUTRO capitulo, porque
+    // os setores sao os mesmos objetos desde o boot.
+    this._devolverCasa();
     audio.pararMusicaArquivo(0.6);
     this.state = 'menu';
     this.scene = null;
@@ -24468,9 +26620,15 @@ class Game {
       return;
     }
 
-    // Capitulo 3.
+    if (n === 3) {
+      this.flags.supplies = this.supplies.newRun();
+      this.startChapter3();
+      return;
+    }
+
+    // Capitulo 4.
     this.flags.supplies = this.supplies.newRun();
-    this.startChapter3();
+    this.startChapter4();
   }
 
   // -------------------------------------------------------------------
@@ -24538,6 +26696,11 @@ class Game {
   enterLevel(key, x, facing, firstTime) {
     const lv = this.levels[key];
     this.level = lv;
+    // ⚠ O ESTADO DO CAPITULO 4 E APLICADO ANTES DO SPAWN, e a ordem importa:
+    // `minX`, `maxX` e as `paredes` sao do estado, e nascer no setor com os
+    // limites do outro poe o jogador dentro de um buraco ou atras de uma
+    // parede que voltou.
+    if (lv.ch4) aplicarEstadoCh4(lv, this.cigarro ? this.cigarro.estado : 'casa');
     const sp = lv.spawn;
     this.player.spawn(x === null || x === undefined ? sp.x : x, facing || sp.facing, lv.groundY);
     this.cam.setBounds(0, lv.width);
@@ -24619,6 +26782,22 @@ class Game {
         audio.startMusic('delegacia');
       }
     }
+    // ---- MUSICA DO CAPITULO 4 ----
+    //
+    // A casa tem tema; a ruina nao tem. E o mesmo tema da casa do flashback
+    // do Capitulo 3 — quem jogou o 3 reconhece antes de entender —, e ele
+    // MORRE NA FUMACA: acender o cigarro corta a musica, apagar devolve.
+    // Quem cuida disso durante o jogo e `Cigarro._trocar`; aqui e so a
+    // entrada no setor.
+    if (this.flags.cap4) {
+      if (this.cigarro.estado === 'casa' && !this.flags.ch4_fim) {
+        if (audio.tocarMusicaArquivo(0.16)) audio.stopMusic(1.0);
+        else audio.startMusic('casa');
+      } else {
+        audio.pararMusicaArquivo(1.2);
+        audio.stopMusic(1.2);
+      }
+    }
     if (this.chase && this.chase.ativo) {
       audio.startLoop('serra', { gain: 0.035, fade: 0.35 });
       audio.startLoop('static', { gain: 0.014, fade: 0.28 });
@@ -24674,11 +26853,14 @@ class Game {
     // O Capitulo 3 usa o mesmo caderno e o mesmo casaco. Ele nao usa
     // perseguicao, puzzle, emboscada nem nada de combate.
     const cap3 = lv.key.slice(0, 4) === 'ch3_';
+    // O Capitulo 4 usa o mesmo caderno e o mesmo casaco. Ele TEM arma, e e o
+    // primeiro capitulo em que o casaco esta cheio.
+    const cap4 = lv.key.slice(0, 4) === 'ch4_';
 
     // O caderno e o casaco NAO pausam o jogo. Abrir a mochila no meio do
     // galpao tem que custar alguma coisa: enquanto o casaco esta aberto,
     // ele tapa parte da tela.
-    if ((cap2 || cap3) && !paused && !this.scene && !this.dialogue.active
+    if ((cap2 || cap3 || cap4) && !paused && !this.scene && !this.dialogue.active
       && !this.shiftPuzzle.open && !this.transition && !this.grab && !this.chaseSetpieces.action
       && !this.chaseSequence.action && !this.finishers.action && !this.namePrompt.ativo
       && !this.interrog.ativo) {
@@ -24696,10 +26878,11 @@ class Game {
         } else this.player.say('map_none', 0, true);
       }
     }
-    if (cap2 || cap3) {
+    if (cap2 || cap3 || cap4) {
       this.journal.update(paused ? 0 : dt);
       this.inv.update(paused ? 0 : dt);
     }
+
     if (cap2) {
       this.shiftPuzzle.update(paused ? 0 : dt);
       this.chaseSetpieces.update(paused ? 0 : dt, this);
@@ -24708,6 +26891,22 @@ class Game {
     }
     this.mapaFade = clamp((this.mapaFade || 0) + (this.mapaAberto ? dt * 8 : -dt * 9), 0, 1);
     const uiAberta = this.journal.open || this.inv.open || this.mapaAberto || this.shiftPuzzle.open;
+
+    // ---- A TECLA DO CAPITULO 4 ----
+    //
+    // F, a MESMA tecla do isqueiro do Capitulo 2. Isso nao e economia de
+    // tecla, e continuidade: o isqueiro estava no escaninho 214 e voltou
+    // para a mao dele no fim do Capitulo 3.
+    //
+    // Aceso, F joga fora; apagado, F acende. Os dois gastam um cigarro — e
+    // jogar fora e exatamente a animacao de ocio do Capitulo 1, a do "hoje
+    // nao...". O gesto que define o personagem virou um verbo.
+    if (cap4 && !paused && !this.scene && !this.dialogue.active && !this.transition
+      && !uiAberta && this.player.controllable && !this.cigarro.bloqueado
+      && input.pressed('light')) {
+      if (this.cigarro.acesso) this.player.det.play('smoke', { restart: true });
+      this.cigarro.alternar(this);
+    }
 
     if (!paused) {
       lv.update(sim);
@@ -24737,6 +26936,7 @@ class Game {
       this.player.update(sim, lv, canControl);
       if (cap2) this.updateCh2(sim, lv, prendendo);
       if (this.flags.cap3) this.updateCh3(sim, lv);
+      if (this.flags.cap4) this.updateCh4(sim, lv);
     if (this.avisoT > 0) this.avisoT -= sim;
       // Numa conversa a camera sobe. A caixa de dialogo ocupa o terco de
       // baixo da tela, e sem isso quem esta falando com voce fica escondido
@@ -24809,6 +27009,16 @@ class Game {
     // Nestes setores o primeiro plano entra ANTES do jogador: os outros
     // continuam atras das barras, e ele passa na frente delas.
     if (lv.playerSobreFore) lv.drawFore(gfx.s, cam);
+    // As aparicoes do Capitulo 4 vao ANTES do jogador, pela mesma regra de
+    // sempre: o personagem do jogador nunca fica escondido atras de nada.
+    if (cap4) {
+      this.figura.draw(gfx.s, cam, lv.groundY, lv.key);
+      this.homem.draw(gfx.s, cam, lv.groundY, lv.key);
+      this.julie.draw(gfx.s, cam, lv.groundY, lv.key);
+      // As marcas de tiro sao desenhadas por cima do cenario e SO na casa
+      // intacta: elas sao o que a ruina deixou na lembranca.
+      this.marcas.draw(gfx.s, cam, lv.key, this.cigarro.estado);
+    }
     this.player.draw(gfx.s, cam);
     if (this.scene) this.scene.draw(gfx.s, cam);
     this.fx.draw(gfx.s, cam.ix, cam.iy);
@@ -24911,9 +27121,19 @@ class Game {
     // 🐛 O aviso de "peguei alguma coisa" morava dentro do HUD do Capitulo
     // 2. No 3 ele nunca aparecia: pegar a calibre doze nao dizia nada, e o
     // jogador ficava sem saber se tinha pegado.
-    if (this.flags.cap3 && !this.scene) {
+    if ((this.flags.cap3 || this.flags.cap4) && !this.scene) {
       this.journal.drawToast(gfx.s);
       this.inv.drawToast(gfx.s);
+    }
+    // ---- O CIGARRO ----
+    //
+    // O veu da troca vem DEPOIS da luz e ANTES do texto: ele e cinza caindo
+    // na frente do mundo, nao uma lampada. E a brasa e o unico elemento de
+    // interface que este capitulo acrescenta — ela nao diz quantos sobraram,
+    // so que ESTE esta acabando.
+    if (cap4) {
+      this.cigarro.draw(gfx.s, this);
+      if (!uiAberta && !this.scene) this.cigarro.drawBrasa(gfx.s);
     }
     if (!this.scene) this.drawAviso(gfx.s);
     // O painel de senha e um LED: e desenhado DEPOIS da luz, senao a
@@ -24931,7 +27151,7 @@ class Game {
     };
 
     this.dialogue.draw(gfx.s);
-    if (cap2 || this.flags.cap3) {
+    if (cap2 || this.flags.cap3 || this.flags.cap4) {
       this.journal.draw(gfx.s); this.inv.draw(gfx.s); this.drawMapa(gfx.s);
     }
     if (cap2) this.shiftPuzzle.draw(gfx.s);
@@ -25098,6 +27318,7 @@ class Game {
       }, urgente ? 0.12 : 0.28, urgente ? 0.24 : 0.42);
       return;
     }
+    if (this.doInteractCh4(it)) return;
     if (this.doInteractCh2(it)) return;
     if (it.lines) {
       this.flags.examinado = this.flags.examinado || {};
@@ -25319,16 +27540,84 @@ class Game {
     this.resetChapter3();
   }
 
+  // Preto, "CAPITULO QUATRO", e embaixo A CASA.
+  startChapter4() {
+    this.state = 'chapcard';
+    this.chapT = 0;
+    this.chapNum = 4;
+    this.qte = null;
+    this.scene = null;
+    audio.stopAllLoops();
+    audio.stopDread(0.2);
+    this.flags.cap2 = false;
+    this.flags.cap3 = false;
+    this.flags.cap4 = true;
+    this.resetChapter4();
+  }
+
+  resetChapter4() {
+    this.sanity.reset(100);
+    this.sanity.enabled = true;
+    this.journal.reset();
+    this.inv.reset();
+    this.director.reset();
+    this.director.ligado = false;   // nao ha inimigo neste capitulo
+    this.chase.parar();
+    this.namePrompt.ativo = false;
+    this.fogo.parar(); this.fogo.reset();
+    this.interrog.reset();
+    this.cigarro.reset();
+    this.figura.reset();
+    this.homem.reset();
+    this.julie.reset();
+    this.marcas.reset();
+    this.telefone.reset();
+    this._ch4DicaT = 0;
+    this.cigTentativas = 0;
+    this.isqueiroT = 0;
+    this._devolverCasa();
+    // ⚠ Ele ja fuma. O degrau 4 aconteceu na cela, no fim do Capitulo 3 —
+    // sem esta flag o maco continuaria recusando e o capitulo inteiro
+    // ficaria impossivel de jogar.
+    this.flags.cig_livre = true;
+    equiparParaCapitulo4(this);
+    // As anotacoes do 2 e do 3 vem junto: sem elas a deducao do armario
+    // nao teria com o que conversar.
+    for (const k of ['j_phone', 'j_clock', 'j_note', 'j_locked', 'j_vigia',
+                     'j_oper', 'j_conv', 'j_gun', 'j_credor']) this.journal.add(k);
+    // ⚠ E O AVISO DE "ANOTADO NO CADERNO" NAO PODE SOBRAR NA TELA.
+    //
+    // Encher o caderno com o que veio dos capitulos anteriores dispara o
+    // aviso de pagina nova, e ele estava vivo no primeiro quadro jogavel:
+    // o capitulo abria com "ANOTADO NO CADERNO" piscando em cima de uma
+    // casa que o jogador ainda nem olhou. Isto foi visto na tela, nao no
+    // teste — o teste nao le aviso.
+    this.journal.toast = 0;
+    this.inv.toast = 0;
+  }
+
+  // Devolve TODOS os setores do Capitulo 4 ao estado "casa". Chamada ao
+  // entrar no capitulo e ao sair dele — os setores sao os mesmos objetos
+  // desde o boot, entao deixar um deles apontando para a ruina contamina a
+  // proxima partida.
+  _devolverCasa() {
+    if (!this.levels) return;
+    for (const key of Object.keys(this.levels)) {
+      const lv = this.levels[key];
+      if (lv && lv.ch4) aplicarEstadoCh4(lv, 'casa');
+    }
+  }
+
   updateChapCard(dt) {
     this.chapT += dt;
-    const cap3 = this.chapNum === 3;
+    const n = this.chapNum;
     gfx.begin('#000');
     const a = clamp(this.chapT - 0.5, 0, 1) * clamp(4.6 - this.chapT, 0, 1);
-    text(gfx.s, T(cap3 ? 'chapter_3' : 'chapter_2'), VW / 2, VH / 2 - 16, {
+    text(gfx.s, T(`chapter_${n}`), VW / 2, VH / 2 - 16, {
       size: 9, font: 'ui', weight: 'bold', color: PAL.uiDim,
       align: 'center', track: 6, alpha: a,
     });
-    text(gfx.s, T(cap3 ? 'chapter_3_name' : 'chapter_2_name'), VW / 2, VH / 2 - 2, {
+    text(gfx.s, T(`chapter_${n}_name`), VW / 2, VH / 2 - 2, {
       size: 20, font: 'serif', color: PAL.uiText, align: 'center', track: 2, alpha: a,
     });
     // o fio vermelho, do mesmo vermelho que so o sangue e o titulo tem
@@ -25337,7 +27626,8 @@ class Game {
     gfx.present(dt);
     if (this.chapT > 5.0) {
       this.state = 'play';
-      this.enterLevel(cap3 ? 'ch3_reception' : 'ch2_corridor', null, 1);
+      const entrada = n === 4 ? 'ch4_rua' : (n === 3 ? 'ch3_reception' : 'ch2_corridor');
+      this.enterLevel(entrada, null, 1);
       this.locCard = 4.5;
       gfx.fade = 1;
       this.transition = { t: 0, phase: 'in', outDur: 0.01, inDur: 1.2, action: null };
@@ -26898,6 +29188,332 @@ class Game {
     }
   }
 
+  // ===================================================================
+  // CAPITULO 4 — "A CASA"
+  // ===================================================================
+
+  // As coisas em que se aperta E. Devolve true quando tratou.
+  doInteractCh4(it) {
+    const p = this.player;
+    switch (it.action) {
+      // ---- a porta da frente, trancada, e a chave acabou com a casa ----
+      case 'ch4_porta_trancada':
+        audio.doorSlam(0.4);
+        gfx.shake(1.2, 0.16);
+        p.sayAll(['b4_trancada_1', 'b4_trancada_2'], true);
+        return true;
+
+      // ---- o radio: toca ate a quarta tragada, e depois so o tom ----
+      case 'ch4_radio':
+        if (this.flags.ch4_radio_mudo) { p.say('b4_radio_mudo', 2.2, true); return true; }
+        this.dialogue.start((LINES[this.cigarro.acesso ? 'c4_radio_ruina' : 'c4_radio_casa'] || [])
+          .map((_, i) => ({ name: null, text: L(this.cigarro.acesso ? 'c4_radio_ruina' : 'c4_radio_casa', i) })));
+        return true;
+
+      // ---- a gaveta da casa: abre, esta cheia, e a mao atravessa ----
+      case 'ch4_gaveta_casa':
+        audio.doorCreak(0.35);
+        p.sayAll(['b4_gaveta_1', 'b4_gaveta_2'], true);
+        return true;
+
+      // ---- ★ A CAIXA DE PAPEIS. E o que ele veio buscar. ----
+      //
+      // ⚠ ISSO ACONTECE NO PRIMEIRO TERCO DO CAPITULO, DE PROPOSITO. Nao
+      // faca o jogador esperar 40 minutos pelo obvio: ele veio buscar um
+      // endereco, acha o endereco, e o capitulo continua por outro motivo —
+      // que e o motivo de verdade.
+      case 'ch4_caixa': {
+        if (this.flags.ch4_endereco) return true;
+        this.flags.ch4_endereco = true;
+        it.disabled = true;
+        it.so = null;
+        audio.pageTurn(1);
+        this.aviso('aviso_ch4_caixa', 0);
+        this.anotar('j4_conta');
+        this.anotar('j4_agenda');
+        this.anotar('j4_laudo');
+        p.sayAll(['b4_caixa_1', 'b4_caixa_2', 'b4_caixa_3'], true);
+        p.say('b4_agenda_1', 2.2);
+        p.say('b4_agenda_2', 2.6);
+        // ⚠ ELE NAO COMEMORA. Le, fecha a agenda e guarda no bolso.
+        p.say('b4_agenda_3', 2.0);
+        p.say('b4_agenda_4', 1.8);
+        p.say('b4_laudo', 2.4);
+        // ⚠ D-12: A ORIGEM CONTINUA INDETERMINADA. Nao responder nunca.
+        p.say('b4_laudo_2', 2.8);
+        // ⚠ E NAO TEM NADA DELA NA CAIXA. De proposito, e o jogador repara.
+        p.say('b4_nada_dela', 3.0);
+        return true;
+      }
+
+      // ---- o armario da casa: roupa dentro. Nada. ----
+      case 'ch4_armario_casa':
+        audio.doorCreak(0.4);
+        p.say('b4_arm_casa', 2.4, true);
+        return true;
+
+      // ---- ★★★ O ARMARIO DA RUINA: as marcas POR DENTRO ----
+      //
+      // ⚠ O QUE ISSO ESTABELECE, e o capitulo nao diz em voz alta em lugar
+      // nenhum: ELA NAO FOI TIRADA DA CAMA DORMINDO. Ela ouviu, se escondeu
+      // e esperou. Estava viva e acordada durante.
+      //
+      // ⚠ E O DAVID NAO CONCLUI ISSO. Ele constata a marca. Quem conclui e
+      // o jogador — e e essa vantagem que segura o jogo em pe.
+      case 'ch4_armario':
+        if (this.flags.ch4_armario) return true;
+        this.flags.ch4_armario = true;
+        this.anotar('j4_armario');
+        audio.thud(0.5);
+        p.sayAll(['b4_arm_1', 'b4_arm_2', 'b4_arm_3', 'b4_arm_4'], true);
+        return true;
+
+      // ---- os desenhos no chao ----
+      case 'ch4_desenhos':
+        if (this.flags.ch4_desenhos) return true;
+        this.flags.ch4_desenhos = true;
+        this.anotar('j4_desenho');
+        // ⚠ E ELE NAO DIZ MAIS NADA. Nao explica, nao se defende, nao pede
+        // desculpa. Sai da fala.
+        p.sayAll(['b4_des_1', 'b4_des_2', 'b4_des_3'], true);
+        return true;
+
+      // ---- ★ O SAPATO NA SOLEIRA ----
+      //
+      // ⚠ NAO ESCREVER MAIS NENHUMA LINHA NESSA CENA. Nenhuma. Ele nao
+      // pega, nao guarda, e fica olhando ate o jogador andar. A tentacao de
+      // explicar aqui e enorme e ela mata a cena.
+      case 'ch4_sapato':
+        if (this.flags.ch4_sapato) return true;
+        this.flags.ch4_sapato = true;
+        this.anotar('j4_sapato');
+        p.sayAll(['b4_sapato_1', 'b4_sapato_2', 'b4_sapato_3'], true);
+        return true;
+
+      // ---- ★ O QUE MORA NA RUINA ----
+      //
+      // ⚠ ELE NAO COMPLETA. NUNCA. Nem no fim do capitulo, nem no 5. Quem
+      // completa e quem esta jogando, e a frase e: ELE VEM AQUI, FAZ SETE
+      // ANOS QUE ELE VEM AQUI, E ELE NAO LEMBRA.
+      case 'ch4_fundos': {
+        if (this.flags.ch4_fundos) return true;
+        this.flags.ch4_fundos = true;
+        this.anotar('j4_fundos');
+        p.sayAll(['b4_fundos_1', 'b4_fundos_2', 'b4_fundos_3'], true);
+        // ⚠ PAGAMENTO DA FLAG DO FIM DO CAPITULO 3 — a primeira escolha do
+        // jogo que muda alguma coisa. Nos dois casos o fato e o mesmo e a
+        // conclusao e a mesma; muda o que o Capitulo 6 pode cobrar dele.
+        // `disse_o_nome` vem do fim do Capitulo 3. Entrando pelo seletor de
+        // capitulo ela nao existe, e cai no ramo de quem NAO disse — que e
+        // a leitura certa: quem pula direto para o 4 nunca respondeu.
+        if (this.flags.disse_o_nome) {
+          p.say('b4_cartaz_nome_1', 2.2);
+          p.say('b4_cartaz_nome_2', 2.6);
+        } else {
+          p.say('b4_cartaz_sem_1', 2.4);
+          p.say('b4_cartaz_sem_2', 2.6);
+        }
+        return true;
+      }
+
+      // ---- o homem de sobretudo ----
+      case 'ch4_homem': {
+        if (this.homem.aceitou) return true;
+        this.homem.aceitou = true;
+        it.disabled = true;
+        p.say('b4_homem_1', 2.4, true);
+        p.say('b4_homem_2', 2.0);
+        p.say('b4_homem_3', 2.2);
+        // ⚠ E A UNICA VEZ NO JOGO EM QUE ALGUMA COISA E DEVOLVIDA A ELE. O
+        // setimo cigarro volta ao maco — e ele nao conta como oitavo.
+        this.cigarro.maco = Math.max(this.cigarro.maco, 1);
+        this.aviso('aviso_ch4_devolve', 0);
+        const agora = this.runId;
+        setTimeout(() => {
+          if (this.state !== 'play' || this.runId !== agora) return;
+          this.homem.sumir();
+          // Quando ele da a volta para ver, nao tem ninguem — so uma guimba
+          // acesa na beirada do degrau.
+          this.player.say('b4_homem_4', 2.8, true);
+        }, 7000);
+        return true;
+      }
+
+      case 'ch4_atender':
+        this.atenderCh4();
+        return true;
+
+      default:
+        return false;
+    }
+  }
+
+  updateCh4(dt, lv) {
+    this.cigarro.update(dt, this);
+    this.figura.update(dt);
+    this.homem.update(dt);
+    this.julie.update(dt);
+    this.telefone.update(dt, this);
+
+    // Ele passou pela sala uma vez: a porta da frente esta destrancada por
+    // dentro daqui em diante. Ver o comentario do softlock em levels-ch4.
+    if (lv.key === 'ch4_sala') this.flags.ch4_entrou = true;
+    if (lv.key === 'ch4_rua') {
+      const naCasa = this.cigarro.estado === 'casa';
+      const aberta = !!this.flags.ch4_entrou;
+      const pf = lv.interactables.find(it => it.id === 'porta_frente');
+      const pa = lv.interactables.find(it => it.id === 'porta_aberta');
+      if (pf) pf.disabled = !naCasa || aberta;
+      if (pa) pa.disabled = !naCasa || !aberta;
+    }
+
+    // ---- A UNICA DICA DO CAPITULO ----
+    //
+    // Ele chega, a porta esta trancada, e nao ha outra entrada. O jogo NAO
+    // sugere nada: o jogador vai abrir o casaco procurando alternativa, e o
+    // maco e o unico item que faz alguma coisa ali. Depois de 90 segundos
+    // parado sem ter acendido nada, e SO entao, ele leva a mao ao bolso e
+    // para no meio do caminho. Nao tem segunda dica.
+    if (lv.key === 'ch4_rua' && this.cigarro.primeira && !this.flags.ch4_dica) {
+      this._ch4DicaT = (this._ch4DicaT || 0) + dt;
+      if (this._ch4DicaT > 90) {
+        this.flags.ch4_dica = true;
+        this.player.say('b4_dica', 2.6, true);
+      }
+    }
+
+    // ---- A JULIE ATRAVESSA A SALA ----
+    //
+    // Uma vez, na casa intacta, e so depois de ele ter andado um pedaco: ela
+    // cruzando no primeiro quadro seria um susto, e ela nao e um susto.
+    if (lv.key === 'ch4_sala' && this.cigarro.estado === 'casa'
+        && !this.julie.jaPassou && this.player.x > 150) {
+      if (this.julie.atravessar(lv)) this.player.say('b4_julie', 2.6, true);
+    }
+
+    // ---- O HOMEM DE SOBRETUDO ----
+    //
+    // So aparece se ele chegar na varanda com o ULTIMO cigarro aceso. E o
+    // maco esta vazio quando ele oferece um — e essa e a piada da cena.
+    if (lv.key === 'ch4_rua') {
+      const podeVer = this.cigarro.acesso && this.cigarro.maco === 0 && !this.homem.aceitou;
+      if (podeVer && !this.homem.visivel && lv.props.varandaX !== undefined) {
+        this.homem.ofereceu = true;
+        this.homem.por('ch4_rua', lv.props.varandaX - 34, 1);
+      } else if (!podeVer && this.homem.visivel) {
+        // Na casa intacta nao ha ninguem no degrau. Nunca houve.
+        this.homem.sumir();
+      }
+      const h = lv.interactables.find(it => it.id === 'homem');
+      if (h) h.disabled = !this.homem.visivel;
+    }
+
+    // ---- O TELEFONE ----
+    //
+    // Com o endereco no bolso, voltar a sala e o fim do capitulo. Ele toca
+    // numa casa sem luz, com o fio derretido ha sete anos.
+    if (lv.key === 'ch4_sala' && this.flags.ch4_endereco && !this.telefone.atendido) {
+      if (this.telefone.comecarATocar(this)) {
+        this.player.say('b4_tel_nada', 2.0, true);
+      }
+      // O aparelho deixa de ser cenario e passa a ser o que se aperta. Os
+      // dois estados tem um telefone, e o que atende e o do estado em que
+      // ele estiver — e e essa escolha que decide o fim.
+      for (const id of ['telefone_casa', 'telefone_ruina']) {
+        const it = lv.interactables.find(i => i.id === id);
+        if (!it) continue;
+        it.action = 'ch4_atender';
+        it.lines = null;
+        it.prompt = 'prompt_use';
+        it.prio = 3;
+      }
+    }
+  }
+
+  // ---- O FIM DO CAPITULO, NAS DUAS VERSOES ----
+  //
+  // ⚠ A MECANICA DECIDE O FIM, e o jogador nao escolhe numa tela de escolha:
+  // ele ja escolheu, fumando ou nao fumando, durante 45 minutos.
+  //
+  //   sobrou cigarro ... atende na cozinha iluminada, SILENCIO absoluto, e
+  //                      vai embora sem saber. A casa atras dele e a ruina,
+  //                      e ele nao olha para tras nenhuma vez.
+  //   maco vazio ....... atende de pe na ruina, com o fone derretido na mao,
+  //                      e ouve uma RESPIRACAO de crianca. Tres segundos.
+  //
+  // Nenhuma das duas e a certa. Uma e o homem se protegendo, a outra e o
+  // homem que olhou.
+  atenderCh4() {
+    if (this.telefone.atendido) return;
+    this.telefone.atendido = true;
+    this.telefone.tocando = false;
+    this.flags.ch4_fim = true;
+    // ⚠ E A VERSAO SAI DA CONTA DO MACO, nao de onde ele esta parado: quem
+    // gastou os sete esta na ruina porque nao tem mais como sair dela.
+    const naRuina = this.cigarro.vazio;
+    this.flags.ch4_final = naRuina ? 'ruina' : 'casa';
+    // ⚠ E SE O MACO ACABOU COM A CASA EM PE, A CASA PARA DE FINGIR AQUI.
+    //
+    // Sem isto o texto e a tela discordavam: a versao B diz que ele atende
+    // de pe na cozinha sem telhado, e o jogador podia estar vendo o abajur
+    // aceso. Ele nao tem mais como voltar para a ruina sozinho — entao ela
+    // vem sozinha, no ultimo momento em que ela ainda pode dizer alguma
+    // coisa. E o David nao comenta a troca, como nao comenta nenhuma.
+    if (naRuina && this.cigarro.estado === 'casa') {
+      this.cigarro.estado = 'ruina';
+      this.cigarro.trans = 1;
+      this.cigarro.transLonga = true;
+      aplicarEstadoCh4(this.level, 'ruina');
+      audio.whoosh(0.4);
+    }
+    const p = this.player;
+    p.controllable = false;
+    p.frozen = true;
+    p.vx = 0;
+    p.det.play('interact', { restart: true });
+    audio.stopAllLoops(1.2);
+    audio.stopMusic(1.4);
+    audio.pararMusicaArquivo(1.4);
+
+    p.say('b4_tel_alo', 2.2, true);
+    p.say('b4_tel_nada', 2.4);
+    const agora = this.runId;
+
+    // ⚠ O QUE A LIGACAO DIZ: NADA. Nenhuma palavra, nenhum nome, nenhuma voz
+    // de mulher — a regra de 10/08 continua de pe, e se sair palavra dali o
+    // Capitulo 6 fica sem ter o que dizer. RESPIRACAO NAO E PALAVRA, e e por
+    // isso que ela pode.
+    if (naRuina) {
+      setTimeout(() => {
+        if (this.state !== 'play' || this.runId !== agora) return;
+        audio.breath(0.85);
+        setTimeout(() => { if (this.runId === agora) audio.breath(0.7); }, 900);
+        setTimeout(() => { if (this.runId === agora) audio.breath(0.55); }, 1700);
+      }, 4200);
+    }
+
+    setTimeout(() => {
+      if (this.state !== 'play' || this.runId !== agora) return;
+      p.say('b4_tel_end_1', 3.0, true);
+      p.say('b4_tel_end_2', 2.2);
+      // E a doze. Ele senta no degrau, quebra o cano, poe dois cartuchos e
+      // fecha. O estalo e a ultima coisa que se ouve antes do preto.
+      setTimeout(() => {
+        if (this.state !== 'play' || this.runId !== agora) return;
+        p.det.play('sitDown', { blend: 0.3 });
+        p.say('b4_doze_1', 1.6, true);
+        p.say('b4_doze_2', 3.2);
+        audio.reloadClick(0.8);
+        setTimeout(() => { if (this.runId === agora) audio.reloadClick(1); }, 700);
+        setTimeout(() => {
+          if (this.state === 'play' && this.runId === agora) {
+            this.fadeTo(() => this.endOfChapter(), 2.6, 0.01);
+          }
+        }, 6400);
+      }, 6000);
+    }, naRuina ? 9000 : 6000);
+  }
+
   updateCh2(dt, lv, prendendo) {
     const p = this.player;
 
@@ -27087,6 +29703,16 @@ class Game {
   }
 
   tiro(x, facing, ang) {
+    // ⚠ TIRO DADO DENTRO DA RUINA ESTRAGA A CASA INTACTA. Cada disparo deixa
+    // uma marca que fica: o radio que emudece e nao volta, uma mancha no
+    // papel de parede. Ele atira no escuro, e quando a casa volta a ficar
+    // boa, ela esta um pouco menos boa. E o David nao comenta nenhuma.
+    //
+    // (nota de design: e a licao do Capitulo 5 sendo ensinada com a mao do
+    //  jogador, um capitulo antes de ela ser cobrada.)
+    if (this.flags.cap4 && this.cigarro.acesso) {
+      this.marcas.registrar(this, x + facing * 90);
+    }
     const oy = this.player.y - 48;
     const ox = x + facing * 20;
     const tan = Math.tan(-ang * Math.PI / 180);
@@ -27560,6 +30186,22 @@ class Game {
       senha: this.ticket.save(),
       presente: this._presente || null,
       interrog: this.interrog.save(),
+      // Capitulo 4: quantos cigarros sobraram, em que estado a casa esta, e
+      // o que a figura ja andou. Sem isto, salvar dentro da ruina e carregar
+      // devolvia a casa em pe com o maco cheio — ou seja, o save DESFAZIA o
+      // puzzle inteiro, que e a unica coisa que este capitulo tem.
+      casa: this.flags && this.flags.cap4 ? {
+        maco: this.cigarro.maco,
+        estado: this.cigarro.estado,
+        t: Math.round(this.cigarro.t * 10) / 10,
+        primeira: this.cigarro.primeira,
+        acesas: this.figura.acesas,
+        passos: this.figura.passos,
+        marcas: this.marcas.lista.map(m => ({ ...m })),
+        radioMudo: this.marcas.radioMudo,
+        julie: this.julie.jaPassou,
+        homem: this.homem.aceitou,
+      } : null,
     };
   }
 
@@ -27647,6 +30289,39 @@ class Game {
       p.det.parts = null;
     }
     if (this.flags.cap3) this.director.ligado = false;
+
+    // ---- Capitulo 4 ----
+    //
+    // Tudo volta ao ponto: quantos cigarros sobraram, se a casa estava em pe
+    // ou em ruina, quanto faltava do cigarro aceso, o que a figura ja andou
+    // e as marcas de tiro. `enterLevel`, mais abaixo, e quem aplica o estado
+    // no setor — por isso aqui e so restaurar os numeros.
+    this.cigarro.reset();
+    this.figura.reset();
+    this.homem.reset();
+    this.julie.reset();
+    this.marcas.reset();
+    this.telefone.reset();
+    this._ch4DicaT = 0;
+    if (this.flags.cap4 && s.casa) {
+      const c = s.casa;
+      this.cigarro.maco = c.maco;
+      this.cigarro.estado = c.estado === 'ruina' ? 'ruina' : 'casa';
+      this.cigarro.t = c.t || 0;
+      this.cigarro.primeira = !!c.primeira;
+      this.figura.acesas = c.acesas || 0;
+      this.figura.passos = c.passos || 0;
+      this.marcas.lista = (c.marcas || []).map(m => ({ ...m }));
+      this.marcas.radioMudo = !!c.radioMudo;
+      this.julie.jaPassou = !!c.julie;
+      this.homem.aceitou = !!c.homem;
+      // ⚠ Um save da ruina com o relogio zerado apagaria o cigarro no
+      // primeiro quadro depois de carregar, e o jogador levaria um susto de
+      // graca. Meio segundo e o minimo para ele entender onde esta.
+      if (this.cigarro.estado === 'ruina' && this.cigarro.t < 0.5) this.cigarro.t = 0.5;
+    } else if (!this.flags.cap4) {
+      this._devolverCasa();
+    }
 
     // O mundo ANTES da fase: entrar num setor lê o estado dele.
     this._aplicarMundo(s.mundo);

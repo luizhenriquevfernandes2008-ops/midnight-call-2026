@@ -366,6 +366,27 @@ export class Player {
 
     if (level) this.x = clamp(this.x, level.minX, level.maxX);
 
+    // ---- PAREDES: vaos bloqueados dentro do setor ----
+    //
+    // `minX`/`maxX` so sabem fechar as duas pontas. O Capitulo 4 precisa de
+    // bloqueio NO MEIO da fase: na ruina o assoalho do corredor e um buraco
+    // de dois metros, e na casa intacta aquele mesmo chao existe. E o que
+    // obriga o jogador a apagar o cigarro de proposito.
+    //
+    // O empurrao e para o lado de onde ele veio: entrar num vao proibido
+    // por um quadro de fisica nao pode teleportar ninguem para o outro
+    // lado do buraco.
+    if (level && level.paredes) {
+      for (const par of level.paredes) {
+        if (this.x > par.x0 && this.x < par.x1) {
+          this.x = this._antesX <= par.x0 ? par.x0 : par.x1;
+          this.vx = 0;
+          break;
+        }
+      }
+    }
+    this._antesX = this.x;
+
     // ---- estados de animacao ----
     if (this.state === 'punch') {
       if (d.done) {

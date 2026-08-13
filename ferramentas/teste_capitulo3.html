@@ -296,7 +296,10 @@ document.getElementById('rodar').onclick = async () => {
     sec('SELETOR DE CAPITULO');
     // =================================================================
     const { ChapterPicker, CHAPTERS } = await import('../js/ui/panels.js');
-    ok('tres capitulos na lista', CHAPTERS.length === 3, String(CHAPTERS.length));
+    // Quatro desde 12/08: o Capitulo 4 entrou na lista. Este numero sobe a
+    // cada capitulo novo, e conferir e o ponto — um capitulo implementado e
+    // que nao aparece no seletor e um capitulo que ninguem consegue abrir.
+    ok('quatro capitulos na lista', CHAPTERS.length === 4, String(CHAPTERS.length));
     ok('todos com nome e descricao traduzidos',
       CHAPTERS.every(c => T(c.nome)[0] !== '[' && T(c.desc)[0] !== '['));
     const cp = new ChapterPicker();

@@ -10,12 +10,18 @@
   Documento de história. Só narrativa — nada de código aqui.
   A parte técnica fica em CHAMADO_DA_MEIA_NOITE.md.
 
-  Última atualização: 12/08/2026 (sessão 30)
+  Última atualização: 12/08/2026 (sessão 31)
+  ⚠ NESTA SESSÃO: O CAPÍTULO 4 ENTROU NO JOGO. Os cinco setores com os dois
+     estados cada, o cigarro na tecla F, a figura que anda quando ele não
+     está olhando, o homem de sobretudo e os dois finais. Dá para entrar por
+     MENU -> CAPITULOS -> 4. FALTA TESTE HUMANO.
+
+  Última atualização anterior: 12/08/2026 (sessão 30)
   ⚠ NESTA SESSÃO: O JOGO PASSOU A TER SEIS CAPÍTULOS, travado pelo Luiz, e
      o CAPÍTULO 4 FOI ESCRITO INTEIRO — ver PARTE XI. Ele não é mais a
      caçada: é A CASA, e a caçada foi pro 5. A mecânica do capítulo é o
      cigarro trocando a casa inteira entre EM PÉ e RUÍNA, sete cigarros no
-     maço, e o fim muda conforme quantos sobraram. Nada foi implementado.
+     maço, e o fim muda conforme quantos sobraram.
 
   Última atualização anterior: 11/08/2026 (sessão 24)
   ⚠ NESTA SESSÃO: A VIRADA — depois do interrogatório o David decide ir
@@ -48,7 +54,9 @@
           O FLASHBACK FOI REESCRITO em 10/08 (sessão 21): outra roupa, o
           quarto da menina, o telefone que se atende de qualquer lugar, e
           A CASA PEGANDO FOGO. Ver a Cena 5 e o IX.0.
-          CAPÍTULO 4 ESCRITO em 12/08 (PARTE XI) — "A CASA". NÃO IMPLEM.
+          CAPÍTULO 4 escrito e IMPLEMENTADO em 12/08 (PARTE XI) — "A CASA":
+          os cinco setores em dois estados, o cigarro, a figura e os dois
+          finais estão no jogo. Falta teste humano.
           O jogo tem SEIS capítulos, travado em 12/08. Ver XI.0.
 
   COMO USAR ESTE ARQUIVO
@@ -3346,9 +3354,21 @@ PARTE X — PERGUNTAS PARA VOCÊ
 PARTE XI — CAPÍTULO 4: "A CASA"
 ===============================================================================
 
-  ESCRITO em 12/08/2026, sessão 30. [NÃO IMPLEM.] — nenhuma linha de código
-  existe ainda. Este documento é a especificação inteira do capítulo.
+  ESCRITO em 12/08/2026, sessão 30, e **IMPLEMENTADO NA MESMA DATA**,
+  sessão 31. [JÁ NO JOGO] — os cinco setores, os dois estados de cada um, o
+  cigarro, a figura, o homem de sobretudo e os dois finais estão no jogo.
+  Dá para entrar direto por MENU -> CAPITULOS -> 4. FALTA TESTE HUMANO.
   DURAÇÃO ALVO: 45 minutos.
+
+  ⚠ TRÊS COISAS MUDARAM NA IMPLEMENTAÇÃO, e estão marcadas onde acontecem:
+     · os SETE SETORES do papel viraram CINCO no jogo — a varanda e os
+       fundos são partes do setor da rua, e o telefone acontece na sala.
+       Nada de conteúdo caiu; o que caiu foi tela de carregamento.
+     · a PORTA DA FRENTE passa a abrir depois que ele entra uma vez. Sem
+       isso, gastar o último cigarro na calçada trancava o jogador do lado
+       de fora para sempre. Ver a Cena 1.
+     · o fim sai da CONTA DO MAÇO e não de onde ele está parado, e a casa
+       cai sozinha se precisar. Ver a Cena 7.
   LOCAL: a casa do David. A mesma do flashback do Capítulo 3, sete anos
          depois.
   CÂMERA: LATERAL, igual ao resto do jogo.
@@ -3651,6 +3671,13 @@ TEMPO:  ~4 min
 
     (entrando)
     "..."
+
+  ⚠ E DEPOIS QUE ELE ENTRAR UMA VEZ, A PORTA DA FRENTE ABRE — pelo lado de
+  fora também. Não é conveniência: é o conserto de um travamento que o teste
+  de regressão encontrou. Sem ela, o setor da rua não tinha saída nenhuma no
+  estado "casa", e quem gastasse o último cigarro na calçada ficava do lado
+  de fora com o capítulo por terminar. A ficção já dava a resposta — a porta
+  abre POR DENTRO sem chave, e a Cena 7 conta com isso.
 
 
 ===============================================================================
@@ -3956,8 +3983,12 @@ TEMPO:  ~4 min
 
   ------- VERSÃO A — SOBROU CIGARRO (a casa está em pé) -------
 
-  Ele atende na cozinha iluminada. Quente. O rádio tocando na sala. Passos
-  no corredor que não são dele.
+  Ele atende na SALA iluminada, ao lado da mesinha. Quente. O rádio
+  tocando na estante. Passos no corredor que não são dele.
+
+  ⚠ CORRIGIDO NA IMPLEMENTAÇÃO (12/08): a Cena 2 põe o telefone na mesinha
+  da sala e diz que ele fica mudo até aqui — e esta cena dizia "cozinha".
+  O aparelho é um só, e ele está na sala.
 
     (no fone)
     "..."
@@ -3982,8 +4013,15 @@ TEMPO:  ~4 min
 
   ------- VERSÃO B — MAÇO VAZIO (ele está na ruína) -------
 
-  Ele atende de pé na cozinha sem telhado, na chuva, com o fone derretido
-  na mão. E atende assim mesmo.
+  Ele atende de pé na sala sem telhado, com o fone derretido na mão. E
+  atende assim mesmo.
+
+  ⚠ E SE O MAÇO ACABOU COM A CASA AINDA EM PÉ, A CASA CAI AQUI. Decidido na
+  implementação: a versão sai da CONTA DO MAÇO, não de onde ele está parado
+  — senão o jogador teria que cronometrar o último cigarro para ver o fim
+  que ele merecia. Com o maço vazio ele não tem mais como voltar à ruína
+  sozinho, então ela vem sozinha, no último instante em que ainda pode dizer
+  alguma coisa. E o David não comenta a troca, como não comenta nenhuma.
 
     (no fone)
     "..."

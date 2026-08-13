@@ -506,6 +506,7 @@ export const CHAPTERS = [
   { n: 1, nome: 'chap1_name', desc: 'chap1_desc' },
   { n: 2, nome: 'chap2_name', desc: 'chap2_desc' },
   { n: 3, nome: 'chap3_name', desc: 'chap3_desc' },
+  { n: 4, nome: 'chap4_name', desc: 'chap4_desc' },
 ];
 
 export class ChapterPicker {

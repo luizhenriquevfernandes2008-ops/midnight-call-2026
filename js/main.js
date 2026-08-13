@@ -20,11 +20,16 @@ import { Rain, Fog, Particles, DustMotes } from './world/fx.js';
 import { buildAlley, buildBar, buildBackroom, buildWarehouse, buildRoad, buildCar } from './world/levels.js';
 import { buildChapter2 } from './world/levels-ch2.js';
 import { buildChapter3 } from './world/levels-ch3.js';
+import { buildChapter4, aplicarEstadoCh4 } from './world/levels-ch4.js';
 import { buildChaseExtension } from './world/levels-chase.js';
 import {
   degrauDoCigarro, usarCigarro, liberarCigarro, TicketBoard,
   entrarFlashback, sairFlashback, NamePrompt, esticarCorredor, Fogo,
 } from './systems/chapter3.js';
+import {
+  Cigarro, Figura, HomemDoSobretudo, Julie, Marcas, Telefone,
+  equiparParaCapitulo4,
+} from './systems/chapter4.js';
 import { Interrogatorio } from './systems/interrogatorio.js';
 import { NoteScene } from './systems/scene-nota.js';
 import { MirrorScene } from './systems/scene-espelho.js';
@@ -134,6 +139,14 @@ class Game {
     await frame();
     Object.assign(this.levels, buildChapter3());
 
+    // O Capitulo 4 e a casa dele — a MESMA do flashback, sete anos depois,
+    // e cada setor e montado DUAS vezes: a casa em pe e a ruina. Os dois
+    // estados existem desde aqui, entao acender um cigarro nao constroi
+    // nada, so aponta o setor para o outro conjunto de camadas.
+    set('levantando a casa...');
+    await frame();
+    Object.assign(this.levels, buildChapter4());
+
     const materiais = {
       ch2_corridor: 'concrete', ch2_office: 'wood', ch2_arquivo: 'concrete',
       ch2_evidence: 'tile', ch2_comms: 'tile', ch2_security: 'metal',
@@ -143,6 +156,11 @@ class Game {
       ch3_reception: 'tile', ch3_plantao: 'wood', ch3_desk: 'wood',
       ch3_archive: 'concrete', ch3_past: 'concrete', ch3_cell: 'concrete',
       ch3_home: 'wood', ch3_room: 'wood',
+      // O Capitulo 4 troca o material junto com o estado (a casa e madeira,
+      // a ruina e concreto queimado), entao aqui fica so o valor de
+      // partida — `aplicarEstadoCh4` manda no resto.
+      ch4_rua: 'concrete', ch4_sala: 'wood', ch4_cozinha: 'wood',
+      ch4_corredor: 'wood', ch4_quarto: 'wood',
     };
     for (const [key, mat] of Object.entries(materiais)) if (this.levels[key]) this.levels[key].material = mat;
 
@@ -213,6 +231,13 @@ class Game {
     this.namePrompt = new NamePrompt();
     this.fogo = new Fogo();
     this.interrog = new Interrogatorio();
+    // ---- Capitulo 4 ----
+    this.cigarro = new Cigarro();
+    this.figura = new Figura();
+    this.homem = new HomemDoSobretudo();
+    this.julie = new Julie();
+    this.marcas = new Marcas();
+    this.telefone = new Telefone();
     // Identidade da partida em curso. Cenas roteirizadas que dependem de
     // `setTimeout` congelam este numero e conferem depois: sem isso, sair
     // para o menu, carregar um save ou trocar de capitulo no meio de uma
@@ -372,6 +397,11 @@ class Game {
     this.runId++;   // invalida qualquer cena roteirizada ainda no relogio
     this.fogo.parar(); this.fogo.reset();
     this.interrog.reset();
+    // O Capitulo 4 deixa a casa em dois estados. Sair para o menu com a
+    // ruina no ar deixaria o setor apontando para as camadas erradas na
+    // proxima partida — inclusive numa partida de OUTRO capitulo, porque
+    // os setores sao os mesmos objetos desde o boot.
+    this._devolverCasa();
     audio.pararMusicaArquivo(0.6);
     this.state = 'menu';
     this.scene = null;
@@ -470,9 +500,15 @@ class Game {
       return;
     }
 
-    // Capitulo 3.
+    if (n === 3) {
+      this.flags.supplies = this.supplies.newRun();
+      this.startChapter3();
+      return;
+    }
+
+    // Capitulo 4.
     this.flags.supplies = this.supplies.newRun();
-    this.startChapter3();
+    this.startChapter4();
   }
 
   // -------------------------------------------------------------------
@@ -540,6 +576,11 @@ class Game {
   enterLevel(key, x, facing, firstTime) {
     const lv = this.levels[key];
     this.level = lv;
+    // ⚠ O ESTADO DO CAPITULO 4 E APLICADO ANTES DO SPAWN, e a ordem importa:
+    // `minX`, `maxX` e as `paredes` sao do estado, e nascer no setor com os
+    // limites do outro poe o jogador dentro de um buraco ou atras de uma
+    // parede que voltou.
+    if (lv.ch4) aplicarEstadoCh4(lv, this.cigarro ? this.cigarro.estado : 'casa');
     const sp = lv.spawn;
     this.player.spawn(x === null || x === undefined ? sp.x : x, facing || sp.facing, lv.groundY);
     this.cam.setBounds(0, lv.width);
@@ -621,6 +662,22 @@ class Game {
         audio.startMusic('delegacia');
       }
     }
+    // ---- MUSICA DO CAPITULO 4 ----
+    //
+    // A casa tem tema; a ruina nao tem. E o mesmo tema da casa do flashback
+    // do Capitulo 3 — quem jogou o 3 reconhece antes de entender —, e ele
+    // MORRE NA FUMACA: acender o cigarro corta a musica, apagar devolve.
+    // Quem cuida disso durante o jogo e `Cigarro._trocar`; aqui e so a
+    // entrada no setor.
+    if (this.flags.cap4) {
+      if (this.cigarro.estado === 'casa' && !this.flags.ch4_fim) {
+        if (audio.tocarMusicaArquivo(0.16)) audio.stopMusic(1.0);
+        else audio.startMusic('casa');
+      } else {
+        audio.pararMusicaArquivo(1.2);
+        audio.stopMusic(1.2);
+      }
+    }
     if (this.chase && this.chase.ativo) {
       audio.startLoop('serra', { gain: 0.035, fade: 0.35 });
       audio.startLoop('static', { gain: 0.014, fade: 0.28 });
@@ -676,11 +733,14 @@ class Game {
     // O Capitulo 3 usa o mesmo caderno e o mesmo casaco. Ele nao usa
     // perseguicao, puzzle, emboscada nem nada de combate.
     const cap3 = lv.key.slice(0, 4) === 'ch3_';
+    // O Capitulo 4 usa o mesmo caderno e o mesmo casaco. Ele TEM arma, e e o
+    // primeiro capitulo em que o casaco esta cheio.
+    const cap4 = lv.key.slice(0, 4) === 'ch4_';
 
     // O caderno e o casaco NAO pausam o jogo. Abrir a mochila no meio do
     // galpao tem que custar alguma coisa: enquanto o casaco esta aberto,
     // ele tapa parte da tela.
-    if ((cap2 || cap3) && !paused && !this.scene && !this.dialogue.active
+    if ((cap2 || cap3 || cap4) && !paused && !this.scene && !this.dialogue.active
       && !this.shiftPuzzle.open && !this.transition && !this.grab && !this.chaseSetpieces.action
       && !this.chaseSequence.action && !this.finishers.action && !this.namePrompt.ativo
       && !this.interrog.ativo) {
@@ -698,10 +758,11 @@ class Game {
         } else this.player.say('map_none', 0, true);
       }
     }
-    if (cap2 || cap3) {
+    if (cap2 || cap3 || cap4) {
       this.journal.update(paused ? 0 : dt);
       this.inv.update(paused ? 0 : dt);
     }
+
     if (cap2) {
       this.shiftPuzzle.update(paused ? 0 : dt);
       this.chaseSetpieces.update(paused ? 0 : dt, this);
@@ -710,6 +771,22 @@ class Game {
     }
     this.mapaFade = clamp((this.mapaFade || 0) + (this.mapaAberto ? dt * 8 : -dt * 9), 0, 1);
     const uiAberta = this.journal.open || this.inv.open || this.mapaAberto || this.shiftPuzzle.open;
+
+    // ---- A TECLA DO CAPITULO 4 ----
+    //
+    // F, a MESMA tecla do isqueiro do Capitulo 2. Isso nao e economia de
+    // tecla, e continuidade: o isqueiro estava no escaninho 214 e voltou
+    // para a mao dele no fim do Capitulo 3.
+    //
+    // Aceso, F joga fora; apagado, F acende. Os dois gastam um cigarro — e
+    // jogar fora e exatamente a animacao de ocio do Capitulo 1, a do "hoje
+    // nao...". O gesto que define o personagem virou um verbo.
+    if (cap4 && !paused && !this.scene && !this.dialogue.active && !this.transition
+      && !uiAberta && this.player.controllable && !this.cigarro.bloqueado
+      && input.pressed('light')) {
+      if (this.cigarro.acesso) this.player.det.play('smoke', { restart: true });
+      this.cigarro.alternar(this);
+    }
 
     if (!paused) {
       lv.update(sim);
@@ -739,6 +816,7 @@ class Game {
       this.player.update(sim, lv, canControl);
       if (cap2) this.updateCh2(sim, lv, prendendo);
       if (this.flags.cap3) this.updateCh3(sim, lv);
+      if (this.flags.cap4) this.updateCh4(sim, lv);
     if (this.avisoT > 0) this.avisoT -= sim;
       // Numa conversa a camera sobe. A caixa de dialogo ocupa o terco de
       // baixo da tela, e sem isso quem esta falando com voce fica escondido
@@ -811,6 +889,16 @@ class Game {
     // Nestes setores o primeiro plano entra ANTES do jogador: os outros
     // continuam atras das barras, e ele passa na frente delas.
     if (lv.playerSobreFore) lv.drawFore(gfx.s, cam);
+    // As aparicoes do Capitulo 4 vao ANTES do jogador, pela mesma regra de
+    // sempre: o personagem do jogador nunca fica escondido atras de nada.
+    if (cap4) {
+      this.figura.draw(gfx.s, cam, lv.groundY, lv.key);
+      this.homem.draw(gfx.s, cam, lv.groundY, lv.key);
+      this.julie.draw(gfx.s, cam, lv.groundY, lv.key);
+      // As marcas de tiro sao desenhadas por cima do cenario e SO na casa
+      // intacta: elas sao o que a ruina deixou na lembranca.
+      this.marcas.draw(gfx.s, cam, lv.key, this.cigarro.estado);
+    }
     this.player.draw(gfx.s, cam);
     if (this.scene) this.scene.draw(gfx.s, cam);
     this.fx.draw(gfx.s, cam.ix, cam.iy);
@@ -913,9 +1001,19 @@ class Game {
     // 🐛 O aviso de "peguei alguma coisa" morava dentro do HUD do Capitulo
     // 2. No 3 ele nunca aparecia: pegar a calibre doze nao dizia nada, e o
     // jogador ficava sem saber se tinha pegado.
-    if (this.flags.cap3 && !this.scene) {
+    if ((this.flags.cap3 || this.flags.cap4) && !this.scene) {
       this.journal.drawToast(gfx.s);
       this.inv.drawToast(gfx.s);
+    }
+    // ---- O CIGARRO ----
+    //
+    // O veu da troca vem DEPOIS da luz e ANTES do texto: ele e cinza caindo
+    // na frente do mundo, nao uma lampada. E a brasa e o unico elemento de
+    // interface que este capitulo acrescenta — ela nao diz quantos sobraram,
+    // so que ESTE esta acabando.
+    if (cap4) {
+      this.cigarro.draw(gfx.s, this);
+      if (!uiAberta && !this.scene) this.cigarro.drawBrasa(gfx.s);
     }
     if (!this.scene) this.drawAviso(gfx.s);
     // O painel de senha e um LED: e desenhado DEPOIS da luz, senao a
@@ -933,7 +1031,7 @@ class Game {
     };
 
     this.dialogue.draw(gfx.s);
-    if (cap2 || this.flags.cap3) {
+    if (cap2 || this.flags.cap3 || this.flags.cap4) {
       this.journal.draw(gfx.s); this.inv.draw(gfx.s); this.drawMapa(gfx.s);
     }
     if (cap2) this.shiftPuzzle.draw(gfx.s);
@@ -1100,6 +1198,7 @@ class Game {
       }, urgente ? 0.12 : 0.28, urgente ? 0.24 : 0.42);
       return;
     }
+    if (this.doInteractCh4(it)) return;
     if (this.doInteractCh2(it)) return;
     if (it.lines) {
       this.flags.examinado = this.flags.examinado || {};
@@ -1321,16 +1420,84 @@ class Game {
     this.resetChapter3();
   }
 
+  // Preto, "CAPITULO QUATRO", e embaixo A CASA.
+  startChapter4() {
+    this.state = 'chapcard';
+    this.chapT = 0;
+    this.chapNum = 4;
+    this.qte = null;
+    this.scene = null;
+    audio.stopAllLoops();
+    audio.stopDread(0.2);
+    this.flags.cap2 = false;
+    this.flags.cap3 = false;
+    this.flags.cap4 = true;
+    this.resetChapter4();
+  }
+
+  resetChapter4() {
+    this.sanity.reset(100);
+    this.sanity.enabled = true;
+    this.journal.reset();
+    this.inv.reset();
+    this.director.reset();
+    this.director.ligado = false;   // nao ha inimigo neste capitulo
+    this.chase.parar();
+    this.namePrompt.ativo = false;
+    this.fogo.parar(); this.fogo.reset();
+    this.interrog.reset();
+    this.cigarro.reset();
+    this.figura.reset();
+    this.homem.reset();
+    this.julie.reset();
+    this.marcas.reset();
+    this.telefone.reset();
+    this._ch4DicaT = 0;
+    this.cigTentativas = 0;
+    this.isqueiroT = 0;
+    this._devolverCasa();
+    // ⚠ Ele ja fuma. O degrau 4 aconteceu na cela, no fim do Capitulo 3 —
+    // sem esta flag o maco continuaria recusando e o capitulo inteiro
+    // ficaria impossivel de jogar.
+    this.flags.cig_livre = true;
+    equiparParaCapitulo4(this);
+    // As anotacoes do 2 e do 3 vem junto: sem elas a deducao do armario
+    // nao teria com o que conversar.
+    for (const k of ['j_phone', 'j_clock', 'j_note', 'j_locked', 'j_vigia',
+                     'j_oper', 'j_conv', 'j_gun', 'j_credor']) this.journal.add(k);
+    // ⚠ E O AVISO DE "ANOTADO NO CADERNO" NAO PODE SOBRAR NA TELA.
+    //
+    // Encher o caderno com o que veio dos capitulos anteriores dispara o
+    // aviso de pagina nova, e ele estava vivo no primeiro quadro jogavel:
+    // o capitulo abria com "ANOTADO NO CADERNO" piscando em cima de uma
+    // casa que o jogador ainda nem olhou. Isto foi visto na tela, nao no
+    // teste — o teste nao le aviso.
+    this.journal.toast = 0;
+    this.inv.toast = 0;
+  }
+
+  // Devolve TODOS os setores do Capitulo 4 ao estado "casa". Chamada ao
+  // entrar no capitulo e ao sair dele — os setores sao os mesmos objetos
+  // desde o boot, entao deixar um deles apontando para a ruina contamina a
+  // proxima partida.
+  _devolverCasa() {
+    if (!this.levels) return;
+    for (const key of Object.keys(this.levels)) {
+      const lv = this.levels[key];
+      if (lv && lv.ch4) aplicarEstadoCh4(lv, 'casa');
+    }
+  }
+
   updateChapCard(dt) {
     this.chapT += dt;
-    const cap3 = this.chapNum === 3;
+    const n = this.chapNum;
     gfx.begin('#000');
     const a = clamp(this.chapT - 0.5, 0, 1) * clamp(4.6 - this.chapT, 0, 1);
-    text(gfx.s, T(cap3 ? 'chapter_3' : 'chapter_2'), VW / 2, VH / 2 - 16, {
+    text(gfx.s, T(`chapter_${n}`), VW / 2, VH / 2 - 16, {
       size: 9, font: 'ui', weight: 'bold', color: PAL.uiDim,
       align: 'center', track: 6, alpha: a,
     });
-    text(gfx.s, T(cap3 ? 'chapter_3_name' : 'chapter_2_name'), VW / 2, VH / 2 - 2, {
+    text(gfx.s, T(`chapter_${n}_name`), VW / 2, VH / 2 - 2, {
       size: 20, font: 'serif', color: PAL.uiText, align: 'center', track: 2, alpha: a,
     });
     // o fio vermelho, do mesmo vermelho que so o sangue e o titulo tem
@@ -1339,7 +1506,8 @@ class Game {
     gfx.present(dt);
     if (this.chapT > 5.0) {
       this.state = 'play';
-      this.enterLevel(cap3 ? 'ch3_reception' : 'ch2_corridor', null, 1);
+      const entrada = n === 4 ? 'ch4_rua' : (n === 3 ? 'ch3_reception' : 'ch2_corridor');
+      this.enterLevel(entrada, null, 1);
       this.locCard = 4.5;
       gfx.fade = 1;
       this.transition = { t: 0, phase: 'in', outDur: 0.01, inDur: 1.2, action: null };
@@ -2900,6 +3068,332 @@ class Game {
     }
   }
 
+  // ===================================================================
+  // CAPITULO 4 — "A CASA"
+  // ===================================================================
+
+  // As coisas em que se aperta E. Devolve true quando tratou.
+  doInteractCh4(it) {
+    const p = this.player;
+    switch (it.action) {
+      // ---- a porta da frente, trancada, e a chave acabou com a casa ----
+      case 'ch4_porta_trancada':
+        audio.doorSlam(0.4);
+        gfx.shake(1.2, 0.16);
+        p.sayAll(['b4_trancada_1', 'b4_trancada_2'], true);
+        return true;
+
+      // ---- o radio: toca ate a quarta tragada, e depois so o tom ----
+      case 'ch4_radio':
+        if (this.flags.ch4_radio_mudo) { p.say('b4_radio_mudo', 2.2, true); return true; }
+        this.dialogue.start((LINES[this.cigarro.acesso ? 'c4_radio_ruina' : 'c4_radio_casa'] || [])
+          .map((_, i) => ({ name: null, text: L(this.cigarro.acesso ? 'c4_radio_ruina' : 'c4_radio_casa', i) })));
+        return true;
+
+      // ---- a gaveta da casa: abre, esta cheia, e a mao atravessa ----
+      case 'ch4_gaveta_casa':
+        audio.doorCreak(0.35);
+        p.sayAll(['b4_gaveta_1', 'b4_gaveta_2'], true);
+        return true;
+
+      // ---- ★ A CAIXA DE PAPEIS. E o que ele veio buscar. ----
+      //
+      // ⚠ ISSO ACONTECE NO PRIMEIRO TERCO DO CAPITULO, DE PROPOSITO. Nao
+      // faca o jogador esperar 40 minutos pelo obvio: ele veio buscar um
+      // endereco, acha o endereco, e o capitulo continua por outro motivo —
+      // que e o motivo de verdade.
+      case 'ch4_caixa': {
+        if (this.flags.ch4_endereco) return true;
+        this.flags.ch4_endereco = true;
+        it.disabled = true;
+        it.so = null;
+        audio.pageTurn(1);
+        this.aviso('aviso_ch4_caixa', 0);
+        this.anotar('j4_conta');
+        this.anotar('j4_agenda');
+        this.anotar('j4_laudo');
+        p.sayAll(['b4_caixa_1', 'b4_caixa_2', 'b4_caixa_3'], true);
+        p.say('b4_agenda_1', 2.2);
+        p.say('b4_agenda_2', 2.6);
+        // ⚠ ELE NAO COMEMORA. Le, fecha a agenda e guarda no bolso.
+        p.say('b4_agenda_3', 2.0);
+        p.say('b4_agenda_4', 1.8);
+        p.say('b4_laudo', 2.4);
+        // ⚠ D-12: A ORIGEM CONTINUA INDETERMINADA. Nao responder nunca.
+        p.say('b4_laudo_2', 2.8);
+        // ⚠ E NAO TEM NADA DELA NA CAIXA. De proposito, e o jogador repara.
+        p.say('b4_nada_dela', 3.0);
+        return true;
+      }
+
+      // ---- o armario da casa: roupa dentro. Nada. ----
+      case 'ch4_armario_casa':
+        audio.doorCreak(0.4);
+        p.say('b4_arm_casa', 2.4, true);
+        return true;
+
+      // ---- ★★★ O ARMARIO DA RUINA: as marcas POR DENTRO ----
+      //
+      // ⚠ O QUE ISSO ESTABELECE, e o capitulo nao diz em voz alta em lugar
+      // nenhum: ELA NAO FOI TIRADA DA CAMA DORMINDO. Ela ouviu, se escondeu
+      // e esperou. Estava viva e acordada durante.
+      //
+      // ⚠ E O DAVID NAO CONCLUI ISSO. Ele constata a marca. Quem conclui e
+      // o jogador — e e essa vantagem que segura o jogo em pe.
+      case 'ch4_armario':
+        if (this.flags.ch4_armario) return true;
+        this.flags.ch4_armario = true;
+        this.anotar('j4_armario');
+        audio.thud(0.5);
+        p.sayAll(['b4_arm_1', 'b4_arm_2', 'b4_arm_3', 'b4_arm_4'], true);
+        return true;
+
+      // ---- os desenhos no chao ----
+      case 'ch4_desenhos':
+        if (this.flags.ch4_desenhos) return true;
+        this.flags.ch4_desenhos = true;
+        this.anotar('j4_desenho');
+        // ⚠ E ELE NAO DIZ MAIS NADA. Nao explica, nao se defende, nao pede
+        // desculpa. Sai da fala.
+        p.sayAll(['b4_des_1', 'b4_des_2', 'b4_des_3'], true);
+        return true;
+
+      // ---- ★ O SAPATO NA SOLEIRA ----
+      //
+      // ⚠ NAO ESCREVER MAIS NENHUMA LINHA NESSA CENA. Nenhuma. Ele nao
+      // pega, nao guarda, e fica olhando ate o jogador andar. A tentacao de
+      // explicar aqui e enorme e ela mata a cena.
+      case 'ch4_sapato':
+        if (this.flags.ch4_sapato) return true;
+        this.flags.ch4_sapato = true;
+        this.anotar('j4_sapato');
+        p.sayAll(['b4_sapato_1', 'b4_sapato_2', 'b4_sapato_3'], true);
+        return true;
+
+      // ---- ★ O QUE MORA NA RUINA ----
+      //
+      // ⚠ ELE NAO COMPLETA. NUNCA. Nem no fim do capitulo, nem no 5. Quem
+      // completa e quem esta jogando, e a frase e: ELE VEM AQUI, FAZ SETE
+      // ANOS QUE ELE VEM AQUI, E ELE NAO LEMBRA.
+      case 'ch4_fundos': {
+        if (this.flags.ch4_fundos) return true;
+        this.flags.ch4_fundos = true;
+        this.anotar('j4_fundos');
+        p.sayAll(['b4_fundos_1', 'b4_fundos_2', 'b4_fundos_3'], true);
+        // ⚠ PAGAMENTO DA FLAG DO FIM DO CAPITULO 3 — a primeira escolha do
+        // jogo que muda alguma coisa. Nos dois casos o fato e o mesmo e a
+        // conclusao e a mesma; muda o que o Capitulo 6 pode cobrar dele.
+        // `disse_o_nome` vem do fim do Capitulo 3. Entrando pelo seletor de
+        // capitulo ela nao existe, e cai no ramo de quem NAO disse — que e
+        // a leitura certa: quem pula direto para o 4 nunca respondeu.
+        if (this.flags.disse_o_nome) {
+          p.say('b4_cartaz_nome_1', 2.2);
+          p.say('b4_cartaz_nome_2', 2.6);
+        } else {
+          p.say('b4_cartaz_sem_1', 2.4);
+          p.say('b4_cartaz_sem_2', 2.6);
+        }
+        return true;
+      }
+
+      // ---- o homem de sobretudo ----
+      case 'ch4_homem': {
+        if (this.homem.aceitou) return true;
+        this.homem.aceitou = true;
+        it.disabled = true;
+        p.say('b4_homem_1', 2.4, true);
+        p.say('b4_homem_2', 2.0);
+        p.say('b4_homem_3', 2.2);
+        // ⚠ E A UNICA VEZ NO JOGO EM QUE ALGUMA COISA E DEVOLVIDA A ELE. O
+        // setimo cigarro volta ao maco — e ele nao conta como oitavo.
+        this.cigarro.maco = Math.max(this.cigarro.maco, 1);
+        this.aviso('aviso_ch4_devolve', 0);
+        const agora = this.runId;
+        setTimeout(() => {
+          if (this.state !== 'play' || this.runId !== agora) return;
+          this.homem.sumir();
+          // Quando ele da a volta para ver, nao tem ninguem — so uma guimba
+          // acesa na beirada do degrau.
+          this.player.say('b4_homem_4', 2.8, true);
+        }, 7000);
+        return true;
+      }
+
+      case 'ch4_atender':
+        this.atenderCh4();
+        return true;
+
+      default:
+        return false;
+    }
+  }
+
+  updateCh4(dt, lv) {
+    this.cigarro.update(dt, this);
+    this.figura.update(dt);
+    this.homem.update(dt);
+    this.julie.update(dt);
+    this.telefone.update(dt, this);
+
+    // Ele passou pela sala uma vez: a porta da frente esta destrancada por
+    // dentro daqui em diante. Ver o comentario do softlock em levels-ch4.
+    if (lv.key === 'ch4_sala') this.flags.ch4_entrou = true;
+    if (lv.key === 'ch4_rua') {
+      const naCasa = this.cigarro.estado === 'casa';
+      const aberta = !!this.flags.ch4_entrou;
+      const pf = lv.interactables.find(it => it.id === 'porta_frente');
+      const pa = lv.interactables.find(it => it.id === 'porta_aberta');
+      if (pf) pf.disabled = !naCasa || aberta;
+      if (pa) pa.disabled = !naCasa || !aberta;
+    }
+
+    // ---- A UNICA DICA DO CAPITULO ----
+    //
+    // Ele chega, a porta esta trancada, e nao ha outra entrada. O jogo NAO
+    // sugere nada: o jogador vai abrir o casaco procurando alternativa, e o
+    // maco e o unico item que faz alguma coisa ali. Depois de 90 segundos
+    // parado sem ter acendido nada, e SO entao, ele leva a mao ao bolso e
+    // para no meio do caminho. Nao tem segunda dica.
+    if (lv.key === 'ch4_rua' && this.cigarro.primeira && !this.flags.ch4_dica) {
+      this._ch4DicaT = (this._ch4DicaT || 0) + dt;
+      if (this._ch4DicaT > 90) {
+        this.flags.ch4_dica = true;
+        this.player.say('b4_dica', 2.6, true);
+      }
+    }
+
+    // ---- A JULIE ATRAVESSA A SALA ----
+    //
+    // Uma vez, na casa intacta, e so depois de ele ter andado um pedaco: ela
+    // cruzando no primeiro quadro seria um susto, e ela nao e um susto.
+    if (lv.key === 'ch4_sala' && this.cigarro.estado === 'casa'
+        && !this.julie.jaPassou && this.player.x > 150) {
+      if (this.julie.atravessar(lv)) this.player.say('b4_julie', 2.6, true);
+    }
+
+    // ---- O HOMEM DE SOBRETUDO ----
+    //
+    // So aparece se ele chegar na varanda com o ULTIMO cigarro aceso. E o
+    // maco esta vazio quando ele oferece um — e essa e a piada da cena.
+    if (lv.key === 'ch4_rua') {
+      const podeVer = this.cigarro.acesso && this.cigarro.maco === 0 && !this.homem.aceitou;
+      if (podeVer && !this.homem.visivel && lv.props.varandaX !== undefined) {
+        this.homem.ofereceu = true;
+        this.homem.por('ch4_rua', lv.props.varandaX - 34, 1);
+      } else if (!podeVer && this.homem.visivel) {
+        // Na casa intacta nao ha ninguem no degrau. Nunca houve.
+        this.homem.sumir();
+      }
+      const h = lv.interactables.find(it => it.id === 'homem');
+      if (h) h.disabled = !this.homem.visivel;
+    }
+
+    // ---- O TELEFONE ----
+    //
+    // Com o endereco no bolso, voltar a sala e o fim do capitulo. Ele toca
+    // numa casa sem luz, com o fio derretido ha sete anos.
+    if (lv.key === 'ch4_sala' && this.flags.ch4_endereco && !this.telefone.atendido) {
+      if (this.telefone.comecarATocar(this)) {
+        this.player.say('b4_tel_nada', 2.0, true);
+      }
+      // O aparelho deixa de ser cenario e passa a ser o que se aperta. Os
+      // dois estados tem um telefone, e o que atende e o do estado em que
+      // ele estiver — e e essa escolha que decide o fim.
+      for (const id of ['telefone_casa', 'telefone_ruina']) {
+        const it = lv.interactables.find(i => i.id === id);
+        if (!it) continue;
+        it.action = 'ch4_atender';
+        it.lines = null;
+        it.prompt = 'prompt_use';
+        it.prio = 3;
+      }
+    }
+  }
+
+  // ---- O FIM DO CAPITULO, NAS DUAS VERSOES ----
+  //
+  // ⚠ A MECANICA DECIDE O FIM, e o jogador nao escolhe numa tela de escolha:
+  // ele ja escolheu, fumando ou nao fumando, durante 45 minutos.
+  //
+  //   sobrou cigarro ... atende na cozinha iluminada, SILENCIO absoluto, e
+  //                      vai embora sem saber. A casa atras dele e a ruina,
+  //                      e ele nao olha para tras nenhuma vez.
+  //   maco vazio ....... atende de pe na ruina, com o fone derretido na mao,
+  //                      e ouve uma RESPIRACAO de crianca. Tres segundos.
+  //
+  // Nenhuma das duas e a certa. Uma e o homem se protegendo, a outra e o
+  // homem que olhou.
+  atenderCh4() {
+    if (this.telefone.atendido) return;
+    this.telefone.atendido = true;
+    this.telefone.tocando = false;
+    this.flags.ch4_fim = true;
+    // ⚠ E A VERSAO SAI DA CONTA DO MACO, nao de onde ele esta parado: quem
+    // gastou os sete esta na ruina porque nao tem mais como sair dela.
+    const naRuina = this.cigarro.vazio;
+    this.flags.ch4_final = naRuina ? 'ruina' : 'casa';
+    // ⚠ E SE O MACO ACABOU COM A CASA EM PE, A CASA PARA DE FINGIR AQUI.
+    //
+    // Sem isto o texto e a tela discordavam: a versao B diz que ele atende
+    // de pe na cozinha sem telhado, e o jogador podia estar vendo o abajur
+    // aceso. Ele nao tem mais como voltar para a ruina sozinho — entao ela
+    // vem sozinha, no ultimo momento em que ela ainda pode dizer alguma
+    // coisa. E o David nao comenta a troca, como nao comenta nenhuma.
+    if (naRuina && this.cigarro.estado === 'casa') {
+      this.cigarro.estado = 'ruina';
+      this.cigarro.trans = 1;
+      this.cigarro.transLonga = true;
+      aplicarEstadoCh4(this.level, 'ruina');
+      audio.whoosh(0.4);
+    }
+    const p = this.player;
+    p.controllable = false;
+    p.frozen = true;
+    p.vx = 0;
+    p.det.play('interact', { restart: true });
+    audio.stopAllLoops(1.2);
+    audio.stopMusic(1.4);
+    audio.pararMusicaArquivo(1.4);
+
+    p.say('b4_tel_alo', 2.2, true);
+    p.say('b4_tel_nada', 2.4);
+    const agora = this.runId;
+
+    // ⚠ O QUE A LIGACAO DIZ: NADA. Nenhuma palavra, nenhum nome, nenhuma voz
+    // de mulher — a regra de 10/08 continua de pe, e se sair palavra dali o
+    // Capitulo 6 fica sem ter o que dizer. RESPIRACAO NAO E PALAVRA, e e por
+    // isso que ela pode.
+    if (naRuina) {
+      setTimeout(() => {
+        if (this.state !== 'play' || this.runId !== agora) return;
+        audio.breath(0.85);
+        setTimeout(() => { if (this.runId === agora) audio.breath(0.7); }, 900);
+        setTimeout(() => { if (this.runId === agora) audio.breath(0.55); }, 1700);
+      }, 4200);
+    }
+
+    setTimeout(() => {
+      if (this.state !== 'play' || this.runId !== agora) return;
+      p.say('b4_tel_end_1', 3.0, true);
+      p.say('b4_tel_end_2', 2.2);
+      // E a doze. Ele senta no degrau, quebra o cano, poe dois cartuchos e
+      // fecha. O estalo e a ultima coisa que se ouve antes do preto.
+      setTimeout(() => {
+        if (this.state !== 'play' || this.runId !== agora) return;
+        p.det.play('sitDown', { blend: 0.3 });
+        p.say('b4_doze_1', 1.6, true);
+        p.say('b4_doze_2', 3.2);
+        audio.reloadClick(0.8);
+        setTimeout(() => { if (this.runId === agora) audio.reloadClick(1); }, 700);
+        setTimeout(() => {
+          if (this.state === 'play' && this.runId === agora) {
+            this.fadeTo(() => this.endOfChapter(), 2.6, 0.01);
+          }
+        }, 6400);
+      }, 6000);
+    }, naRuina ? 9000 : 6000);
+  }
+
   updateCh2(dt, lv, prendendo) {
     const p = this.player;
 
@@ -3089,6 +3583,16 @@ class Game {
   }
 
   tiro(x, facing, ang) {
+    // ⚠ TIRO DADO DENTRO DA RUINA ESTRAGA A CASA INTACTA. Cada disparo deixa
+    // uma marca que fica: o radio que emudece e nao volta, uma mancha no
+    // papel de parede. Ele atira no escuro, e quando a casa volta a ficar
+    // boa, ela esta um pouco menos boa. E o David nao comenta nenhuma.
+    //
+    // (nota de design: e a licao do Capitulo 5 sendo ensinada com a mao do
+    //  jogador, um capitulo antes de ela ser cobrada.)
+    if (this.flags.cap4 && this.cigarro.acesso) {
+      this.marcas.registrar(this, x + facing * 90);
+    }
     const oy = this.player.y - 48;
     const ox = x + facing * 20;
     const tan = Math.tan(-ang * Math.PI / 180);
@@ -3562,6 +4066,22 @@ class Game {
       senha: this.ticket.save(),
       presente: this._presente || null,
       interrog: this.interrog.save(),
+      // Capitulo 4: quantos cigarros sobraram, em que estado a casa esta, e
+      // o que a figura ja andou. Sem isto, salvar dentro da ruina e carregar
+      // devolvia a casa em pe com o maco cheio — ou seja, o save DESFAZIA o
+      // puzzle inteiro, que e a unica coisa que este capitulo tem.
+      casa: this.flags && this.flags.cap4 ? {
+        maco: this.cigarro.maco,
+        estado: this.cigarro.estado,
+        t: Math.round(this.cigarro.t * 10) / 10,
+        primeira: this.cigarro.primeira,
+        acesas: this.figura.acesas,
+        passos: this.figura.passos,
+        marcas: this.marcas.lista.map(m => ({ ...m })),
+        radioMudo: this.marcas.radioMudo,
+        julie: this.julie.jaPassou,
+        homem: this.homem.aceitou,
+      } : null,
     };
   }
 
@@ -3649,6 +4169,39 @@ class Game {
       p.det.parts = null;
     }
     if (this.flags.cap3) this.director.ligado = false;
+
+    // ---- Capitulo 4 ----
+    //
+    // Tudo volta ao ponto: quantos cigarros sobraram, se a casa estava em pe
+    // ou em ruina, quanto faltava do cigarro aceso, o que a figura ja andou
+    // e as marcas de tiro. `enterLevel`, mais abaixo, e quem aplica o estado
+    // no setor — por isso aqui e so restaurar os numeros.
+    this.cigarro.reset();
+    this.figura.reset();
+    this.homem.reset();
+    this.julie.reset();
+    this.marcas.reset();
+    this.telefone.reset();
+    this._ch4DicaT = 0;
+    if (this.flags.cap4 && s.casa) {
+      const c = s.casa;
+      this.cigarro.maco = c.maco;
+      this.cigarro.estado = c.estado === 'ruina' ? 'ruina' : 'casa';
+      this.cigarro.t = c.t || 0;
+      this.cigarro.primeira = !!c.primeira;
+      this.figura.acesas = c.acesas || 0;
+      this.figura.passos = c.passos || 0;
+      this.marcas.lista = (c.marcas || []).map(m => ({ ...m }));
+      this.marcas.radioMudo = !!c.radioMudo;
+      this.julie.jaPassou = !!c.julie;
+      this.homem.aceitou = !!c.homem;
+      // ⚠ Um save da ruina com o relogio zerado apagaria o cigarro no
+      // primeiro quadro depois de carregar, e o jogador levaria um susto de
+      // graca. Meio segundo e o minimo para ele entender onde esta.
+      if (this.cigarro.estado === 'ruina' && this.cigarro.t < 0.5) this.cigarro.t = 0.5;
+    } else if (!this.flags.cap4) {
+      this._devolverCasa();
+    }
 
     // O mundo ANTES da fase: entrar num setor lê o estado dele.
     this._aplicarMundo(s.mundo);

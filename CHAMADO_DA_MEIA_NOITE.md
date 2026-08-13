@@ -41,6 +41,247 @@
 
 ---
 
+## SESSÃO 31 — 12/08/2026 · Claude · a demo virou produto, e foi publicada
+
+⚠ **Nenhum arquivo de `js/` foi tocado nesta sessão.** Havia trabalho em
+andamento do Capítulo 4 na pasta (`chapter4.js` e `levels-ch4.js` novos, mais
+quatro arquivos modificados, o último salvo às 21:48). Tudo o que segue
+aconteceu **fora** do projeto, em `DEMOS/midnight-call-demo/`.
+
+**A demo está no ar:**
+https://github.com/luizhenriquevfernandes2008-ops/midnight-call-demo
+
+### 1. As perguntas do Luiz, respondidas com medição
+
+> *"só preciso enviar o executável e nada mais? qualquer um pode abrir mesmo
+> sem ter Java, Python e tals?"*
+
+**Sim, um arquivo só.** E a lista de dependências foi verificada, não
+afirmada:
+
+| | |
+|---|---|
+| Python | dentro do `.exe` |
+| Java | nunca foi usado |
+| .NET Framework 4.x | parte do Windows desde 2019 (aqui: 4.8) |
+| WebView2 | vem no Win10/11 — **e se faltar, o jogo abre no navegador** |
+| | Windows 10 ou 11, **64 bits** |
+
+O caminho do navegador foi **testado de verdade** (`TMC_SEM_JANELA=1`):
+servidor de pé, HTTP 200, jogo servido.
+
+> 🐛 **E ele estava quebrado.** A versão anterior abria o navegador e dava
+> `input()` num programa **sem console**: a leitura falhava, caía num
+> `Event().wait()` e o processo ficava vivo **para sempre**. Quem fechasse a
+> aba ficava com um jogo rodando invisível, sem janela, só matável pelo
+> Gerenciador de Tarefas — numa máquina que já estava sem WebView2, ou seja,
+> no pior dia possível do jogador. Agora a caixa de aviso **é** o botão de
+> sair: trava ali, segura o servidor, e ao clicar OK fecha tudo.
+
+### 2. O que faz parecer jogo comprado
+
+- **Ficha do executável.** Propriedades → Detalhes mostra `The Midnight
+  Call`, `Demo 1.0`, `© 2026 Luiz Fernandes`. Sem isso os campos ficam
+  vazios, e nada denuncia mais rápido que a coisa foi empacotada às pressas.
+- **Um nome só.** O executável era `Chamado da Meia-Noite.exe` enquanto a
+  janela e a tela de título diziam `THE MIDNIGHT CALL`.
+- **A saída arrumada.** `dist/onefile/` e `dist/onedir/` são nomes de
+  ferramenta; viraram `The Midnight Call.exe` e `The Midnight Call - Demo.zip`
+  na raiz, com o cru em `_bruto/`.
+- **`COMO JOGAR.txt`** dentro da pasta: controles, requisitos e o aviso do
+  SmartScreen.
+
+### 3. 🔴 O que eu achei olhando, e não foi pedido
+
+**O menu de título da demo mostrava `ARENA DE COMBATE` e `SALA DE TESTE`** —
+duas salas de desenvolvimento — e o rodapé dizia `VERSAO DE TESTE 0.1 —
+FATIA JOGAVEL`. Nada disso quebra o jogo; tudo isso denuncia que ele não foi
+terminado, e uma demo é justamente a promessa de que vai ser.
+
+O `construir.py` aplica dois patches **na cópia** (nunca no projeto — havia
+gente trabalhando nele): tira as duas entradas e troca o rodapé por
+`DEMO 1.0 — CAPITULOS 1 A 3`. Os dois **explodem o build** se não acharem o
+trecho esperado: patch por texto envelhece mal, e uma substituição que falha
+em silêncio mandaria a sala de teste junto com a demo.
+
+### 4. 🔥 O susto: o build saía da pasta de trabalho
+
+Enquanto eu empacotava, **outra frente estava implementando o Capítulo 4 nos
+mesmos arquivos** — o último salvo três minutos depois de o build começar. O
+pacote pegou o estado estável **por sorte**.
+
+Agora ele sai de um **commit** (`git archive`), e diz o que ficou de fora:
+
+```
+fonte: commit 3f683c3 Capitulo 4 escrito: a casa, o cigarro e a ruina
+  (8 arquivo(s) modificado(s) no disco FICARAM DE FORA)
+```
+
+### 5. 🐛 E o build achava o jogo errado
+
+O caminho do projeto era absoluto e escrito na mão — quebrou no dia em que as
+pastas foram reorganizadas. A busca que entrou no lugar aceitava *"qualquer
+pasta com `index.html` e `js/main.js`"*, e isso acertou o alvo errado **duas
+vezes**:
+
+1. pegou uma **cópia velha** do próprio jogo, sem as correções — o build saiu
+   inteiro e só quebrou na verificação;
+2. e havia **outro jogo** na árvore (DUNGEON GOLD) com a mesma forma.
+   Empacotar o jogo errado passa despercebido até alguém abrir o `.exe`.
+
+**Forma não identifica nada.** A checagem agora procura o nome do jogo dentro
+do `index.html` e o documento mestre — identidade. E quando acha mais de uma
+cópia, lista as outras em vez de escolher em silêncio.
+
+### Verificação
+
+- `verificar.py` roda contra o **bundle empacotado** e mede efeito: 33 fases,
+  `waitkey`, e a tela cheia indo **1264x681 → 1920x1080 → 1264x681** chamando
+  as funções do próprio menu.
+- O `.exe` publicado foi **baixado do GitHub e comparado por hash** com o que
+  eu testei: `B28B50D4…` nos dois. O que está no ar é o que passou.
+
+### O que ficou no ar
+
+| | |
+|---|---|
+| Repositório | `midnight-call-demo`, **público** |
+| Release | `v1.0-demo`, com o `.exe` (16,7 MB) e o `.zip` |
+| Conteúdo | Capítulos 1 a 3. O 4 não entrou — está escrito e não implementado |
+
+> ⚠ **Continua sendo teste humano:** apertar F11 e ENTER com o dedo, e mandar
+> para **uma** pessoa antes de mandar para várias — é a única forma de saber o
+> que o SmartScreen e o antivírus dela vão dizer.
+
+---
+
+## SESSÃO 31 — 12/08/2026 · Claude · o Capítulo 4 entrou no jogo
+
+O que a sessão 30 escreveu, esta implementou. **Dá para entrar por MENU →
+CAPÍTULOS → 4 e jogar do começo ao fim.**
+
+### 1. 🔥 Os cinco setores, e cada um montado **duas vezes**
+
+`js/world/levels-ch4.js` (~1.100 linhas). Os sete setores do papel viraram
+**cinco no jogo** — a varanda e os fundos são partes do setor da rua, e o
+telefone acontece na sala. Nada de conteúdo caiu; o que caiu foi tela de
+carregamento no meio de uma casa que tem 40 metros.
+
+| Setor | Largura | O que tem |
+|---|---|---|
+| `ch4_rua` | 1150 | a fachada, a varanda, o sapato, os fundos, o homem |
+| `ch4_sala` | 820 | a Julie, o rádio, o retrato, **o telefone** |
+| `ch4_cozinha` | 620 | a gaveta, e a **caixa de papéis** |
+| `ch4_corredor` | 520 | **o buraco**, e a figura |
+| `ch4_quarto` | 560 | a cama feita, os desenhos, **o armário** |
+
+Cada um carrega os **dois estados prontos desde o boot** em `lv.ch4.casa` e
+`lv.ch4.ruina`: camadas, luzes, ambiente, material, som e paredes. Acender um
+cigarro **não constrói nada** — `aplicarEstadoCh4()` aponta o setor para o
+outro conjunto. A troca custa o mesmo que trocar de sala.
+
+### 2. A mecânica, e a tecla é o `F` de sempre
+
+`js/systems/chapter4.js`. `Cigarro` guarda o maço, o relógio de 40s e a
+troca; `Figura`, `HomemDoSobretudo` e `Julie` são silhuetas do rig do
+detetive; `Marcas` são os tiros; `Telefone` é o fim.
+
+- **`F` acende; `F` de novo joga fora.** Os dois gastam um cigarro, e jogar
+  fora é a animação de ócio do Capítulo 1 — a do *"hoje não..."*. **O gesto
+  que define o personagem desde a primeira tela do jogo virou um verbo, e a
+  animação já existia.**
+- **Sete no maço, sem contador na tela.** Para saber quantos sobraram ele
+  abre o casaco e olha.
+- **A ruína cobra sanidade** enquanto ele está nela; a casa não devolve, ela
+  só não cobra.
+- **A figura só se mexe enquanto ele não está fumando.** Sem IA nenhuma: é
+  uma posição que anda quando o estado troca.
+
+### 3. 🐛 Um softlock, e foi o teste que achou
+
+**O setor da rua não tinha saída nenhuma no estado "casa".** A porta da
+frente está trancada de propósito, e a única entrada é a parede caída — que
+só existe na ruína. Quem gastasse o último cigarro na calçada ficava **do
+lado de fora para sempre**, com o capítulo por terminar.
+
+A ficção já tinha a resposta: a porta abre **por dentro** sem chave, e o fim
+do capítulo conta com isso. Então **depois que ele entra uma vez, ela abre
+pelo lado de fora também**.
+
+### 4. 🐛 O relógio do cigarro desfazia a cena final
+
+O fim da versão B derruba a casa para a ruína de propósito. Só que o relógio
+— zerado — achava que o cigarro tinha acabado e devolvia a casa em pé no
+quadro seguinte: **o jogador ouvia a respiração de criança com o abajur
+aceso**. Depois que ele atende, o relógio para.
+
+### 5. 🔍 M-20 — a ruína passou no teste e estava **preta**
+
+O erro M-04 pela terceira vez no projeto, e desta vez com um agravante: **o
+teste passava.** Ele conta lâmpadas, não enxerga. Foi preciso tirar captura
+de tela para ver que a primeira versão da ruína era uma tela preta com um
+boneco no meio.
+
+Duas causas, e a segunda é de composição, não de luz:
+
+1. ambiente `#141c26` e preenchimento 0.16 — números de sala escura, não de
+   sala sem telhado;
+2. **o topo da tela era parede.** Numa casa sem telhado, o terço de cima
+   tem que ser **céu**. `paredeDescascada` começava em y=20; agora começa em
+   y=92, e acima dela entra o céu com as pontas dos caibros e um fio de luz
+   na linha do telhado.
+
+Agora a ruína é escura e **legível** — que é o que o capítulo precisa, porque
+tudo o que ele tem de verdade para contar está do lado destruído.
+
+### 6. 🐛 O aviso do caderno vazava no primeiro quadro
+
+Encher o caderno com o que veio dos capítulos anteriores dispara o aviso de
+página nova, e ele estava vivo quando o capítulo abria: *"ANOTADO NO
+CADERNO"* piscando em cima de uma casa que o jogador ainda não olhou.
+Também foi visto na tela, não no teste.
+
+### 7. Salvar dentro da ruína
+
+Salvar na ruína e carregar devolvia **a casa em pé com o maço cheio** — ou
+seja, o save **desfazia o puzzle inteiro**, que é a única coisa que este
+capítulo tem. Agora o save leva o maço, o estado, o que resta do cigarro
+aceso, o que a figura já andou e as marcas de tiro.
+
+### Verificação
+
+**`ferramentas/teste_capitulo4.html` — 266 checagens, todas verdes**, e
+verdes **também dentro do `JOGO_OFFLINE.html`**, não só nos módulos. Cobre os
+cinco setores, os dois estados de cada um (camadas diferentes, luz nos dois,
+regra numérica de luz nos dois), toda porta nos dois estados, a economia do
+maço, o buraco do corredor nos dois sentidos, a troca em cima do buraco, os
+quatro obrigatórios, a caixa, os dois finais, a figura andando, o save/load
+e o softlock da calçada.
+
+**E uma trava de escrita virou teste:** nenhuma fala `c4_` e nenhuma página
+`j4_` pode conter as palavras *lembrança, memória, alucinação* ou *sonho*. O
+capítulo inteiro existe para não explicar a casa; agora o teste segura isso.
+
+**As regressões anteriores continuam passando:** Capítulo 2 completo,
+Capítulo 3 (1117 checagens — uma asserção atualizada, "três capítulos na
+lista" virou quatro), dedução (628) e save de itens.
+
+**`JOGO_OFFLINE.html` regenerado: 43 módulos, 1222 KB.**
+
+### O que isto NÃO é
+
+**Teste humano.** Vale o M-06 de sempre, e vale dobrado aqui:
+
+- **40 segundos de cigarro é um chute de papel** (D-15). Curto demais vira
+  corrida contra o relógio; longo demais tira a tensão. É o primeiro número
+  a mexer.
+- **A ruína pode continuar escura demais** mesmo depois da correção. Isso se
+  decide olhando, e eu só olhei em captura estática.
+- **Ninguém jogou os 45 minutos seguidos.** O que o teste diz é que a cadeia
+  encadeia, não que o ritmo funciona.
+
+---
+
 ## SESSÃO 30 — 12/08/2026 · Claude · o jogo tem seis capítulos, e o quatro foi escrito
 
 **Nenhuma linha de código foi alterada.** Sessão de escrita e de decisão de
@@ -1596,7 +1837,7 @@ efeito.
 | **Idiomas** | 🇧🇷 PT-BR e 🇬🇧 EN, com seletor no menu |
 | **Repositório** | `github.com/luizhenriquevfernandes2008-ops/midnight-call-2026` (público) |
 | **Início** | 03/08/2026 |
-| **Status** | 🟡 Sessão 30 — **Capítulos 1, 2 e 3 jogáveis do início ao fim.** Capítulo 4 **escrito e não implementado**. O jogo tem **6 capítulos**, travado em 12/08 |
+| **Status** | 🟡 Sessão 31 — **Capítulos 1, 2, 3 e 4 jogáveis do início ao fim.** Nada do 4 passou por teste humano. O jogo tem **6 capítulos**, travado em 12/08 |
 
 ### Pitch
 
@@ -2228,7 +2469,7 @@ salva texto diferente**.
 | Item | Nota |
 |---|---|
 | Sobrenome do David | ✅ **HENRY**, travado em 07/08 |
-| **Capítulo 4 — "A CASA"** | **Escrito inteiro em 12/08** (`ROTEIRO.txt`, PARTE XI) e **nada implementado**. Precisa: o relógio do cigarro, os dois estados da mesma casa, a figura que anda na troca, as marcas de tiro permanentes, e o desenho da ruína por cima da geometria que já existe em `levels-ch3.js` |
+| Capítulo 4 — "A CASA" | ✅ **Escrito e implementado em 12/08** (sessões 30 e 31). Falta teste humano |
 | Capítulos 5 e 6 | Decididos em 12/08 (a caçada e o presente), **não escritos** |
 | Música original | Só o piano do menu existe |
 | Dublagem | Nenhuma além da narração |
@@ -2329,6 +2570,10 @@ salva texto diferente**.
 
 ### 12.3 — 🔍 Erros de método (meus, registrados para não repetir)
 
+| # | Erro | Sessão | Lição |
+|---|---|---|---|
+| **M-20** | **Dei a ruína do Capítulo 4 por pronta porque o teste passou — e ela estava PRETA na tela.** O teste conta lâmpadas; ele não enxerga. Só apareceu na captura de tela | 31 | **Teste verde não é a mesma coisa que tela legível.** Cenário novo se confere OLHANDO, sempre — e é a terceira vez que o M-04 volta com outra roupa |
+
 | ID | O que aconteceu |
 |---|---|
 | M-01 | **Afirmei que o áudio era o meu roteiro provisório** citando duas fronteiras com erro 0,00s. Aquelas duas eram zero **por construção** — a primeira e a última fronteira de um mapeamento acumulado sempre coincidem. O erro médio real era 0,94s contra ~1,8s de um chute aleatório. Não era prova, e apresentei como se fosse |
@@ -2414,7 +2659,30 @@ salva texto diferente**.
 
 ## 14. ROADMAP — O QUE VEM AGORA
 
-### 📌 PRÓXIMO PASSO (sessão 30): **decidir por onde o Capítulo 4 começa a existir**
+### 📌 PRÓXIMO PASSO (sessão 31): **jogar o Capítulo 4 inteiro, com as mãos**
+
+> Ele está no jogo e passa em 266 checagens. O que o script não sabe:
+>
+> 1. **40 segundos de cigarro é o tempo certo?** É o número que eu chutei no
+>    papel e o único que muda o capítulo inteiro. Curto demais vira corrida;
+>    longo demais tira a tensão. **Só se decide com o dedo no F.**
+> 2. **A ruína dá pra enxergar?** Eu corrigi olhando captura estática, que
+>    não é a mesma coisa que jogar. Marca de unha, sapato e cartaz precisam
+>    ser legíveis lá dentro.
+> 3. **O tutorial se explica sozinho?** Chegar, achar a porta trancada e
+>    descobrir o cigarro sem dica nenhuma é a aposta do capítulo. A única
+>    dica só aparece depois de 90 segundos parado.
+> 4. **A troca casa↔ruína é boa de sentir?** Ela é instantânea com um véu de
+>    cinza. Se ficar seca, é aí que mexe.
+> 5. **O corredor ensina que dá pra apagar de propósito?** É o único lugar
+>    que exige o contrário de tudo o mais.
+> 6. **E os dois finais.** Jogue uma vez economizando e uma vez abrindo
+>    tudo — são cenas diferentes.
+>
+> ⚠ E continua de pé: **o Capítulo 3 nunca foi jogado inteiro por mão
+> humana** depois das sessões 24 a 26.
+
+### 📌 PASSO ANTERIOR (sessão 30): **decidir por onde o Capítulo 4 começa a existir**
 
 > O capítulo está escrito inteiro (`ROTEIRO.txt`, PARTE XI) e **não tem uma
 > linha de código**. Duas ordens possíveis, e a escolha é sua:
